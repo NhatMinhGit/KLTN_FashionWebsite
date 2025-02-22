@@ -3,10 +3,6 @@ package org.example.fashion_web.backend.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
-@Data
-@NoArgsConstructor @AllArgsConstructor
 @Entity
 @Table(name = "User")
 public class User {
@@ -24,7 +20,7 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "role", nullable = false)
+    @Column(name = "role")
     private String role;
 
     @Column(name = "phone_number", length = 15)
@@ -32,6 +28,19 @@ public class User {
 
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;
+
+    public User(){
+        super();
+    }
+
+    public User(String address, String phoneNumber, String role, String password, String email, String name) {
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.role = role;
+        this.password = password;
+        this.email = email;
+        this.name = name;
+    }
 
     public String getName() {
         return name;
