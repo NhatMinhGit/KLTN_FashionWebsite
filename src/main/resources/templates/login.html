@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <title>Đăng Nhập</title>
+  <style>
+    body {
+        background-color: #f8f9fa;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .login-box {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        text-align: center;
+    }
+
+    .social-login {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .social-btn {
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid #ddd;
+    }
+
+    .text-divider {
+            display: flex;
+            align-items: center;
+            /* Căn giữa theo chiều dọc */
+            text-align: center;
+            position: relative;
+            width: 100%;
+            /* Độ rộng của div */
+            font-size: 16px;
+            /* Điều chỉnh kích thước font theo ý muốn */
+            color: #333;
+        }
+
+        .text-divider::before,
+        .text-divider::after {
+            content: "";
+            flex: 1;
+            /* Giúp các line mở rộng ra hai bên */
+            height: 1px;
+            /* Độ dày của line */
+            background-color: #ccc;
+            /* Màu của line */
+            margin: 0 10px;
+            /* Khoảng cách giữa text và line */
+        }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border: none;
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    .forgot-password {
+        font-size: 14px;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+
+
+    .register-link {
+        font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="login-container">
+  <div class="login-box">
+    <h3 class="fw-bold my-4">ĐĂNG NHẬP</h3>
+    <p>Bạn chưa có tài khoản? <a th:href="@{/registration}" class="text-primary">Đăng ký</a></p>
+
+    <div class="social-login">
+      <button class="social-btn"><i class="fab fa-facebook-f text-primary"></i></button>
+      <button class="social-btn"><i class="fab fa-google text-danger"></i></button>
+    </div>
+
+    <p class="text-divider">or login with email</p>
+
+    <form th:action="@{/login}" method="post">
+      <div class="mb-3 text-start">
+        <label for="username" class="form-label ">Email</label>
+        <input type="email" class="form-control" name="username" id="username" required>
+      </div>
+      <div class="mb-3 text-start">
+        <label for="password" class="form-label">Mật khẩu</label>
+        <div class=" position-relative ">
+          <input type="password" class="form-control" id="password" name="password" required>
+          <span class="toggle-password" onclick="togglePassword()">👁</span>
+        </div>
+
+      </div>
+      <a th:href="@{/forgot-password}" class="forgot-password">Quên mật khẩu?</a>
+      <button type="submit" class="btn btn-primary mt-3">Đăng nhập</button>
+    </form>
+    <div class="message" th:if="${param.error}">
+      Invalid Username or Password
+    </div>
+    <div class="message" th:if="${param.logout}">
+      Logout Successfully
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePassword() {
+      var passwordInput = document.getElementById("password");
+      passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+  }
+</script>
+</body>
+
+</html>
