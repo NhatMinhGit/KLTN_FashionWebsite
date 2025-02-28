@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tài khoản khách hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="bg-dark text-white p-3" id="sidebar-wrapper" style="width: 250px; height: 100vh;">
+        <h2 class="text-center">Admin</h2>
+        <ul class="list-unstyled">
+            <li class="my-3"><a th:ref="@{/account-management}" class="text-white text-decoration-none"><i class="fas fa-box"></i> Sản
+                phẩm</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-list"></i> Danh
+                mục</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-tags"></i> Khuyến
+                mãi</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-users"></i> Người
+                dùng</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i
+                    class="fas fa-shopping-cart"></i> Đơn
+                hàng</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i>
+                Thống kê</a>
+            </li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-comments"></i>
+                Chatbot</a></li>
+        </ul>
+    </div>
+    <!-- Content -->
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Quản lý tài khoản khách hàng</h1>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
+                <span sec:authorize="isAuthenticated">
+                    <a class="text-decoration-none text-dark cursor-pointer btn btn-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </span>
+            </div>
+        </div>
+        <!-- Thanh tìm kiếm -->
+        <div class="mb-3 d-flex">
+            <input type="text" id="searchInput" class="form-control me-2"
+                   placeholder="Tìm kiếm tài khoản khách hàng...">
+            <button class="btn btn-primary" onclick="searchUser()">Tìm kiếm</button>
+        </div>
+        <!-- Bảng danh sách tài khoản khách hàng -->
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal"><i
+                class="fas fa-user-plus"></i> Thêm tài khoản</button>
+        <table class="table table-bordered" id="userTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Vai trò</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>1</td>
+                <td>Nguyễn Văn A</td>
+                <td>nguyenvana@example.com</td>
+                <td>0123456789</td>
+                <td>Hà Nội</td>
+                <td>Khách hàng</td>
+                <td>
+                    <button class="btn btn-warning btn-sm">Sửa</button>
+                    <button class="btn btn-success btn-sm">Khôi phục</button>
+                    <button class="btn btn-danger btn-sm">Chặn</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal thêm tài khoản -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Thêm tài khoản khách hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Tên</label>
+                        <input type="text" class="form-control" id="name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-control" id="password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-control" id="address">
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Vai trò</label>
+                        <select class="form-control" id="role">
+                            <option value="customer">Khách hàng</option>
+                            <option value="admin">Quản trị viên</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
