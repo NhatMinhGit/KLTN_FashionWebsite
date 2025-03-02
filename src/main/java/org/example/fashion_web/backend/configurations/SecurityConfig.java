@@ -35,9 +35,11 @@ public class SecurityConfig {
 
         http.csrf(c -> c.disable())
 
-                .authorizeHttpRequests(request -> request.requestMatchers("/admin-page")
-                        .hasAuthority("ADMIN").requestMatchers("/user-page").hasAuthority("USER")
-                        .requestMatchers("/registration").permitAll()
+                .authorizeHttpRequests(request -> request
+                                .requestMatchers("/admin-page").hasAuthority("ADMIN")
+                                .requestMatchers("/products").hasAuthority("ADMIN")  // Chỉ Admin được truy cập
+                                .requestMatchers("/user-page").hasAuthority("USER")
+                                .requestMatchers("/registration").permitAll()
                         .anyRequest().authenticated())
 
                 .formLogin(form -> form.loginPage("/login").loginProcessingUrl("/login")
@@ -54,6 +56,7 @@ public class SecurityConfig {
     @Autowired
     public void configure (AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
+
     }
 
 }

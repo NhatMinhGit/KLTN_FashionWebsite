@@ -9,8 +9,9 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(name = "OrderItem")
+@Table(name = "OrderItems")
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_item_id")
@@ -18,7 +19,7 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Orders order;
+    private Order order;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
@@ -27,6 +28,6 @@ public class OrderItem {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "price_per_unit", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price_per_unit", precision = 10, scale = 2, nullable = false)
     private BigDecimal pricePerUnit;
 }

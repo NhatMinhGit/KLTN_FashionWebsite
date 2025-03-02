@@ -10,10 +10,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class VoucherDto {
     private Long voucherId;
-    private Long orderId;
-    private String title;
-    private BigDecimal saleAmount;
-    private String note;
-    private LocalDateTime fromDate;
-    private LocalDateTime toDate;
+    private String voucherCode;
+    private String voucherName;
+    private String discountType;
+    private BigDecimal discountValue;
+    private BigDecimal minOrderValue;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private int usageLimit;
 }
