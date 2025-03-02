@@ -6,14 +6,9 @@ public class UserDto {
     private String email;
     private String role;
     private String password;
-    private String phoneNumber;
-    private String address;
 
-    public UserDto(String address, String phoneNumber, String role, String password, String email, String name) {
-        super();
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
+    public UserDto(String role, String password, String email, String name) {
+        this.role = "USER";
         this.password = password;
         this.email = email;
         this.name = name;
@@ -35,14 +30,6 @@ public class UserDto {
         this.password = password;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
     public String getRole() {
         return role;
     }
@@ -59,11 +46,4 @@ public class UserDto {
         this.email = email;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
 }

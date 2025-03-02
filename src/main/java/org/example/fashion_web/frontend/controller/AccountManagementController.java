@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.security.Principal;
 
 @Controller
-@RequestMapping("admin/account")
+
 public class AccountManagementController {
 
     @Autowired
     private UserDetailsService userDetailsService; // Inject UserDetailsService
 
-    @GetMapping
+    @RequestMapping("admin/account")
     public String accountIndex(Model model, Principal principal) {
         if (principal != null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
@@ -29,5 +29,10 @@ public class AccountManagementController {
             }
         }
         return "account/index";
+    }
+
+    @RequestMapping("admin/add-account")
+    public String add() {
+        return "account/add";
     }
 }
