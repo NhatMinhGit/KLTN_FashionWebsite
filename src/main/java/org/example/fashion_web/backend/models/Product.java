@@ -9,14 +9,23 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(name = "Product")
+@Table(name = "Products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
@@ -27,8 +36,4 @@ public class Product {
 
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
 }

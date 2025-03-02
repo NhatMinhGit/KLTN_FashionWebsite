@@ -1,96 +1,144 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang chủ</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../templates/css/TrangChu.css">
-    <link rel="stylesheet" href="../templates/css/styles.css">
+    <title>MNT Fashion Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <header class="header">
-        <a href="">
-            <img src="../templates/pics/logo.webp" alt="">
-        </a>
+<header class="bg-light py-3 text-center">
+    <h1>MNT Fashion Shop</h1>
+</header>
 
-        <nav class="nav-menu">
-            <a href="#" class="icon me-2" data-bs-toggle="tooltip" title="Search">
-                <i class="bi bi-search"></i>
-            </a>
-            <a href="#">Laptop</a>
-            <a href="#">PC</a>
-            <a href="#">Linh kiện</a>
-            <a href="#">Thương Hiệu</a>
-            <a href="#">Khuyến Mãi</a>
-        </nav>
-        <div class="nav-icons">
-            <div class="d-flex justify-content-end align-items-center">
-                <a href="#" class="icon me-2" data-bs-toggle="tooltip" title="Login">
-                    <i class="bi bi-person"></i>
-                    <span class="d-none d-md-inline">Đăng nhập</span>
-                </a>
-                <a href="#" class="icon me-2" data-bs-toggle="tooltip" title="Messages">
-                    <i class="bi bi-chat-left-text"></i>
-                </a>
-                <a class="cart-icon me-2 position-relative" data-bs-toggle="tooltip" title="Cart">
-                    <i class="bi bi-cart"></i>
-                    <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">2</span>
-                </a>
-                <a href="#" class="icon" data-bs-toggle="tooltip" title="More">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </a>
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Men</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Women</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Products</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <img src="banner.jpg" class="img-fluid" alt="Banner">
+        </div>
+    </div>
+</section>
+
+<section class="container text-center my-4">
+    <h2>You’ll love</h2>
+    <div class="row">
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
             </div>
         </div>
-    </header>
-    <ul class="nav-dots" id="js-dots">
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-        <li class="nav-dot"></li>
-    </ul>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" *ngFor="let product of products">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
 
-    <main class="main">
-        <section class="section">
-            <img src="../templates/pics/tet-de-dang-theme.webp" alt="">
-            <h2 class="section__heading">Scroll up and down</h2>
-        </section>
-        <section class="section">
-            <img src="../templates/pics/easy-tet-tet-theme02.webp" alt="">
-            <h2 class="section__heading">Click on the nav dots</h2>
-        </section>
-        <section class="section">
-            <img src="../templates/pics/frame-theme03.webp" alt="">
-            <h2 class="section__heading">Smooth scrolling</h2>
-        </section>
-        <section class="section">
-            <img src="../templates/pics/banner-website-blazer-theme04.webp" alt="">
-            <h2 class="section__heading">Well done!</h2>
-        </section>
+    </div>
+    <button class="btn btn-dark mt-3">See More</button>
+</section>
 
-        <section class="section">
-            <img src="../templates/pics/easy-tet-tet-women-theme01.webp" alt="">
-            <h2 class="section__heading">Smooth scrolling</h2>
-        </section>
-        <section class="section">
-            <img src="../templates/pics/fall-winter-woman-theme02.webp" alt="">
-            <h2 class="section__heading">Well done!</h2>
-        </section>
-        <section class="section">
-            <img src="../templates/pics/thu-dong-slimme-woman-theme03.webp" alt="">
-            <h2 class="section__heading">Smooth scrolling</h2>
-        </section>
-        <section class="section">
-            <img src="../templates/pics/untitled-1-woman-theme04.webp" alt="">
-            <h2 class="section__heading">Well done!</h2>
-        </section>
-    </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../templates/js/TrangChu.js"></script>
+<section class="container text-center my-4">
+    <h2>Trending Products</h2>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <img src="product.jpg" class="card-img-top" alt="Product">
+                <div class="card-body">
+                    <p class="card-text">Product Name</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container my-4 text-center">
+    <div class="row">
+        <div class="col-md-4">
+            <h3>Quality Materials</h3>
+        </div>
+        <div class="col-md-4">
+            <h3>Premium Suppliers</h3>
+        </div>
+        <div class="col-md-4">
+            <h3>Affordable Prices</h3>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-dark text-white text-center py-4">
+    <p>&copy; 2024 MNT Fashion Vietnam</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

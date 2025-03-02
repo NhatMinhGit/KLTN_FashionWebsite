@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentDto {
-
-    private LocalDateTime paymentDate;
+    private Long paymentId;
+    private Long orderId;
     private String paymentMethod;
+    private LocalDateTime paymentDate;
     private String paymentStatus;
 }

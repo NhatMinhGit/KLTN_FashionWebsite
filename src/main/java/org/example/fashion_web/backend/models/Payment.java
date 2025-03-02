@@ -4,13 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "Payment")
 public class Payment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
@@ -18,14 +19,19 @@ public class Payment {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Orders order;
+    private Order order;
 
-    @Column(name = "payment_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime paymentDate;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false)
+    private PaymentMethodType paymentMethod;
 
-    @Column(name = "payment_method")
-    private String paymentMethod;
+    @Column(name = "payment_date", nullable = false)
+    private Timestamp paymentDate;
 
-    @Column(name = "payment_status")
+    @Column(name = "payment_status", nullable = false, length = 50)
     private String paymentStatus;
+
+    public enum PaymentMethodType {
+        CASH, CREDIT_CARD, BANK_TRANSFER, E_WALLET
+    }
 }

@@ -6,7 +6,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageDto {
-
-    private String imageUrl;
+    private Long imageId;
+    private Long productId;
+    private String imageUri;
     private String imageName;
+    private Integer imageSize;
+    private String imageType;
 }
