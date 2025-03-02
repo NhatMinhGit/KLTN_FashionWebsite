@@ -119,7 +119,15 @@
                         <label for="address" class="form-label">Địa chỉ</label>
                         <input type="text" class="form-control" id="address">
                     </div>
-
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Vai trò <span class="text-danger">*</span></label>
+                        <select class="form-control" id="role" required>
+                            <option value="">-- Chọn vai trò --</option>
+                            <option value="customer">Khách hàng</option>
+                            <option value="admin">Quản trị viên</option>
+                        </select>
+                        <div class="invalid-feedback">Vui lòng chọn vai trò.</div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
