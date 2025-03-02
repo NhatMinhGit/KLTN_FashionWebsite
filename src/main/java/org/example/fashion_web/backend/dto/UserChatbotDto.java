@@ -4,10 +4,13 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserChatbotDto {
+    private Long chatbotId;
+    private Long userId;
     private String interactionLog;
     private LocalDateTime lastInteractionAt;
 }

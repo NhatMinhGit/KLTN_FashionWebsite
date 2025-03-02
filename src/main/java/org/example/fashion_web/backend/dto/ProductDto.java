@@ -8,10 +8,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDto {
-
+    private Long productId;
+    private Long brandId;
+    private Long categoryId;
     private String name;
     private BigDecimal price;
     private String description;
     private int stockQuantity;
-
 }

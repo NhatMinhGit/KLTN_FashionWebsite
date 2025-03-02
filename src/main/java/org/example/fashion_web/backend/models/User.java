@@ -1,29 +1,27 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.NaturalId;
+import lombok.Getter;
+import lombok.Setter;
 
-@Entity
-@Table(name = "Users")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Entity
+@Table(name = "Users")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-    @NaturalId(mutable = true)
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     @Column(name = "role", nullable = false)
@@ -35,4 +33,5 @@ public class User {
         this.email = email;
         this.name = name;
     }
+
 }

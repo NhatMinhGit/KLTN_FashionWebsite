@@ -2,10 +2,9 @@ package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -13,6 +12,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
+@EqualsAndHashCode
 public class UserChatbotId implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -25,10 +25,9 @@ public class UserChatbotId implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         UserChatbotId that = (UserChatbotId) o;
-        return Objects.equals(chatbotId, that.chatbotId) &&
-                Objects.equals(userId, that.userId);
+        return Objects.equals(chatbotId, that.chatbotId) && Objects.equals(userId, that.userId);
     }
 
     @Override

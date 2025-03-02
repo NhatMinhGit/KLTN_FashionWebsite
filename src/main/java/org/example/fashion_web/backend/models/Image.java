@@ -7,20 +7,27 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "Image")
+@Table(name = "Images")
 public class Image {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "image_id")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "image_url", columnDefinition = "TEXT", nullable = false)
-    private String imageUrl;
+    @Column(name = "image_uri", nullable = false, length = 255)
+    private String imageUri;
 
-    @Column(name = "image_name")
+    @Column(name = "image_name", nullable = false, length = 255)
     private String imageName;
+
+    @Column(name = "image_size")
+    private Integer imageSize;
+
+    @Column(name = "image_type", length = 50)
+    private String imageType;
 }

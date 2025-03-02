@@ -4,30 +4,30 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "Comment")
+@Table(name = "Comments")
 public class Comment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "feedback_id", nullable = false)
+    @JoinColumn(name = "feedback_id", referencedColumnName = "feedback_id")
     private Feedback feedback;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content;
+    @Column(name = "comment", nullable = false, columnDefinition = "TEXT")
+    private String comment;
 
-    @Column(name = "create_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt;
+    @Column(name = "create_at", nullable = false)
+    private Timestamp createAt;
 }
-
