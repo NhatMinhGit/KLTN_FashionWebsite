@@ -24,6 +24,14 @@ public class User {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "role", nullable = false, length = 50)
+    @Column(name = "role", nullable = false)
     private String role;
+
+    public User(String role, String password, String email, String name) {
+        this.role = "USER";
+        this.password = password;
+        this.email = email;
+        this.name = name;
+    }
+
 }
