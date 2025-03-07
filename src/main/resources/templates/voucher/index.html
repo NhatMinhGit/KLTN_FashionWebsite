@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý tài khoản khách hàng</title>
+    <title>Quản lý Voucher</title>
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <style>
@@ -15,7 +15,7 @@
             overflow-y: auto;
         }
         .container-fluid {
-            margin-left: 260px; /* Đẩy nội dung qua bên phải để tránh bị che */
+            margin-left: 260px;
         }
     </style>
 </head>
@@ -48,11 +48,11 @@
     <!-- Content -->
     <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Quản lý tài khoản khách hàng</h1>
+            <h1>Quản lý Voucher</h1>
             <div class="d-flex align-items-center">
                 <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
                 <span sec:authorize="isAuthenticated">
-                    <a class="text-decoration-none text-dark cursor-pointer btn btn-danger" th:href="@{/logout}">
+                    <a class="text-decoration-none text-dark btn btn-danger" th:href="@{/logout}">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </span>
@@ -60,43 +60,45 @@
         </div>
         <!-- Thanh tìm kiếm -->
         <div class="mb-3 d-flex">
-            <input type="text" id="searchInput" class="form-control me-2"
-                   placeholder="Tìm kiếm tài khoản khách hàng...">
-            <button class="btn btn-primary" onclick="searchUser()">Tìm kiếm</button>
+            <input type="text" id="searchVoucher" class="form-control me-2" placeholder="Tìm kiếm voucher...">
+            <button class="btn btn-primary">Tìm kiếm</button>
         </div>
         <!-- Các nút điều hướng -->
         <div class="mb-3 d-flex">
-            <a class="btn btn-primary me-2" th:href="@{/admin/account/add-account}">
-                <i class="fas fa-user-plus"></i> Thêm tài khoản
+            <a class="btn btn-primary me-2" th:href="@{/admin/voucher/add-voucher}">
+                <i class="fas fa-plus"></i> Thêm voucher
             </a>
-            <a class="btn btn-secondary" th:href="@{/admin/account/accounts-paging}">
+            <a class="btn btn-secondary" th:href="@{/admin/voucher/vouchers-paging}">
                 <i class="fas fa-file-alt"></i> Xem danh sách phân trang
             </a>
         </div>
-        <table class="table table-bordered" id="userTable">
+        <table class="table table-bordered" id="voucherTable">
             <thead>
             <tr>
                 <th>ID</th>
-                <th>Tên</th>
-                <th>Email</th>
-                <th>Vai trò</th>
+                <th>Mã Voucher</th>
+                <th>Tên Voucher</th>
+                <th>Loại giảm giá</th>
+                <th>Giá trị giảm</th>
+                <th>Giá trị đơn hàng tối thiểu</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
                 <th>Hành động</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="user: ${users}">
-                <td th:text="${user.id}"></td>
-                <td th:text="${user.name}"></td>
-                <td th:text="${user.email}"></td>
-                <td th:text="${user.role}"></td>
+            <tr th:each="voucher: ${vouchers}">
+                <td th:text="${voucher.id}"></td>
+                <td th:text="${voucher.voucherCode}"></td>
+                <td th:text="${voucher.voucherName}"></td>
+                <td th:text="${voucher.discountType}"></td>
+                <td th:text="${voucher.discountValue}"></td>
+                <td th:text="${voucher.minOrderValue}"></td>
+                <td th:text="${voucher.startDate}"></td>
+                <td th:text="${voucher.endDate}"></td>
                 <td>
-                    <a class="btn btn-warning btn-sm" th:href="@{/admin/account/edit-account(id=${user.id})}">Sửa</a>
-
-                    <button class="btn btn-success btn-sm" th:disabled="${!user.status}"
-                            th:onclick="'changeStatus(' + ${user.id} + ', false)'">Khôi phục</button>
-
-                    <button class="btn btn-danger btn-sm" th:disabled="${user.status}"
-                            th:onclick="'changeStatus(' + ${user.id} + ', true)'">Chặn</button>
+                    <a class="btn btn-warning btn-sm" th:href="@{/admin/voucher/edit-voucher(id=${voucher.id})}">Sửa</a>
+                    <a class="btn btn-danger btn-sm" th:href="@{/admin/voucher/delete-voucher(id=${voucher.id})}" onclick="return cofirm('Are you sure ?')">Xóa</a>
                 </td>
             </tr>
             </tbody>
@@ -105,31 +107,6 @@
 </div>
 
 <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
-<script>
-    function changeStatus(userId, newStatus) {
-        fetch(`/admin/account/change-status/${userId}?status=${newStatus}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.text();
-            }
-            throw new Error("Cập nhật thất bại!");
-        })
-        .then(data => {
-            alert(data);
-            location.reload(); // Tải lại trang để cập nhật giao diện
-        })
-        .catch(error => {
-            console.error("Lỗi:", error);
-            alert("Có lỗi xảy ra, vui lòng thử lại!");
-        });
-    }
-</script>
-
 </body>
 
 </html>

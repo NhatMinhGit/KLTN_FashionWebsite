@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm tài khoản khách hàng</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <style>
+        .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        cursor: pointer;
+    }
+    </style>
+</head>
+
+
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Thêm tài khoản khách hàng</h2>
+    <form id="addUserForm" method="post" th:object="${userDto}">
+        <div class="mb-3">
+            <label for="name" class="form-label">Tên <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" th:field="${userDto.name}">
+            <p th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="email" th:field="${userDto.email}">
+            <p th:if="${#fields.hasErrors('email')}" class="text-danger" th:errors="*{email}"></p>
+        </div>
+        <div class="mb-3 text-start">
+            <label for="password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+            <div class=" position-relative ">
+                <input type="password" class="form-control" id="password" name="password" th:field="${userDto.password}">
+                <span class="toggle-password" onclick="togglePassword()">👁</span>
+            </div>
+            <p th:if="${#fields.hasErrors('password')}" class="text-danger" th:errors="*{password}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="role" class="form-label">Vai trò <span class="text-danger">*</span></label>
+            <select class="form-control" id="role" required th:field="${userDto.role}">
+                <option value="USER">Khách hàng</option>
+                <option value="ADMIN">Quản trị viên</option>
+            </select>
+            <p th:if="${#fields.hasErrors('role')}" class="text-danger" th:errors="*{role}"></p>
+        </div>
+        <div class="d-flex justify-content-between">
+            <a href="/admin/account" class="btn btn-secondary">Quay lại</a>
+            <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
+    </form>
+</div>
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+<script>
+    function togglePassword() {
+        var passwordInput = document.getElementById("password");
+        passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+    }
+</script>
+</body>
+
+</html>
