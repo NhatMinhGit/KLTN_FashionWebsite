@@ -18,7 +18,7 @@ public class AccountManagementController {
     @Autowired
     private UserDetailsService userDetailsService; // Inject UserDetailsService
 
-    @RequestMapping("admin/account")
+    @GetMapping("admin/account")
     public String accountIndex(Model model, Principal principal) {
         if (principal != null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
