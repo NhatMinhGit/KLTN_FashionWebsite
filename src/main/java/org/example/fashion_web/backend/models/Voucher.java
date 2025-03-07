@@ -1,14 +1,13 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor @AllArgsConstructor
 @Entity
 @Table(name = "Vouchers")
 public class Voucher {
@@ -47,4 +46,17 @@ public class Voucher {
 
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
+
+    public Voucher(Integer usageLimit, LocalDate endDate, LocalDate startDate, BigDecimal minOrderValue, BigDecimal discountValue, String discountType, String voucherName, String voucherCode) {
+        this.usageLimit = usageLimit;
+        this.endDate = endDate;
+        this.startDate = startDate;
+        this.minOrderValue = minOrderValue;
+        this.discountValue = discountValue;
+        this.discountType = discountType;
+        this.voucherName = voucherName;
+        this.voucherCode = voucherCode;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }

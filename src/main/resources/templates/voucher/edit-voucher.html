@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa Voucher</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+</head>
+
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Chỉnh sửa Voucher</h2>
+    <form id="editVoucherForm" method="post" th:object="${voucherDto}">
+        <input type="hidden" th:field="*{id}">
+        <div class="mb-3">
+            <label for="voucherCode" class="form-label">Mã Voucher <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="voucherCode" th:field="*{voucherCode}" required>
+            <p th:if="${#fields.hasErrors('voucherCode')}" class="text-danger" th:errors="*{voucherCode}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="voucherName" class="form-label">Tên Voucher <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="voucherName" th:field="*{voucherName}" required>
+            <p th:if="${#fields.hasErrors('voucherName')}" class="text-danger" th:errors="*{voucherName}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="discountType" class="form-label">Loại Giảm Giá <span class="text-danger">*</span></label>
+            <select class="form-control" id="discountType" th:field="*{discountType}" required>
+                <option value="percentage">Phần trăm</option>
+                <option value="fixed">Giá trị cố định</option>
+            </select>
+            <p th:if="${#fields.hasErrors('discountType')}" class="text-danger" th:errors="*{discountType}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="discountValue" class="form-label">Giá Trị Giảm <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" class="form-control" id="discountValue" th:field="*{discountValue}" required>
+            <p th:if="${#fields.hasErrors('discountValue')}" class="text-danger" th:errors="*{discountValue}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="minOrderValue" class="form-label">Giá Trị Đơn Hàng Tối Thiểu</label>
+            <input type="number" step="0.01" class="form-control" id="minOrderValue" th:field="*{minOrderValue}">
+        </div>
+        <div class="mb-3">
+            <label for="startDate" class="form-label">Ngày Bắt Đầu <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="startDate" th:field="*{startDate}" required>
+            <p th:if="${#fields.hasErrors('startDate')}" class="text-danger" th:errors="*{startDate}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="endDate" class="form-label">Ngày Kết Thúc <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="endDate" th:field="*{endDate}" required>
+            <p th:if="${#fields.hasErrors('endDate')}" class="text-danger" th:errors="*{endDate}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="usageLimit" class="form-label">Giới Hạn Sử Dụng</label>
+            <input type="number" class="form-control" id="usageLimit" th:field="*{usageLimit}" min="1">
+        </div>
+        <div class="d-flex justify-content-between">
+            <a href="/admin/voucher" class="btn btn-secondary">Quay lại</a>
+            <button type="submit" class="btn btn-primary">Cập nhật</button>
+        </div>
+    </form>
+</div>
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+</body>
+
+</html>

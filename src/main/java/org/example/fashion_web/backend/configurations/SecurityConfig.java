@@ -36,9 +36,10 @@ public class SecurityConfig {
         http.csrf(c -> c.disable())
 
                 .authorizeHttpRequests(request -> request
-                                .requestMatchers("/admin-page").hasAuthority("ADMIN")
+                                .requestMatchers("/admin").hasAuthority("ADMIN")
                                 .requestMatchers("/products").hasAuthority("ADMIN")  // Chỉ Admin được truy cập
-                                .requestMatchers("/user-page").hasAuthority("USER")
+
+                                .requestMatchers("/user").hasAuthority("USER")
                                 .requestMatchers("/registration").permitAll()
                         .anyRequest().authenticated())
 

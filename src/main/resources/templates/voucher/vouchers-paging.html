@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Voucher</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <style>
+        #sidebar-wrapper {
+            position: fixed;
+            height: 100vh;
+            width: 250px;
+            overflow-y: auto;
+        }
+        .container-fluid {
+            margin-left: 260px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="d-flex" id="wrapper">
+    <div class="bg-dark text-white p-3" id="sidebar-wrapper" style="width: 250px; height: 100vh;">
+        <h2 class="text-center">Admin</h2>
+        <ul class="list-unstyled">
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-box"></i> Sản phẩm</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-list"></i> Danh mục</a></li>
+            <li class="my-3"><a th:href="@{/admin/voucher}" class="text-white text-decoration-none"><i class="fas fa-tags"></i> Voucher</a></li>
+            <li class="my-3"><a th:href="@{/admin/account}" class="text-white text-decoration-none"><i class="fas fa-users"></i> Tài khoản khách hàng</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-shopping-cart"></i> Đơn hàng</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i> Thống kê</a></li>
+            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-comments"></i> Chatbot</a></li>
+        </ul>
+    </div>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Quản lý Voucher</h1>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
+                <span sec:authorize="isAuthenticated">
+          <a class="text-decoration-none text-dark btn btn-danger" th:href="@{/logout}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        </span>
+            </div>
+        </div>
+
+        <div class="mb-3 d-flex">
+            <input type="text" id="searchInput" class="form-control me-2" placeholder="Tìm kiếm voucher...">
+            <button class="btn btn-primary" onclick="searchVoucher()">Tìm kiếm</button>
+        </div>
+
+        <div class="mb-3 d-flex">
+            <a class="btn btn-primary me-2" th:href="@{/admin/voucher/add-voucher}">
+                <i class="fas fa-plus"></i> Thêm voucher
+            </a>
+            <a class="btn btn-secondary" th:href="@{/admin/voucher}">
+                <i class="fas fa-file-alt"></i> Xem danh sách không phân trang
+            </a>
+        </div>
+
+        <table class="table table-bordered" id="voucherTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã</th>
+                <th>Tên</th>
+                <th>Loại giảm giá</th>
+                <th>Giá trị giảm</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="voucher: ${vouchers}">
+                <td th:text="${voucher.id}"></td>
+                <td th:text="${voucher.voucherCode}"></td>
+                <td th:text="${voucher.voucherName}"></td>
+                <td th:text="${voucher.discountType}"></td>
+                <td th:text="${voucher.discountValue}"></td>
+                <td th:text="${voucher.startDate}"></td>
+                <td th:text="${voucher.endDate}"></td>
+                <td>
+                    <a class="btn btn-warning btn-sm" th:href="@{/admin/voucher/edit-voucher(id=${voucher.id})}">Sửa</a>
+                    <button class="btn btn-danger btn-sm">Xóa</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>Trang [[${currentPage + 1}]] / [[${totalPages}]]</div>
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=0, size=${pageSize})}">First</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${currentPage - 1}, size=${pageSize})}">Previous</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${currentPage + 1}, size=${pageSize})}">Next</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${totalPages - 1}, size=${pageSize})}">Last</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+</body>
+
+</html>
