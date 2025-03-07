@@ -1,6 +1,7 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.VoucherDto;
+import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
 import org.example.fashion_web.backend.services.VoucherService;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +27,11 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public Page<Voucher> getAllVouchers(Pageable pageable) {
         return voucherRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Voucher> getAllVouchers() {
+        return voucherRepository.findAll();
     }
 
 }

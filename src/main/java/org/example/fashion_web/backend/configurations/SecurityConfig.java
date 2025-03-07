@@ -38,8 +38,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                                 .requestMatchers("/admin").hasAuthority("ADMIN")
                                 .requestMatchers("/products").hasAuthority("ADMIN")  // Chỉ Admin được truy cập
-
-                                .requestMatchers("/user").hasAuthority("USER")
+                                .requestMatchers("/add").hasAuthority("ADMIN")
+                                .requestMatchers("/edit").hasAuthority("ADMIN")
+                                .requestMatchers("/user-page").hasAuthority("USER")
                                 .requestMatchers("/registration").permitAll()
                         .anyRequest().authenticated())
 

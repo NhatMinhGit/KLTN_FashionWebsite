@@ -5,17 +5,33 @@ import org.example.fashion_web.backend.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductService {
-    List<Product> getAllProduct();
-    Page<Product> getAllProduct(Pageable pageable);
-    Product save(ProductDto productDto);
+    // Lấy danh sách tất cả sản phẩm
+    List<Product> getAllProducts();
 
-    Product getProductById(Long id);
+    // Lấy danh sách sản phẩm có phân trang
+    Page<Product> getAllProducts(Pageable pageable);
+
+    // Lưu sản phẩm từ model
+    Product save(Product product);
+
+    // Tìm sản phẩm theo ID
+    Optional<Product> getProductById(Long id);
+
+    // Kiểm tra sản phẩm có tồn tại không
+    boolean existsById(Long id);
+
+    // Xóa sản phẩm theo ID
     void deleteProductById(Long id);
 
-    void createProduct(Product product);
+    // Tạo sản phẩm mới
+    void addProduct(Product product);
 
+    // Cập nhật thông tin sản phẩm
+    Product updateProduct(Long id, Product productDetails);
+
+    int getTotalProductsCount();
 }

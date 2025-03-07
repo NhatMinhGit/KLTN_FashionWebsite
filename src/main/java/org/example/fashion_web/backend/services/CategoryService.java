@@ -13,4 +13,11 @@ public interface CategoryService {
     void deleteCategory(Long id);
 
     void deleteAddress(Long id);
+
+    Category save(Category category);
+
+    Optional<Category> findByName(String categoryName);
+
+    List<Category> getAllChildrenCategories();
+    List<Category> getAllParentCategories();
 }
