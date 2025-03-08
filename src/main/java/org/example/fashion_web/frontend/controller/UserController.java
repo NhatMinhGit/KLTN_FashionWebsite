@@ -1,7 +1,9 @@
 package org.example.fashion_web.frontend.controller;
 
 import org.example.fashion_web.backend.dto.UserDto;
+import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
+import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.example.fashion_web.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
@@ -24,6 +29,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ImageService imageService;
 
     @Autowired
     private ProductService productService;
@@ -45,16 +53,29 @@ public class UserController {
     }
 
     @GetMapping("user")
-    public String userPage (Model model, Principal principal) {
+    public String userPage(Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
         model.addAttribute("user", userDetails);
 
         // Lấy danh sách sản phẩm
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
+
+        // Nhóm danh sách ảnh theo productId
+        Map<Long, List<String>> productImages = new HashMap<>();
+        for (Product product : products) {
+            List<Image> images = imageService.findImagesByProductId(product.getId());
+            List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+            productImages.put(product.getId(), imageUrls);
+        }
+
+        // Gửi danh sách ảnh theo productId vào model
+        model.addAttribute("productImages", productImages);
+
         return "user";
     }
-//    @GetMapping("/user-page")
+
+    //    @GetMapping("/user-page")
 //    public String listBestSalerProducts(Model model, Principal principal) {
 //        // Xử lý thông tin người dùng nếu có
 //        if (principal != null) {

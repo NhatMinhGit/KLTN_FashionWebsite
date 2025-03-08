@@ -4,6 +4,29 @@
     <meta charset="UTF-8">
     <title>Thêm Ứng Viên</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #drop-area {
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 2px dashed #007bff;
+            padding: 20px;
+            transition: background 0.3s ease-in-out;
+        }
+
+        #drop-area.dragover {
+            background-color: #e3f2fd;
+        }
+
+        #preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin: 5px;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+        }
+    </style>
+
 </head>
 <body>
 <div class="container mt-5">
@@ -14,7 +37,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <form th:action="@{/admin/products/add}" th:object="${productForm}" method="post">
+    <form th:action="@{/admin/products/add}" th:object="${productForm}" method="post" enctype="multipart/form-data">
         <!-- Thông tin ứng viên -->
         <div class="card mb-4">
             <div class="card-header">
@@ -48,6 +71,11 @@
                     <label for="stock_quantity" class="form-label">Số lượng tồn:</label>
                     <input type="number" class="form-control" id="stock_quantity" th:field="*{stock_quantity}" required />
                 </div>
+                <div id="drop-area" class="border border-primary p-4 text-center">
+                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
+                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />
+                    <div id="preview" class="d-flex flex-wrap mt-3"></div>
+                </div>
             </div>
         </div>
 
@@ -56,6 +84,46 @@
         <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
 </div>
+<script>
+    const dropArea = document.getElementById("drop-area");
+    const fileInput = document.getElementById("fileInput");
+    const preview = document.getElementById("preview");
+
+    dropArea.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", handleFiles);
+
+    dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add("dragover");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("dragover");
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove("dragover");
+        handleFiles(e.dataTransfer);
+    });
+
+    function handleFiles(input) {
+        const files = input.files || input;
+        preview.innerHTML = "";
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith("image/")) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
