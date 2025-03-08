@@ -5,11 +5,9 @@ import org.example.fashion_web.backend.dto.ProductForm;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
 import org.example.fashion_web.backend.models.Brand;
 import org.example.fashion_web.backend.models.Category;
+import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
-import org.example.fashion_web.backend.services.BrandService;
-import org.example.fashion_web.backend.services.CategoryService;
-import org.example.fashion_web.backend.services.ProductService;
-import org.example.fashion_web.backend.services.UserService;
+import org.example.fashion_web.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,8 +18,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -38,13 +42,16 @@ public class ProductManagementController {
     @Autowired
     private final CategoryService categoryService;
     @Autowired
+    private final ImageService imageService;
+    @Autowired
     private final UserService userService; // Giả sử bạn có UserService để lấy thông tin người dùng
     @Autowired
     private UserDetailsService userDetailsService; // Inject UserDetailsService
-    public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, UserService userService) {
+    public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, ImageService imageService, UserService userService) {
         this.productService = productService;
         this.brandService = brandService;
         this.categoryService = categoryService;
+        this.imageService = imageService;
         this.userService = userService;
     }
 
@@ -92,7 +99,7 @@ public class ProductManagementController {
     }
 
     @PostMapping("/admin/products/add-category")
-    public String addProduct(@ModelAttribute("categoryForm") CategoryForm categoryForm, Model model, RedirectAttributes redirectAttributes) {
+    public String addCategory(@ModelAttribute("categoryForm") CategoryForm categoryForm, Model model, RedirectAttributes redirectAttributes) {
         try {
             // Kiểm tra và lưu category parent
             Optional<Category> categoryOpt = categoryService.findByName(categoryForm.getParent_category_name());
@@ -148,6 +155,7 @@ public class ProductManagementController {
                 return brandService.save(newBrand);
             });
 
+
             // Tạo product
             Product product = new Product();
             product.setName(productForm.getName());
@@ -155,11 +163,57 @@ public class ProductManagementController {
             product.setDescription(productForm.getDescription());
             product.setStockQuantity(productForm.getStock_quantity());
 
+
             // Set category & brand cho product
             product.setCategory(category);
             product.setBrand(brand);
 
             productService.save(product);
+            if (productForm.getImageFile() == null) {
+                System.out.println("Không có file nào được gửi lên!");
+            } else {
+                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
+                for (MultipartFile file : productForm.getImageFile()) {
+                    System.out.println("Tên file: " + file.getOriginalFilename());
+                }
+            }
+            // Lưu hình ảnh
+            if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
+                // Định nghĩa thư mục lưu ảnh
+                String uploadDir = "pics/uploads/";
+
+                // Kiểm tra nếu thư mục chưa tồn tại thì tạo mới
+                File uploadPath = new File(uploadDir);
+                if (!uploadPath.exists()) {
+                    uploadPath.mkdirs(); // Tạo thư mục nếu chưa có
+                }
+
+                for (MultipartFile file : productForm.getImageFile()) {
+                    if (!file.isEmpty()) {
+                        try {
+                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename(); // Tránh trùng tên file
+                            String filePath = uploadDir + fileName;
+
+                            // Tạo đối tượng Image để lưu vào DB
+                            Image image = new Image();
+                            image.setProduct(product);
+                            image.setImageUri(filePath); // Đường dẫn file để hiển thị
+                            image.setImageName(fileName);
+                            image.setImageSize((int) file.getSize());
+                            image.setImageType(file.getContentType());
+
+                            // Lưu thông tin ảnh vào database
+                            imageService.save(image);
+
+                            // Lưu file vào thư mục trên server
+                            File destinationFile = new File(uploadPath, fileName);
+                            file.transferTo(destinationFile);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
             System.out.println("Thông tin sản phẩm: " + product);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
             return "redirect:/admin/product";

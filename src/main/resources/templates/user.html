@@ -180,7 +180,11 @@
             <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
             <div class="col" th:each="product : ${products}">
                 <div class="product-card">
-<!--                    <img th:src="${product.img}" th:alt="${product.name}" width="150">-->
+                    <div th:each="imageUri : ${productImages[product.id]}">
+                        <p th:text="${imageUri}"></p> <!-- In URL ra để kiểm tra -->
+                        <img th:src="@{/uploads/{filename}(filename=${imageUri})}" th:alt="${product.name}" width="150">
+                    </div>
+
                     <h5 th:text="${product.name}"></h5>
                     <p class="product-price" th:text="${product.price}"></p>
                     <p th:text="${product.description}"></p>
