@@ -13,7 +13,6 @@
             margin: 0;
             padding: 0;
         }
-
         .header {
             background-color: #45b6fe;
             padding: 20px;
@@ -32,22 +31,166 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
+        .nav-container {
+            width: 33.33%;
+            margin: 0 auto;
+        }
+        .custom-nav-container {
+            display: flex;
+            justify-content: center; /* Đảm bảo phần tử con căn giữa */
+        }
+
+        .custom-nav-container ul {
+            width: 80%; /* Giữ khoảng 10% hai bên */
+            display: flex;
+            justify-content: space-between;
+            padding: 0;
+        }
 
         h2 {
             color: #45b6fe;
         }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            background: white;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .product-card:hover img {
+            transform: scale(1.05); /* Hiệu ứng phóng to khi hover */
+        }
+
+        .product-card h5 {
+            font-size: 16px;
+            margin: 8px 0;
+        }
+
+        .product-card p {
+            font-size: 14px;
+            color: gray;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
+        }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-<div class="header">
-    <h1>USER Dashboard</h1>
-</div>
+<header class="p-3 mb-3 border-bottom">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+<!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
+<!--                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>-->
+<!--            </a>-->
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
+                <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+            </form>
+            <h1 class="text-white">
+                MNT Fashion Shop
+            </h1>
+            <div class="dropdown text-end">
+                <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
+                </a>
+                <ul class="dropdown-menu text-small" style="">
+                    <li><a class="dropdown-item" href="#">My Profiles</a></li>
+                    <li><a class="dropdown-item" href="#">My Orders</a></li>
+                    <li><a class="dropdown-item" href="#">My Coupons</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">Sign out</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="nav-container">
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-between mb-md-0">
+            <li><a href="#" class="nav-link px-2 link-secondary">Home</a></li>
+            <li><a href="#" class="nav-link px-2 link-body-emphasis">Shop</a></li>
+            <li><a href="#" class="nav-link px-2 link-body-emphasis">Blog</a></li>
+            <li><a href="#" class="nav-link px-2 link-body-emphasis">About</a></li>
+            <li><a href="#" class="nav-link px-2 link-body-emphasis">Contact</a></li>
+        </ul>
+    </div>
+
+</header>
 <div class="container">
-    <h2>Welcome, [[${user.getFullname()}]]</h2>
+
+    <h2 class="text-white">Welcome, [[${user.getFullname()}]]</h2>
 
     <span sec:authorize="isAuthenticated">
-        <a th:href="@{/logout}">Logout</a>
+        <a class="text-white" th:href="@{/logout}">Logout</a>
     </span>
 </div>
+<main class="container">
+    <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-label="Slide 1" aria-current="true"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2" class=""></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3" class=""></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/pics/tet-de-dang-theme.webp" class="d-block w-100" alt="Banner 1">
+            </div>
+            <div class="carousel-item">
+                <img src="/pics/easy-tet-tet-theme02.webp" class="d-block w-100" alt="Banner 1">
+            </div>
+            <div class="carousel-item">
+                <img src="/pics/frame-theme03.webp" class="d-block w-100" alt="Banner 1">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</main>
+<div class="container">
+    <div class="nav custom-nav-container">
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center text-center w-100">
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Nam</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Nữ</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Trẻ em</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Unisex</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Phụ kiện</a></li>
+        </ul>
+    </div>
+    <div class="container mt-3">
+        <div class="row row-cols-4 g-3">
+            <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
+            <div class="col" th:each="product : ${products}">
+                <div class="product-card">
+<!--                    <img th:src="${product.img}" th:alt="${product.name}" width="150">-->
+                    <h5 th:text="${product.name}"></h5>
+                    <p class="product-price" th:text="${product.price}"></p>
+                    <p th:text="${product.description}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

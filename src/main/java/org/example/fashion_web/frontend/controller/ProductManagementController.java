@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -22,7 +23,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 @Controller
 
@@ -45,19 +48,6 @@ public class ProductManagementController {
         this.userService = userService;
     }
 
-//    @GetMapping("/admin/product")
-//    public String listProducts(Model model, Principal principal) {
-//        if (principal != null) {
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-//            if (userDetails != null) {
-//                model.addAttribute("user", userDetails);
-//            }
-//        }
-//        List<Product> products = productService.getAllProducts();
-//        model.addAttribute("products", products);
-//
-//        return "product/products";
-//    }
     @GetMapping("/admin/product")
     public String listProducts(
             @RequestParam(defaultValue = "0") Integer page,
@@ -90,6 +80,7 @@ public class ProductManagementController {
             return "product/products";
         }
     }
+
 
 
     @GetMapping("/admin/products/add-category")
@@ -296,17 +287,5 @@ public class ProductManagementController {
         }
         return "redirect:/admin/product";
     }
-//    // 6️⃣ Xử lý cập nhật sản phẩm
-//    @PostMapping("/update/{id}")
-//    public String updateProduct(@PathVariable Long id, @ModelAttribute Product product) {
-//        productService.updateProduct(id, product);
-//        return "redirect:/admin/product"; // Fix đường dẫn redirect
-//    }
-//
-//    // 7️⃣ Xóa sản phẩm
-//    @GetMapping("/delete/{id}")
-//    public String deleteProduct(@PathVariable Long id) {
-//        productService.deleteProductById(id);
-//        return "redirect:/admin/product"; // Fix đường dẫn redirect
-//    }
+
 }
