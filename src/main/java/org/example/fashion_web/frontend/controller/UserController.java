@@ -1,6 +1,8 @@
 package org.example.fashion_web.frontend.controller;
 
 import org.example.fashion_web.backend.dto.UserDto;
+import org.example.fashion_web.backend.models.Product;
+import org.example.fashion_web.backend.services.ProductService;
 import org.example.fashion_web.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.security.Principal;
+import java.util.List;
 
 @Controller
 public class UserController {
@@ -22,7 +25,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
+    @Autowired
+    private ProductService productService;
     @GetMapping("/registration")
     public String getRegistrationPage(@ModelAttribute("user") UserDto userDto) {
         return "register";
@@ -44,9 +48,28 @@ public class UserController {
     public String userPage (Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
         model.addAttribute("user", userDetails);
+
+        // Lấy danh sách sản phẩm
+        List<Product> products = productService.getAllProducts();
+        model.addAttribute("products", products);
         return "user";
     }
-
+//    @GetMapping("/user-page")
+//    public String listBestSalerProducts(Model model, Principal principal) {
+//        // Xử lý thông tin người dùng nếu có
+//        if (principal != null) {
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+//            if (userDetails != null) {
+//                model.addAttribute("user", userDetails);
+//            }
+//        }
+//
+//        // Lấy danh sách sản phẩm
+//        List<Product> products = productService.getAllProducts();
+//        model.addAttribute("products", products);
+//        //System.out.println("ProductManagementController 96 ==> products: "+products);
+//        return "user"; // user.html
+//    }
     @GetMapping("admin")
     public String adminPage (Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
