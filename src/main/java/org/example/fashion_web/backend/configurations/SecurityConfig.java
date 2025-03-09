@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 .requestMatchers("/add").hasAuthority("ADMIN")
                                 .requestMatchers("/edit").hasAuthority("ADMIN")
                                 .requestMatchers("/user-page").hasAuthority("USER")
+
                                 .requestMatchers("/registration").permitAll()
                         .anyRequest().authenticated())
 

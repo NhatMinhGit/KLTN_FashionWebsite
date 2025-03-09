@@ -1,0 +1,45 @@
+<div th:fragment="header">
+  <link th:href="@{/css/header.css}" rel="stylesheet">
+  <div class="p-3 mb-3 border-bottom">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center justify-content-between">
+        <!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
+        <!--                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>-->
+        <!--            </a>-->
+        <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
+          <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+        </form>
+        <h1 class="text-white">
+          MNT Fashion Shop
+        </h1>
+        <div class="dropdown">
+          <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
+          </a>
+          <h6 class="text-white">Welcome, [[${user.getFullname()}]]</h6>
+          <ul class="dropdown-menu text-small" style="">
+            <li><a class="dropdown-item" href="#">My Profiles</a></li>
+            <li><a class="dropdown-item" href="#">My Orders</a></li>
+            <li><a class="dropdown-item" href="#">My Coupons</a></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li><span sec:authorize="isAuthenticated">
+                                <a class="dropdown-item" th:href="@{/logout}">Logout</a>
+                            </span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="nav-container">
+      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-between mb-md-0">
+        <li><a href="#" class="nav-link px-2 link-secondary">Home</a></li>
+        <li><a href="#" class="nav-link px-2 link-body-emphasis">Shop</a></li>
+        <li><a href="#" class="nav-link px-2 link-body-emphasis">Blog</a></li>
+        <li><a href="#" class="nav-link px-2 link-body-emphasis">About</a></li>
+        <li><a href="#" class="nav-link px-2 link-body-emphasis">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</div>

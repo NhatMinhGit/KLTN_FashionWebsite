@@ -1,56 +1,14 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #0e2433;
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .header {
-            background-color: #45b6fe;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            margin: 0;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #0e2433;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        }
-        .nav-container {
-            width: 33.33%;
-            margin: 0 auto;
-        }
-        .custom-nav-container {
-            display: flex;
-            justify-content: center; /* Đảm bảo phần tử con căn giữa */
-        }
-
-        .custom-nav-container ul {
-            width: 80%; /* Giữ khoảng 10% hai bên */
-            display: flex;
-            justify-content: space-between;
-            padding: 0;
-        }
-
-        h2 {
-            color: #45b6fe;
-        }
-
         .product-card {
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -69,7 +27,8 @@
         }
 
         .product-card:hover img {
-            transform: scale(1.05); /* Hiệu ứng phóng to khi hover */
+            transform: scale(1.05);
+            /* Hiệu ứng phóng to khi hover */
         }
 
         .product-card h5 {
@@ -88,61 +47,21 @@
             color: black;
         }
     </style>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
 </head>
+
 <body>
-<header class="p-3 mb-3 border-bottom">
-    <div class="container">
-        <div class="d-flex flex-wrap align-items-center justify-content-between">
-<!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
-<!--                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>-->
-<!--            </a>-->
-            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
-                <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
-            </form>
-            <h1 class="text-white">
-                MNT Fashion Shop
-            </h1>
-            <div class="dropdown text-end">
-                <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
-                </a>
-                <ul class="dropdown-menu text-small" style="">
-                    <li><a class="dropdown-item" href="#">My Profiles</a></li>
-                    <li><a class="dropdown-item" href="#">My Orders</a></li>
-                    <li><a class="dropdown-item" href="#">My Coupons</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#">Sign out</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="nav-container">
-        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-between mb-md-0">
-            <li><a href="#" class="nav-link px-2 link-secondary">Home</a></li>
-            <li><a href="#" class="nav-link px-2 link-body-emphasis">Shop</a></li>
-            <li><a href="#" class="nav-link px-2 link-body-emphasis">Blog</a></li>
-            <li><a href="#" class="nav-link px-2 link-body-emphasis">About</a></li>
-            <li><a href="#" class="nav-link px-2 link-body-emphasis">Contact</a></li>
-        </ul>
-    </div>
-
-</header>
-<div class="container">
-
-    <h2 class="text-white">Welcome, [[${user.getFullname()}]]</h2>
-
-    <span sec:authorize="isAuthenticated">
-        <a class="text-white" th:href="@{/logout}">Logout</a>
-    </span>
-</div>
+<!--Header-->
+<div th:replace="fragments/header :: header"></div>
 <main class="container">
     <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-label="Slide 1" aria-current="true"></button>
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2" class=""></button>
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3" class=""></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active"
+                    aria-label="Slide 1" aria-current="true"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2"
+                    class=""></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3"
+                    class=""></button>
         </div>
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -182,7 +101,8 @@
                 <div class="product-card">
                     <div th:each="imageUri : ${productImages[product.id]}">
                         <p th:text="${imageUri}"></p> <!-- In URL ra để kiểm tra -->
-                        <img th:src="@{/uploads/{filename}(filename=${imageUri})}" th:alt="${product.name}" width="150">
+                        <img th:src="@{/uploads/{filename}(filename=${imageUri})}" th:alt="${product.name}"
+                             width="150">
                     </div>
 
                     <h5 th:text="${product.name}"></h5>
@@ -194,7 +114,6 @@
     </div>
 </div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

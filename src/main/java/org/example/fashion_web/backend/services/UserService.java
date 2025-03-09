@@ -10,7 +10,8 @@ import java.util.List;
 
 public interface UserService {
     User save(UserDto userDto);
-    public User addUser(User user);
+    User findByEmail(String email);
+    User addUser(User user);
     Page<User> getAllUsers(Pageable pageable);
-    public boolean updateUserStatus(Long id, boolean status);
+    boolean updateUserStatus(Long id, boolean status);
 }
