@@ -1,53 +1,125 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #0e2433;
             color: white;
             margin: 0;
             padding: 0;
         }
-
-        .header {
-            background-color: #45b6fe;
-            padding: 20px;
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 10px;
             text-align: center;
+            transition: all 0.3s ease-in-out;
+            background: white;
         }
 
-        .header h1 {
-            margin: 0;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #0e2433;
+        .product-card img {
+            width: 100%;
+            height: auto;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
         }
 
-        h2 {
-            color: #45b6fe;
+        .product-card:hover img {
+            transform: scale(1.05);
+            /* Hiệu ứng phóng to khi hover */
+        }
+
+        .product-card h5 {
+            font-size: 16px;
+            margin: 8px 0;
+        }
+
+        .product-card p {
+            font-size: 14px;
+            color: gray;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
         }
     </style>
-</head>
-<body>
-<div class="header">
-    <h1>USER Dashboard</h1>
-</div>
-<div class="container">
-    <h2>Welcome, [[${user.getFullname()}]]</h2>
 
-    <span sec:authorize="isAuthenticated">
-        <a th:href="@{/logout}">Logout</a>
-    </span>
+</head>
+
+<body>
+<!--Header-->
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="container">
+    <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active"
+                    aria-label="Slide 1" aria-current="true"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2"
+                    class=""></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3"
+                    class=""></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/pics/tet-de-dang-theme.webp" class="d-block w-100" alt="Banner 1">
+            </div>
+            <div class="carousel-item">
+                <img src="/pics/easy-tet-tet-theme02.webp" class="d-block w-100" alt="Banner 1">
+            </div>
+            <div class="carousel-item">
+                <img src="/pics/frame-theme03.webp" class="d-block w-100" alt="Banner 1">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</main>
+<div class="container">
+    <div class="nav custom-nav-container">
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center text-center w-100">
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Nam</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Nữ</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Trẻ em</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Unisex</a></li>
+            <li><a href="#" class="nav-link px-3 link-danger text-white">Phụ kiện</a></li>
+        </ul>
+    </div>
+    <div class="container mt-3">
+        <div class="row row-cols-4 g-3">
+            <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
+            <div class="col" th:each="product : ${products}">
+                <div class="product-card">
+                    <div th:each="imageUri : ${productImages[product.id]}">
+                        <p th:text="${imageUri}"></p> <!-- In URL ra để kiểm tra -->
+                        <img th:src="@{/uploads/{filename}(filename=${imageUri})}" th:alt="${product.name}"
+                             width="150">
+                    </div>
+
+                    <h5 th:text="${product.name}"></h5>
+                    <p class="product-price" th:text="${product.price}"></p>
+                    <p th:text="${product.description}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 </body>
+
 </html>

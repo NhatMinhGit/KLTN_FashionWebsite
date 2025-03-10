@@ -1,15 +1,11 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor @NoArgsConstructor
 @Entity
 @Table(name = "UserProfiles")

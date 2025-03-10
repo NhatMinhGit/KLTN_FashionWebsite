@@ -39,10 +39,9 @@ public class VoucherController {
 
     @RequestMapping("admin/voucher")
     public String voucherIndex(Model model, Principal principal) {
-        List<Voucher> vouchers = voucherService.getAllVouchers();
-        if (vouchers.isEmpty()) {
-            System.out.println("Cú tui cú tui");
-        }
+
+        List<Voucher> vouchers = voucherRepository.findAll();
+
         model.addAttribute("vouchers", vouchers);
         if (principal != null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
@@ -85,7 +84,8 @@ public class VoucherController {
     }
 
     @GetMapping("admin/voucher/add-voucher")
-    public String createVoucher (Model model) {
+    public String createUser (Model model) {
+        UserDto userDto = new UserDto();
         VoucherDto voucherDto = new VoucherDto();
         model.addAttribute("voucherDto", voucherDto);
         return "voucher/add-voucher";
