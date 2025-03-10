@@ -31,6 +31,9 @@ public class User {
     @Column(name = "status", nullable = false)
     private boolean status = true;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserProfile profile;
+
     public User(String role, String password, String email, String name) {
         this.role = "USER";
         this.password = password;

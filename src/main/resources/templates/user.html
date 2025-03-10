@@ -9,6 +9,12 @@
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
         .product-card {
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -52,7 +58,7 @@
 
 <body>
 <!--Header-->
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 <main class="container">
     <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
         <div class="carousel-indicators">

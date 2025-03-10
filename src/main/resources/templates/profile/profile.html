@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+</head>
+<body>
+
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb border align-center p-3">
+            <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tài khoản</li>
+        </ol>
+    </nav>
+    <div class="row">
+        <div th:replace="~{fragments/sidebar-profile :: sidebar}" class="col-md-3"></div>
+<!--        <div class="col-md-4">-->
+<!--            <img th:src="${profile != null and profile.avatar != null ? profile.avatar : '/pics/default-avatar.jpg'}" />-->
+<!--        </div>-->
+        <div class="col-md-8">
+            <h2>Thông tin tài khoản</h2>
+            <table class="table">
+                <tr>
+                    <th>Họ và tên:</th>
+                    <td th:text="${user.name}"></td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td th:text="${user.email}"></td>
+                </tr>
+<!--                <tr>-->
+<!--                    <th>Số điện thoại:</th>-->
+<!--                    <td th:text="${profile.phoneNumber}"></td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th>Ngày sinh:</th>-->
+<!--                    <td th:text="${profile.dob}"></td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th>Địa chỉ:</th>-->
+<!--                    <td th:text="${profile.ward.wardName + ', ' + profile.ward.district.districtName + ', ' + profile.ward.district.city.cityName}"></td>-->
+<!--                </tr>-->
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

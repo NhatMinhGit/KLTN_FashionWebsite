@@ -1,0 +1,39 @@
+<div th:fragment="sidebar">
+    <style>
+        .option-menu li {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .option-menu a {
+            text-decoration: none;
+        }
+
+        .option-menu a:hover {
+            text-decoration: underline;
+        }
+        .sidebar {
+           background-color: white;
+           padding: 20px;
+           border-radius: 5px;
+           box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+       }
+    </style>
+    <div class="col-md-3">
+        <div class="sidebar p-3">
+            <h5>[[${user.getName()}]]</h5>
+            <p>Số điểm đang có: <strong>0 điểm</strong></p>
+            <p>SĐT tích điểm: <strong>84948136750</strong></p>
+            <button class="btn btn-secondary w-100">NEW</button>
+            <hr>
+            <ul class="list-unstyled option-menu">
+                <li><a href="#" class="text-dark">Tài khoản</a></li>
+                <li><a href="#" class="text-dark">Hạng hội viên</a></li>
+                <li><strong>Đơn hàng</strong></li>
+                <li><a href="#" class="text-dark">Địa chỉ giao nhận</a></li>
+                <li><a href="#" class="text-dark">Ưu đãi của tôi</a></li>
+                <li><a href="#" class="text-dark">Câu hỏi của tôi</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
