@@ -92,11 +92,11 @@
                 <td>
                     <a class="btn btn-warning btn-sm" th:href="@{/admin/account/edit-account(id=${user.id})}">Sửa</a>
 
-                    <button class="btn btn-success btn-sm" th:disabled="${!user.status}"
-                            th:onclick="'changeStatus(' + ${user.id} + ', false)'">Khôi phục</button>
+                    <button class="btn btn-success btn-sm" th:disabled="${user.status}"
+                            th:onclick="'changeStatus(' + ${user.id} + ', true)'">Khôi phục</button>
 
-                    <button class="btn btn-danger btn-sm" th:disabled="${user.status}"
-                            th:onclick="'changeStatus(' + ${user.id} + ', true)'">Chặn</button>
+                    <button class="btn btn-danger btn-sm" th:disabled="${!user.status}"
+                            th:onclick="'changeStatus(' + ${user.id} + ', false)'">Chặn</button>
                 </td>
             </tr>
             </tbody>
