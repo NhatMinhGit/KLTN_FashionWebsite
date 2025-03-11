@@ -9,45 +9,33 @@
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 </head>
 <body>
-
-<div th:replace="fragments/header :: header"></div>
+<!-- Import Header -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div class="container mt-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb border align-center p-3">
-            <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Tài khoản</li>
-        </ol>
-    </nav>
     <div class="row">
-        <div th:replace="~{fragments/sidebar-profile :: sidebar}" class="col-md-3"></div>
-<!--        <div class="col-md-4">-->
-<!--            <img th:src="${profile != null and profile.avatar != null ? profile.avatar : '/pics/default-avatar.jpg'}" />-->
-<!--        </div>-->
-        <div class="col-md-8">
-            <h2>Thông tin tài khoản</h2>
-            <table class="table">
-                <tr>
-                    <th>Họ và tên:</th>
-                    <td th:text="${user.name}"></td>
-                </tr>
-                <tr>
-                    <th>Email:</th>
-                    <td th:text="${user.email}"></td>
-                </tr>
-<!--                <tr>-->
-<!--                    <th>Số điện thoại:</th>-->
-<!--                    <td th:text="${profile.phoneNumber}"></td>-->
-<!--                </tr>-->
-<!--                <tr>-->
-<!--                    <th>Ngày sinh:</th>-->
-<!--                    <td th:text="${profile.dob}"></td>-->
-<!--                </tr>-->
-<!--                <tr>-->
-<!--                    <th>Địa chỉ:</th>-->
-<!--                    <td th:text="${profile.ward.wardName + ', ' + profile.ward.district.districtName + ', ' + profile.ward.district.city.cityName}"></td>-->
-<!--                </tr>-->
-            </table>
+        <!-- Sidebar -->
+        <div class="col-md-3"><div th:replace="~{fragments/sidebar-profile :: sidebar}" ></div></div>
+
+
+        <!-- Nội dung profile -->
+        <div class="col-md-9">
+            <div class="card p-4">
+                <h2>Thông tin tài khoản</h2>
+                <hr>
+                <p><strong>Họ và tên:</strong> <span th:text="${userProfile.name}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${userProfile.email}"></span></p>
+                <p><strong>Vai trò:</strong> <span th:text="${userProfile.role}"></span></p>
+                <hr>
+                <h3>Thông tin cá nhân</h3>
+                <p><strong>Ảnh đại diện:</strong></p>
+                <img th:src="${profile.avatar}" alt="Avatar" class="rounded-circle" width="100">
+                <p><strong>Ngày sinh:</strong> <span th:text="${#dates.format(profile.dob, 'dd-MM-yyyy')}"></span></p>
+                <p><strong>Số điện thoại:</strong> <span th:text="${profile.phoneNumber != null ? profile.phoneNumber : 'Chưa cập nhật!'}"></span></p>
+                <p><strong>Địa chỉ:</strong> <span th:text="${profile.ward != null ? address : 'Chưa cập nhật!'}"></span></p>
+
+                <a href="#" class="btn btn-primary mt-3">Chỉnh sửa thông tin</a>
+            </div>
         </div>
     </div>
 </div>

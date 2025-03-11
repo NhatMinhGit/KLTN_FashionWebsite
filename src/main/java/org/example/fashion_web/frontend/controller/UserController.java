@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
-public class UserController {
+public class    UserController {
 
     @Autowired
     UserDetailsService userDetailsService;
