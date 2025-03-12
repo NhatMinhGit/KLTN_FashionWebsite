@@ -1,0 +1,63 @@
+<div th:fragment="sidebar">
+    <style>
+        .option-menu li {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .option-menu a {
+            text-decoration: none;
+        }
+
+        .option-menu a:hover {
+            text-decoration: underline;
+        }
+        .sidebar {
+           background-color: white;
+           padding: 20px;
+           border-radius: 5px;
+           box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+       }
+        .disabled-link {
+            pointer-events: none;  /* Ngăn nhấn vào */
+            color: black !important;  /* Đổi màu để dễ nhận biết */
+            cursor: default;  /* Con trỏ không hiển thị như link */
+        }
+    </style>
+    <div>
+        <div class="sidebar">
+            <h5>[[${user.getFullname()}]]</h5>
+            <p>Số điểm đang có: <strong>0 điểm</strong></p>
+            <p>SĐT tích điểm: <strong></strong></p>
+            <button class="btn btn-secondary w-100">NEW</button>
+            <hr>
+            <ul class="list-unstyled option-menu">
+                <li>
+                    <a href="/profile" class="text-dark"
+                       th:classappend="${currentPage == 'profile'} ? 'fw-bold disabled-link'">Tài khoản</a>
+                </li>
+                <li>
+                    <a href="/membership" class="text-dark"
+                       th:classappend="${currentPage == 'membership'} ? 'fw-bold disabled-link'">Hạng hội viên</a>
+                </li>
+                <li>
+                    <a href="/orders" class="text-dark"
+                       th:classappend="${currentPage == 'orders'} ? 'fw-bold disabled-link'">Đơn hàng</a>
+                </li>
+                <li>
+                    <a href="/addresses" class="text-dark"
+                       th:classappend="${currentPage == 'addresses'} ? 'fw-bold disabled-link'">Địa chỉ giao nhận</a>
+                </li>
+                <li>
+                    <a href="/offers" class="text-dark"
+                       th:classappend="${currentPage == 'offers'} ? 'fw-bold disabled-link'">Ưu đãi của tôi</a>
+                </li>
+                <li>
+                    <a href="/questions" class="text-dark"
+                       th:classappend="${currentPage == 'questions'} ? 'fw-bold disabled-link'">Câu hỏi của tôi</a>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</div>

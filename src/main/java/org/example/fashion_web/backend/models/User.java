@@ -3,8 +3,7 @@ package org.example.fashion_web.backend.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,11 +27,13 @@ public class User {
     @Column(name = "role", nullable = false)
     private String role;
 
+    @Column(name = "status", nullable = false)
+    private boolean status = true;
+
     public User(String role, String password, String email, String name) {
         this.role = "USER";
         this.password = password;
         this.email = email;
         this.name = name;
     }
-
 }

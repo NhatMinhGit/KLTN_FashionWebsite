@@ -7,11 +7,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-public class CustomUserDetail implements UserDetails {
+public class CustomUserDetails implements UserDetails {
 
     private User user;
 
-    public CustomUserDetail(User user) {
+    public CustomUserDetails(User user) {
         this.user = user;
     }
 
@@ -23,6 +23,10 @@ public class CustomUserDetail implements UserDetails {
 
     public String getFullname() {
         return user.getName();
+    }
+
+    public User getUser() {
+        return user;
     }
 
     @Override
@@ -45,7 +49,7 @@ public class CustomUserDetail implements UserDetails {
     @Override
     public boolean isAccountNonLocked() {
         // TODO Auto-generated method stub
-        return true;
+        return user.isStatus();
     }
 
     @Override

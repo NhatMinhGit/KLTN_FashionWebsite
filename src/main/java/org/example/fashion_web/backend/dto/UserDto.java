@@ -1,55 +1,29 @@
 package org.example.fashion_web.backend.dto;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+
+import java.util.Date;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
-    private Long userId;
+    private Long id;
+    @NotEmpty(message = "The name is required")
     private String name;
+    @NotEmpty(message = "The email is required")
     private String email;
+    @NotEmpty(message = "The role is required")
     private String role;
+    @NotEmpty(message = "The password is required")
     private String password;
 
-    public UserDto(String role, String password, String email, String name) {
-        this.role = "USER";
-        this.password = password;
-        this.email = email;
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    private String avatar;
+    private Date dob;
+    private String phoneNumber;
+    private Long wardId;
 
 }
 

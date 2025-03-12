@@ -1,13 +1,13 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 @Entity
 @Table(name = "UserProfiles")
 public class UserProfile {
@@ -32,6 +32,12 @@ public class UserProfile {
     @Temporal(TemporalType.DATE)
     private Date dob;
 
-    @Column(name = "phone_number", length = 20)
+    @Column(name = "phone_number", length = 10)
     private String phoneNumber;
+
+    public UserProfile () {
+        this.phoneNumber = "Chưa cập nhật!";
+        this.ward = null;
+        this.avatar = "Chưa cập nhật!";
+    }
 }

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý tài khoản khách hàng</title>
+  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+  <style>
+    #sidebar-wrapper {
+        position: fixed;
+        height: 100vh;
+        width: 250px;
+        overflow-y: auto;
+    }
+    .container-fluid {
+        margin-left: 260px; /* Đẩy nội dung qua bên phải để tránh bị che */
+    }
+  </style>
+</head>
+
+<body>
+<div class="d-flex" id="wrapper">
+  <!-- Sidebar -->
+  <div class="bg-dark text-white p-3" id="sidebar-wrapper" style="width: 250px; height: 100vh;">
+    <h2 class="text-center">Admin</h2>
+    <ul class="list-unstyled">
+<<<<<<< HEAD
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-box"></i> Sản phẩm</a></li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-list"></i> Danh mục</a></li>
+      <li class="my-3"><a th:href="@{/admin/voucher}" class="text-white text-decoration-none"><i class="fas fa-tags"></i> Khuyến
+        mãi</a></li>
+      <li class="my-3"><a th:href="@{/admin/account}" class="text-white text-decoration-none"><i class="fas fa-users"></i> Tài khoản khách hàng</a></li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-shopping-cart"></i> Đơn hàng</a></li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i> Thống kê</a></li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-comments"></i> Chatbot</a></li>
+=======
+      <li class="my-3"><a th:href="@{/admin/product}" class="text-white text-decoration-none"><i class="fas fa-box"></i> Sản
+        phẩm</a>
+      </li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-list"></i> Danh
+        mục</a></li>
+      <li class="my-3"><a th:href="@{/admin/voucher}" class="text-white text-decoration-none"><i class="fas fa-tags"></i> Khuyến
+        mãi</a></li>
+      <li class="my-3"><a th:href="@{/admin/account}" class="text-white text-decoration-none"><i class="fas fa-users"></i> Tài khoản người
+        dùng</a></li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i
+              class="fas fa-shopping-cart"></i> Đơn
+        hàng</a></li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i>
+        Thống kê</a>
+      </li>
+      <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-comments"></i>
+        Chatbot</a></li>
+>>>>>>> 86538ed (chỉnh sửa html)
+    </ul>
+  </div>
+  <!-- Content -->
+  <div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>Quản lý tài khoản khách hàng</h1>
+      <div class="d-flex align-items-center">
+        <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
+        <span sec:authorize="isAuthenticated">
+                    <a class="text-decoration-none text-dark cursor-pointer btn btn-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </span>
+      </div>
+    </div>
+    <!-- Thanh tìm kiếm -->
+    <div class="mb-3 d-flex">
+      <input type="text" id="searchInput" class="form-control me-2" placeholder="Tìm kiếm tài khoản khách hàng...">
+      <button class="btn btn-primary" onclick="searchUser()">Tìm kiếm</button>
+    </div>
+
+    <!-- Các nút điều hướng -->
+    <div class="mb-3 d-flex">
+      <a class="btn btn-primary me-2" th:href="@{/admin/account/add-account}">
+        <i class="fas fa-user-plus"></i> Thêm tài khoản
+      </a>
+      <a class="btn btn-secondary" th:href="@{/admin/account}">
+        <i class="fas fa-file-alt"></i> Xem danh sách không phân trang
+      </a>
+    </div>
+
+    <!-- Bảng danh sách tài khoản khách hàng -->
+    <table class="table table-bordered" id="userTable">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tên</th>
+        <th>Email</th>
+        <th>Vai trò</th>
+        <th>Hành động</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="user: ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.name}"></td>
+        <td th:text="${user.email}"></td>
+        <td th:text="${user.role}"></td>
+        <td>
+          <a class="btn btn-warning btn-sm" th:href="@{/admin/account/edit-account(id=${user.id})}">Sửa</a>
+
+<<<<<<< HEAD
+          <button class="btn btn-success btn-sm" th:disabled="${!user.status}"
+                  th:onclick="'changeStatus(' + ${user.id} + ', false)'">Khôi phục</button>
+
+          <button class="btn btn-danger btn-sm" th:disabled="${user.status}"
+                  th:onclick="'changeStatus(' + ${user.id} + ', true)'">Chặn</button>
+=======
+          <button class="btn btn-success btn-sm" th:disabled="${user.status}"
+                  th:onclick="'changeStatus(' + ${user.id} + ', true)'">Khôi phục</button>
+
+          <button class="btn btn-danger btn-sm" th:disabled="${!user.status}"
+                  th:onclick="'changeStatus(' + ${user.id} + ', false)'">Chặn</button>
+>>>>>>> 86538ed (chỉnh sửa html)
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="d-flex justify-content-between align-items-center mt-4">
+      <div>Trang [[${currentPage + 1}]] / [[${totalPages}]]</div>
+      <nav>
+        <ul class="pagination">
+          <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=0, size=${pageSize})}">First</a>
+          </li>
+          <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${currentPage - 1}, size=${pageSize})}">Previous</a>
+          </li>
+
+          <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+              th:classappend="${currentPage == i} ? 'active'">
+            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
+          </li>
+
+          <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${currentPage + 1}, size=${pageSize})}">Next</a>
+          </li>
+          <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${totalPages - 1}, size=${pageSize})}">Last</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+  </div>
+</div>
+
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+<script>
+  function changeStatus(userId, newStatus) {
+      fetch(`/admin/account/change-status/${userId}?status=${newStatus}`, {
+          method: 'PUT',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+      })
+      .then(response => {
+          if (response.ok) {
+              return response.text();
+          }
+          throw new Error("Cập nhật thất bại!");
+      })
+      .then(data => {
+          alert(data);
+          location.reload(); // Tải lại trang để cập nhật giao diện
+      })
+      .catch(error => {
+          console.error("Lỗi:", error);
+          alert("Có lỗi xảy ra, vui lòng thử lại!");
+      });
+  }
+</script>
+
+</body>
+
+</html>
