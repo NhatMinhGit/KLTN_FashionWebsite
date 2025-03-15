@@ -1,5 +1,6 @@
 package org.example.fashion_web.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +17,19 @@ public class Ward {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "district_id", nullable = false)
+    @JoinColumn(name = "district_id")
+    @JsonBackReference // Ngăn vòng lặp
     private District district;
 
     @Column(name = "ward_name", nullable = false, length = 255)
     private String wardName;
+
+    @Override
+    public String toString() {
+        return "Ward{" +
+                "id=" + id +
+                ", district=" + district +
+                ", wardName='" + wardName + '\'' +
+                '}';
+    }
 }

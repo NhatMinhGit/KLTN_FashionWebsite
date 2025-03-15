@@ -35,9 +35,14 @@ public class UserProfile {
     @Column(name = "phone_number", length = 10)
     private String phoneNumber;
 
+    @Column(name = "address")
+    private String address;
+
+
     public UserProfile () {
         this.phoneNumber = "Chưa cập nhật!";
         this.ward = null;
         this.avatar = "Chưa cập nhật!";
+        this.address = "Chưa cập nhật!";
     }
 }

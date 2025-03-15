@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ sơ cá nhân</title>
+    <title>Chỉnh sửa hồ sơ</title>
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 </head>
+
 <body>
 <!-- Import Header -->
 <div th:replace="~{fragments/header :: header}"></div>
@@ -15,29 +17,181 @@
 <div class="container mt-4">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3"><div th:replace="~{fragments/sidebar-profile :: sidebar}" ></div></div>
+        <div class="col-md-3">
+            <div th:replace="~{fragments/sidebar-profile :: sidebar}"></div>
+        </div>
 
-
-        <!-- Nội dung profile -->
+        <!-- Nội dung chỉnh sửa profile -->
         <div class="col-md-9">
             <div class="card p-4">
-                <h2>Thông tin tài khoản</h2>
+                <h2>Chỉnh sửa hồ sơ</h2>
                 <hr>
-                <p><strong>Họ và tên:</strong> <span th:text="${userProfile.name}"></span></p>
-                <p><strong>Email:</strong> <span th:text="${userProfile.email}"></span></p>
-                <p><strong>Vai trò:</strong> <span th:text="${userProfile.role}"></span></p>
-                <hr>
-                <h3>Thông tin cá nhân</h3>
-                <p><strong>Ảnh đại diện:</strong></p>
-                <img th:src="${profile.avatar}" alt="Avatar" class="rounded-circle" width="100">
-                <p><strong>Ngày sinh:</strong> <span th:text="${#dates.format(profile.dob, 'dd-MM-yyyy')}"></span></p>
-                <p><strong>Số điện thoại:</strong> <span th:text="${profile.phoneNumber != null ? profile.phoneNumber : 'Chưa cập nhật!'}"></span></p>
-                <p><strong>Địa chỉ:</strong> <span th:text="${profile.ward != null ? address : 'Chưa cập nhật!'}"></span></p>
+                <form id="editProfileForm" method="post" th:object="${userProfileDto}"
+                      th:action="@{/user/profile/edit}" enctype="multipart/form-data">
+                    <input type="hidden" th:field="*{id}">
 
-                <a href="#" class="btn btn-primary mt-3">Chỉnh sửa thông tin</a>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" th:field="*{user.name}" required>
+                        <p th:if="${#fields.hasErrors('user.name')}" class="text-danger" th:errors="*{user.name}">
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" th:field="*{user.email}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Ảnh đại diện</label>
+                        <input type="file" class="form-control" id="avatar" name="avatarFile">
+                        <img th:src="${userProfileDto.avatar != null ? userProfileDto.avatar : '/images/default-avatar.png'}"
+                             alt="User Avatar" class="img-thumbnail" width="150">
+
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-control" id="dob" th:field="*{dob}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="phoneNumber" th:field="*{phoneNumber}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="city" class="form-label">Thành phố</label>
+                        <select class="form-control" id="city" name="cityId">
+                            <option value="">-- Chọn Thành phố --</option>
+                            <option th:each="c : ${cities}" th:value="${c.id}" th:text="${c.cityName}"
+                                    th:selected="${userProfileDto.ward?.district?.city?.id == c.id}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="district" class="form-label">Quận/Huyện</label>
+                        <select class="form-control" id="district" name="districtId" disabled>
+                            <option value="">-- Chọn Quận/Huyện --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ward" class="form-label">Phường/Xã</label>
+                        <select class="form-control" id="ward" name="wardId" disabled>
+                            <option value="">-- Chọn Phường/Xã --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Tòa nhà, số nhà, tên đường</label>
+                        <input type="text" class="form-control" id="address" th:field="*{address}">
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM fully loaded and parsed");
+        var citySelect = document.getElementById("city");
+        var districtSelect = document.getElementById("district");
+        var wardSelect = document.getElementById("ward");
+
+        // Lấy dữ liệu từ Thymeleaf
+        var selectedCityId = citySelect.value;
+        var selectedDistrictId = `[[${userProfileDto.ward?.district?.id ?: ''}]]`.trim();
+        var selectedWardId = `[[${userProfileDto.ward?.id ?: ''}]]`.trim();
+
+        selectedDistrictId = selectedDistrictId ? selectedDistrictId : null;
+        selectedWardId = selectedWardId ? selectedWardId : null;
+
+        console.log("Selected City ID: " + selectedCityId);
+        console.log("Selected District ID: " + selectedDistrictId);
+        console.log("Selected Ward ID: " + selectedWardId);
+
+        function loadDistricts(selectedDistrictId, callback) {
+            var cityId = citySelect.value;
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+
+            if (!cityId) {
+                districtSelect.disabled = true;
+                return;
+            }
+
+            fetch(`/districts?cityId=${cityId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Districts loaded: ", data);
+                    data.forEach(district => {
+                        let option = new Option(district.districtName, district.id);
+                        districtSelect.add(option);
+                        if (selectedDistrictId && district.id == selectedDistrictId) {
+                            option.selected = true;
+                        }
+                    });
+                    districtSelect.disabled = false;
+                    if (callback) callback();
+                })
+                .catch(error => console.error("Lỗi khi tải Quận/Huyện:", error));
+        }
+
+        function loadWards(selectedDistrictId, selectedWardId) {
+            var districtId = selectedDistrictId || districtSelect.value;
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+            if (!districtId) {
+                wardSelect.disabled = true;
+                return;
+            }
+
+            fetch(`/wards?districtId=${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Wards loaded: ", data);
+                    data.forEach(ward => {
+                        let option = new Option(ward.wardName, ward.id);
+                        wardSelect.add(option);
+                        if (selectedWardId && ward.id == selectedWardId) {
+                            option.selected = true;
+                        }
+                    });
+                    wardSelect.disabled = false;
+                })
+                .catch(error => console.error("Lỗi khi tải Phường/Xã:", error));
+        }
+
+        // Load districts khi city thay đổi
+        citySelect.addEventListener("change", function () {
+            loadDistricts(null, null);
+        });
+
+        // Load wards khi district thay đổi
+        districtSelect.addEventListener("change", function () {
+            loadWards(null, null);
+        });
+
+        // Load dữ liệu khi trang vừa tải
+        if (selectedCityId) {
+            loadDistricts(selectedDistrictId, function () {
+                if (selectedDistrictId) {
+                    loadWards(selectedDistrictId, selectedWardId);
+                }
+            });
+        }
+    });
+
+</script>
+
 </body>
+
 </html>
