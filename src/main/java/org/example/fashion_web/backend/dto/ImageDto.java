@@ -8,7 +8,7 @@ import lombok.*;
 public class ImageDto {
     private Long imageId;
     private Long productId;
-    private String imageUri;
+    private String imageUrl;
     private String imageName;
     private Integer imageSize;
     private String imageType;

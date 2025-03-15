@@ -15,7 +15,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <form th:action="@{/admin/products/edit/{id}(id=${productForm.product_id})}" th:object="${productForm}" method="post">
+    <form th:action="@{/admin/products/edit/{id}(id=${productForm.product_id})}" th:object="${productForm}" method="post" enctype="multipart/form-data">
         <!-- Trường ẩn chứa ID ứng viên -->
         <input type="hidden" th:field="*{product_id}" />
 
@@ -38,7 +38,10 @@
                 </div>
                 <div class="mb-3">
                     <label for="category" class="form-label">Danh mục:</label>
-                    <input type="text" class="form-control" id="category" th:field="*{category_name}" required />
+                    <select class="form-control" id="category" th:field="*{category_name}" required>
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label for="brand" class="form-label">Nhãn hàng:</label>
@@ -47,6 +50,11 @@
                 <div class="mb-3">
                     <label for="stock_quantity" class="form-label">Số lượng tồn:</label>
                     <input type="number" class="form-control" id="stock_quantity" th:field="*{stock_quantity}" required />
+                </div>
+                <div id="drop-area" class="border border-primary p-4 text-center">
+                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
+                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />
+                    <div id="preview" class="d-flex flex-wrap mt-3"></div>
                 </div>
             </div>
 

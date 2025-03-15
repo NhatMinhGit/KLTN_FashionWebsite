@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 @Service
@@ -63,6 +64,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<Category> getAllParentCategories() {
         return categoryRepository.findDistinctByParentCategoryIsNull();
+    }
+
+    public List<Long> getAllSubCategoryIds(Long categoryId) {
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId); // Thêm chính danh mục cha vào danh sách
+
+        List<Category> subCategories = categoryRepository.findSubCategories(categoryId);
+        for (Category subCategory : subCategories) {
+            categoryIds.addAll(getAllSubCategoryIds(subCategory.getId())); // Đệ quy
+        }
+
+        return categoryIds;
     }
 
 

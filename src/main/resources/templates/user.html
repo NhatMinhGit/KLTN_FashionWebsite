@@ -7,53 +7,10 @@
     <title>User Dashboard</title>
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <link rel="stylesheet" th:href="@{/css/user.css}">
+    <link rel="stylesheet" th:href="@{/css/card.css}">
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .product-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            padding: 10px;
-            text-align: center;
-            transition: all 0.3s ease-in-out;
-            background: white;
-        }
-
-        .product-card img {
-            width: 100%;
-            height: auto;
-            border-radius: 5px;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .product-card:hover img {
-            transform: scale(1.05);
-            /* Hiệu ứng phóng to khi hover */
-        }
-
-        .product-card h5 {
-            font-size: 16px;
-            margin: 8px 0;
-        }
-
-        .product-card p {
-            font-size: 14px;
-            color: gray;
-        }
-
-        .product-price {
-            font-size: 18px;
-            font-weight: bold;
-            color: black;
-        }
-    </style>
-
+    <script th:src="@{/js/card-js.js}"></script>
 </head>
 
 <body>
@@ -93,22 +50,60 @@
 <div class="container">
     <div class="nav custom-nav-container">
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center text-center w-100">
-            <li><a href="#" class="nav-link px-3 link-danger text-white">Nam</a></li>
-            <li><a href="#" class="nav-link px-3 link-danger text-white">Nữ</a></li>
+            <li><a th:href="@{/user/shop(category='nam')}" class="nav-link px-3 link-danger text-white">Nam</a></li>
+            <li><a th:href="@{user/shop(category='nu')}" class="nav-link px-3 link-danger text-white">Nữ</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Trẻ em</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Unisex</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Phụ kiện</a></li>
         </ul>
     </div>
     <div class="container mt-3">
+        <h2 th:text="${currentCategory == 'nam' ? 'Sản phẩm Nam' : 'Sản phẩm Nữ'}"></h2>
+        <div class="row row-cols-4 g-3">
+            <div class="col" th:each="product : ${products}">
+                <div class="product-card">
+                    <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
+                    <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
+                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
+                            <img th:each="imageUri : ${productImages[product.id]}"
+                                 th:src="@{{filename}(filename=${imageUri})}"
+                                 th:alt="${product.name}"
+                                 class="product-image">
+                        </a>
+                    </div>
+
+                    <h5 th:text="${product.name}"></h5>
+                    <p class="product-price" th:text="${product.price}"></p>
+                    <p th:text="${product.description}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="banner">
+    <div class="banner-content">
+        <h3>Introducing</h3>
+        <h1>Fashion website shop</h1>
+        <p>Nơi bạn có thể tìm được những mặt hàng thời trang ưng ý.</p>
+        <a href="#" class="btn">Mua ngay</a>
+    </div>
+</div>
+<div class="container">
+    <div class="container mt-3">
+        <h1>Trending products</h1>
         <div class="row row-cols-4 g-3">
             <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
             <div class="col" th:each="product : ${products}">
                 <div class="product-card">
-                    <div th:each="imageUri : ${productImages[product.id]}">
-                        <p th:text="${imageUri}"></p> <!-- In URL ra để kiểm tra -->
-                        <img th:src="@{/uploads/{filename}(filename=${imageUri})}" th:alt="${product.name}"
-                             width="150">
+                    <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
+                    <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
+                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
+                            <img th:each="imageUri : ${productImages[product.id]}"
+                                 th:src="@{{filename}(filename=${imageUri})}"
+                                 th:alt="${product.name}"
+                                 class="product-image">
+                        </a>
                     </div>
 
                     <h5 th:text="${product.name}"></h5>
@@ -119,7 +114,40 @@
         </div>
     </div>
 </div>
+<!-- Dịch vụ -->
+<div class="service-section">
+    <div class="service-box">
+        <i class="fa-regular fa-comment"></i>
+        <h3>Uy tín</h3>
+        <p>Luôn đảm bảo chất lượng ở mức tốt nhất</p>
+    </div>
+    <div class="service-box">
+        <i class="fas fa-star"></i>
+        <h3>Chất lượng cao</h3>
+        <p>Sản phẩm đạt tiêu chuẩn, nguồn gốc rõ ràng.</p>
+    </div>
+    <div class="service-box">
+        <i class="fas fa-star"></i>
+        <h3>Giá cả hợp lý</h3>
+        <p>Cập nhật mức giá cạnh tranh, phù hợp với chất lượng.</p>
+    </div>
+</div>
 
+    <div>
+        <!-- Thành viên -->
+        <div class="membership-section">
+            <h2>Trở thành thành viên của shop để được nhận các thông báo ưu đãi sớm nhất</h2>
+        </div>
+
+        <!-- Bộ sưu tập hình ảnh -->
+        <div class="image-gallery">
+            <img src="/pics/banner-website-blazer-theme04.webp" alt="Denim Fall Winter">
+            <img src="/pics/easy-tet-tet-theme02.webp" alt="Denim Fashion">
+            <img src="/pics/frame-theme03.webp" alt="Couple Fashion">
+            <img src="/pics/tet-de-dang-theme.webp" alt="Khuyến mãi Tết">
+        </div>
+    </div>
+<!--Footer-->
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
-
 </html>
