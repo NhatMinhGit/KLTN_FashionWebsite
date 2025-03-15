@@ -8,42 +8,9 @@
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <link rel="stylesheet" th:href="@{/css/user.css}">
+    <link rel="stylesheet" th:href="@{/css/card.css}">
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
-    <style>
-        .product-images {
-            position: relative;
-            width: 150px;
-            height: 250px;
-            display: flex;
-            left: 20%;
-            /*transform: translate(-50%, -50%); !* Căn giữa ảnh *!*/
-            justify-content: center;  /* Căn giữa ngang */
-            align-items: center;      /* Căn giữa dọc */
-            overflow: hidden;
-        }
-
-        .product-images a {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-        }
-
-        .product-image {
-            max-width: 100%;
-            max-height: 100%;
-            /*object-fit: contain;*/
-            object-fit: cover; /* Giúp ảnh phủ kín khung hình */
-            position: absolute; /* Đảm bảo ảnh nằm trong phần tử cha */
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .product-image:first-child {
-            opacity: 1;
-        }
-    </style>
+    <script th:src="@{/js/card-js.js}"></script>
 </head>
 
 <body>
@@ -183,32 +150,4 @@
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
-<script>
-    let intervals = new Map();
-
-    function startSlideshow(container) {
-        let images = container.getElementsByClassName("product-image");
-        let index = 0;
-
-        if (images.length <= 1) return;
-
-        images[0].style.opacity = "1";
-        intervals.set(container, setInterval(() => {
-            images[index].style.opacity = "0";
-            index = (index + 1) % images.length;
-            images[index].style.opacity = "1";
-        }, 1000));
-    }
-
-    function stopSlideshow(container) {
-        clearInterval(intervals.get(container));
-        intervals.delete(container);
-
-        let images = container.getElementsByClassName("product-image");
-        if (images.length > 0) {
-            for (let img of images) img.style.opacity = "0";
-            images[0].style.opacity = "1";
-        }
-    }
-</script>
 </html>

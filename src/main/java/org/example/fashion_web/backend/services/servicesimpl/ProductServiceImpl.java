@@ -1,13 +1,17 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
+import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Product;
+import org.example.fashion_web.backend.repositories.CategoryRepository;
 import org.example.fashion_web.backend.repositories.ProductRepository;
+import org.example.fashion_web.backend.services.CategoryService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +20,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryService categoryService;
+
+
 
     // Lấy danh sách tất cả sản phẩm
     @Override
@@ -79,7 +91,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> getProductsByCategory(String category) {
-        return productRepository.findProductsByCategoryName(category);
+    public List<Product> getProductsByCategory(String categoryName) {
+        Optional<Category> optionalCategory = categoryRepository.findByName(categoryName);
+
+        // Kiểm tra xem danh mục có tồn tại không
+        if (!optionalCategory.isPresent()) {
+            return new ArrayList<>(); // Trả về danh sách rỗng nếu không tìm thấy
+        }
+
+        Category category = optionalCategory.get();
+        List<Long> categoryIds = categoryService.getAllSubCategoryIds(category.getId());
+
+        return productRepository.findByCategoryIds(categoryIds);
     }
+
 }

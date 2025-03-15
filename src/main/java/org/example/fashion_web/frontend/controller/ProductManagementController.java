@@ -390,6 +390,8 @@ public class ProductManagementController {
     public String listProducts(
             @RequestParam(value = "category", required = false, defaultValue = "nam") String category,
             Model model, Principal principal) {
+        // Kiểm tra xem có dữ liệu không
+        System.out.println("Danh mục được chọn: " + category);
 
         // Xử lý thông tin người dùng nếu có
         if (principal != null) {
@@ -401,6 +403,10 @@ public class ProductManagementController {
 
         // Lọc sản phẩm theo danh mục
         List<Product> products = productService.getProductsByCategory(category);
+        System.out.println("Số sản phẩm tìm thấy: " + products.size());
+        for (Product p : products) {
+            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
+        }
         model.addAttribute("products", products);
 
         // Nhóm danh sách ảnh theo productId
