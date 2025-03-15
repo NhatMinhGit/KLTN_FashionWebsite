@@ -34,4 +34,6 @@ public interface ProductService {
     Product updateProduct(Long id, Product productDetails);
 
     int getTotalProductsCount();
+
+    List<Product> getProductsByCategory(String category);
 }

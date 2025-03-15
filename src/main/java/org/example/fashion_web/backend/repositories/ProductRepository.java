@@ -21,4 +21,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Lọc sản phẩm theo khoảng giá
     List<Product> findByPriceBetween(Double min, Double max);
+    List<Product> findProductsByCategoryName(String category);
 }

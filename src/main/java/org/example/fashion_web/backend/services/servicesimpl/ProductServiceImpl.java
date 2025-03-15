@@ -77,4 +77,9 @@ public class ProductServiceImpl implements ProductService {
     public int getTotalProductsCount() {
         return productRepository.findAll().size();
     }
+
+    @Override
+    public List<Product> getProductsByCategory(String category) {
+        return productRepository.findProductsByCategoryName(category);
+    }
 }

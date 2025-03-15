@@ -4,52 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quần áo nam</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../templates/css/styles.css">
-    <link rel="stylesheet" href="../templates/css/Nam.css">
-    <style>
-        .header {
-            display: flex;
-            justify-content: center;
-            padding: 10px;
-        }
-        .nav-menu {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .nav-menu a {
-            text-decoration: none;
-            color: black;
-            font-weight: 500;
-            padding: 8px 12px;
-        }
-        .dropdown-menu {
-            min-width: 300px;
-        }
-        .dropdown-menu table {
-            width: 100%;
-            margin: 0;
-        }
-        .dropdown-menu th,
-        .dropdown-menu td {
-            padding: 10px;
-            text-align: left;
-        }
-        .dropdown-menu th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-        .dropdown-item {
-            padding: 8px 12px;
-            text-decoration: none;
-        }
-    </style>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <link rel="stylesheet" th:href="@{/css/user.css}">
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 </head>
 <body>
 
-<header class="header">
+<!--Header-->
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container">
     <nav class="nav-menu">
         <a href="#" class="icon me-2" data-bs-toggle="tooltip" title="Search">
             <i class="bi bi-search"></i>
@@ -146,9 +111,27 @@
         <a href="#">Thương Hiệu</a>
         <a href="#">Khuyến Mãi</a>
     </nav>
-</header>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container mt-3">
+        <div class="row row-cols-4 g-3">
+            <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
+            <div class="col" th:each="product : ${products}">
+                <div class="product-card">
+                    <div th:each="imageUri : ${productImages[product.id]}">
+                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
+                            <img th:src="@{{filename}(filename=${imageUri})}" th:alt="${product.name}"
+                                 width="150">
+                        </a>
+                    </div>
+                    <h5 th:text="${product.name}"></h5>
+                    <p class="product-price" th:text="${product.price}"></p>
+                    <p th:text="${product.description}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Footer-->
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

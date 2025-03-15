@@ -1,0 +1,36 @@
+.header {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+.nav-menu {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.nav-menu a {
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+    padding: 8px 12px;
+}
+.dropdown-menu {
+    min-width: 300px;
+}
+.dropdown-menu table {
+    width: 100%;
+    margin: 0;
+}
+.dropdown-menu th,
+.dropdown-menu td {
+    padding: 10px;
+    text-align: left;
+}
+.dropdown-menu th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+.dropdown-item {
+    padding: 8px 12px;
+    text-decoration: none;
+}

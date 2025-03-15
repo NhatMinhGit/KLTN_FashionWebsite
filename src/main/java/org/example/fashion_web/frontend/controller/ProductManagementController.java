@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -23,14 +22,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Controller
 
 public class ProductManagementController {
@@ -227,24 +222,33 @@ public class ProductManagementController {
         }
     }
     // 2️⃣ Xem chi tiết sản phẩm theo ID
-    @GetMapping("/{id}")
-    public String viewProduct(@PathVariable Long id, Model model) {
+    @GetMapping("/user/product-detail/{id}")
+    public String viewProduct(@PathVariable Long id, Model model,Principal principal) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+        model.addAttribute("user", userDetails);
+
         Product product = productService.getProductById(id)
                 .orElse(null);
-
         if (product == null) {
-            return "redirect:/admin/products"; // Fix đường dẫn redirect
+            return "redirect:/user"; // Fix đường dẫn redirect
         }
 
+        // Lấy danh sách ảnh và chỉ lấy đường dẫn ảnh (imageUrl)
+        List<String> productImages = imageService.findImagesByProductId(id)
+                .stream()
+                .map(Image::getImageUri) // Chỉ lấy URL ảnh
+                .collect(Collectors.toList());
+
         model.addAttribute("product", product);
-        return "products/detail"; // Đảm bảo có file product/detail.html
+        model.addAttribute("productImages", productImages);
+        return "product/product-detail"; // Đảm bảo có file product/product-detail.html
     }
 
     // 5️⃣ Hiển thị form cập nhật sản phẩm
     @GetMapping("/admin/products/edit/{id}")
     public String showEditProductForm(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
         Product product = productService.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ứng viên không tồn tại với ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm không tồn tại với ID: " + id));
 
         // Kiểm tra và lưu category
         Optional<Category> categoryOpt = categoryService.findByName(product.getCategory().getName());
@@ -261,7 +265,7 @@ public class ProductManagementController {
             newBrand.setId(product.getBrand().getId());
             return brandService.save(newBrand);
         });
-        // Chuyển đổi đối tượng Candidate thành CandidateForm để dễ dàng xử lý trong form
+        // Chuyển đổi đối tượng Product thành ProductForm để dễ dàng xử lý trong form
         ProductForm productForm = new ProductForm();
         productForm.setProduct_id(product.getId());
         productForm.setBrand_id(product.getBrand().getId());
@@ -272,6 +276,10 @@ public class ProductManagementController {
         productForm.setBrand_name(product.getBrand().getName());
         productForm.setCategory_name(product.getCategory().getName());
 
+        productForm.setImageFile(productForm.getImageFile());
+        System.out.println("#"+productForm.getImageFile());
+
+        model.addAttribute("categories", categoryService.getAllChildrenCategories()); // Lấy danh mục
         model.addAttribute("productForm", productForm);
         return "product/update-products";
     }
@@ -313,10 +321,47 @@ public class ProductManagementController {
             existingProduct.setCategory(category);
             existingProduct.setBrand(brand);
 
+            // Lưu hình ảnh
+            if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
+                // Định nghĩa thư mục lưu ảnh
+                String uploadDir = "pics/uploads/";
+
+                // Kiểm tra nếu thư mục chưa tồn tại thì tạo mới
+                File uploadPath = new File(uploadDir);
+                if (!uploadPath.exists()) {
+                    uploadPath.mkdirs(); // Tạo thư mục nếu chưa có
+                }
+
+                for (MultipartFile file : productForm.getImageFile()) {
+                    if (!file.isEmpty()) {
+                        try {
+                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename(); // Tránh trùng tên file
+                            String filePath = uploadDir + fileName;
+
+                            // Tạo đối tượng Image để lưu vào DB
+                            Image image = new Image();
+                            image.setProduct(existingProduct);
+                            image.setImageUri(filePath); // Đường dẫn file để hiển thị
+                            image.setImageName(fileName);
+                            image.setImageSize((int) file.getSize());
+                            image.setImageType(file.getContentType());
+
+                            // Lưu thông tin ảnh vào database
+                            imageService.save(image);
+
+                            // Lưu file vào thư mục trên server
+                            File destinationFile = new File(uploadPath, fileName);
+                            file.transferTo(destinationFile);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
 
             // Lưu địa chỉ và ứng viên
             productService.updateProduct(id, existingProduct);
-            //candidateService.updateCandidate(id, existingCandidate);
 
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật ứng viên thành công!");
             return "redirect:/admin/product";
@@ -340,6 +385,36 @@ public class ProductManagementController {
             redirectAttributes.addFlashAttribute("errorMessage", "Xóa ứng viên thất bại!");
         }
         return "redirect:/admin/product";
+    }
+    @GetMapping("/user/shop")
+    public String listProducts(
+            @RequestParam(value = "category", required = false, defaultValue = "nam") String category,
+            Model model, Principal principal) {
+
+        // Xử lý thông tin người dùng nếu có
+        if (principal != null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+            if (userDetails != null) {
+                model.addAttribute("user", userDetails);
+            }
+        }
+
+        // Lọc sản phẩm theo danh mục
+        List<Product> products = productService.getProductsByCategory(category);
+        model.addAttribute("products", products);
+
+        // Nhóm danh sách ảnh theo productId
+        Map<Long, List<String>> productImages = new HashMap<>();
+        for (Product product : products) {
+            List<Image> images = imageService.findImagesByProductId(product.getId());
+            List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+            productImages.put(product.getId(), imageUrls);
+        }
+
+        model.addAttribute("productImages", productImages);
+        model.addAttribute("currentCategory", category); // Lưu danh mục hiện tại để xử lý giao diện
+
+        return "shop"; // Trả về trang shop.html chung
     }
 
 }
