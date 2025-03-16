@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quần áo nam</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <link rel="stylesheet" th:href="@{/css/user.css}">
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+    <link rel="stylesheet" th:href="@{/css/card.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/card-js.js}"></script>
+</head>
+<body>
+
+<!--Header-->
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container">
+    <nav class="nav-menu">
+        <a href="#" class="icon me-2" data-bs-toggle="tooltip" title="Search">
+            <i class="bi bi-search"></i>
+        </a>
+
+        <!-- Dropdown Nam -->
+        <div class="dropdown">
+            <a href="#" class="dropdown-toggle" id="dropdownNam" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Nam
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownNam">
+                <li>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Hàng mới</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Bán chạy</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Thương hiệu mới</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Ưu đãi</a></td>
+                        </tr>
+                        <tr>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Sơ mi Oxford</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Coffee Lovers</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">EASY TẾT COLLECTION</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Routine Squad</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="dropdown-item">Tất cả Áo Nam</a></td>
+                            <td><a href="#" class="dropdown-item">Áo Len</a></td>
+                            <td><a href="#" class="dropdown-item">Tất cả Quần Nam</a></td>
+                            <td><a href="#" class="dropdown-item">Quần Nỉ</a></td>
+                        </tr>
+                        <tr>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Áo Thun</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Áo Nỉ</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Quần Jean</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Quần Short</a></td>
+                        </tr>
+                        <tr>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Áo Polo</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Áo Khoác</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Quần Tây</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Đồ Lót</a></td>
+                        </tr>
+                        <tr>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Áo Sơ Mi</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Áo Vest</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Quần Kaki</a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item">Phụ kiện</a></td>
+                        </tr>
+                        <tr>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item" >Áo Tank Top</a></td>
+                            <td><a class="dropdown-item" hidden="hidden"></a></td>
+                            <td><a th:href="@{/user/shop(category=${'Áo Thun'})}" class="dropdown-item" >Quần Jogger</a></td>
+                            <td><a class="dropdown-item" hidden="hidden"></a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="dropdown-item">Hệ thống của hàng</a></td>
+                            <td><a href="#" class="dropdown-item">Tin thời trang</a></td>
+                            <td><a href="#" class="dropdown-item">Trung tâm hỗ trợ</a></td>
+                            <td><a href="#" class="dropdown-item">Tra cứu đơn hàng</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Dropdown Nữ -->
+        <div class="dropdown">
+            <a href="#" class="dropdown-toggle" id="dropdownNu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Nữ
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownNu">
+                <li>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td><a href="#" class="dropdown-item">Váy</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="dropdown-item">Áo croptop</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="#" class="dropdown-item">Quần short</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </li>
+            </ul>
+        </div>
+
+        <a href="#">Về Routine</a>
+        <a href="#">Thương Hiệu</a>
+        <a href="#">Khuyến Mãi</a>
+    </nav>
+    <div class="container mt-3">
+        <h2 th:text="'Sản phẩm ' + ${currentCategory}"></h2>
+            <div class="row row-cols-4 g-3">
+                <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
+                <div class="col" th:each="product : ${products}">
+                    <div class="product-card">
+                        <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
+                        <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
+                            <a th:href="@{product-detail/{id}(id=${product.id})}">
+                                <img th:each="imageUri : ${productImages[product.id]}"
+                                     th:src="@{{filename}(filename=${imageUri})}"
+                                     th:alt="${product.name}"
+                                     class="product-image">
+                            </a>
+                        </div>
+
+                        <h5 th:text="${product.name}"></h5>
+                        <p class="product-price" th:text="${product.price}"></p>
+                        <p th:text="${product.description}"></p>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+<!--Footer-->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
