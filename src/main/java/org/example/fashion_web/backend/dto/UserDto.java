@@ -20,10 +20,5 @@ public class UserDto {
     @NotEmpty(message = "The password is required")
     private String password;
 
-    private String avatar;
-    private Date dob;
-    private String phoneNumber;
-    private Long wardId;
-
 }
 
