@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết sản phẩm</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <style>
+        .product-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .carousel-item img {
+            height: 80px;
+            object-fit: cover;
+            margin: auto;
+        }
+        .container p, div{
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<!--Header-->
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container mt-5">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <!-- Ảnh chính - hiển thị ảnh đầu tiên mặc định -->
+            <img th:src="@{${productImages[0]}}" id="mainImage" class="d-block w-100 product-img" th:alt="${product.name}">
+
+            <!-- Danh sách ảnh nhỏ -->
+            <div class="d-flex justify-content-between mt-2 carousel-item">
+                <img th:each="imageUri : ${productImages}"
+                     th:src="@{${imageUri}}"
+                     class="thumbnail"
+                     th:alt="${product.name}"
+                     onclick="changeImage(this)">
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <h2 class="mb-3" th:text="${product.name}"></h2>
+            <p class="text-white mb-4" th:text="${product.description}"></p>
+            <div class="mb-3">
+                <span class="h4 me-2" th:text="${product.price}"></span>
+                <span class="text-muted" th:text="${product.price}"><s></s></span>
+            </div>
+            <div class="mb-3">
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-half text-warning"></i>
+                <span class="ms-2">4.5 (120 reviews)</span>
+            </div>
+            <p class="mb-4" th:text="${product.description}"></p>
+<!--            <div class="mb-4">-->
+<!--                <h5>Color:</h5>-->
+<!--                <div class="btn-group" role="group" aria-label="Color selection">-->
+<!--                    <input type="radio" class="btn-check" name="color" id="black" autocomplete="off" checked>-->
+<!--                    <label class="btn btn-outline-dark" for="black">Black</label>-->
+<!--                    <input type="radio" class="btn-check" name="color" id="silver" autocomplete="off">-->
+<!--                    <label class="btn btn-outline-secondary" for="silver">Silver</label>-->
+<!--                    <input type="radio" class="btn-check" name="color" id="blue" autocomplete="off">-->
+<!--                    <label class="btn btn-outline-primary" for="blue">Blue</label>-->
+<!--                </div>-->
+<!--            </div>-->
+            <div class="mb-4">
+                <label for="quantity" class="form-label">Quantity:</label>
+                <input type="number" class="form-control" id="quantity" value="1" min="1" style="width: 80px;">
+            </div>
+            <button class="btn btn-primary btn-lg mb-3 me-2">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+            <button class="btn btn-outline-secondary btn-lg mb-3">
+                <i class="bi bi-heart"></i> Add to Wishlist
+            </button>
+            <div class="mt-4">
+                <h5>Key Features:</h5>
+                <ul>
+                    <li>Industry-leading noise cancellation</li>
+                    <li>30-hour battery life</li>
+                    <li>Touch sensor controls</li>
+                    <li>Speak-to-chat technology</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeImage(imgElement) {
+        document.getElementById('mainImage').src = imgElement.src;
+        // Xóa class 'active' khỏi tất cả các ảnh nhỏ
+        document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+        // Thêm class 'active' vào ảnh được chọn
+        imgElement.classList.add('active');
+    }
+
+</script>
+<!--Footer-->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
