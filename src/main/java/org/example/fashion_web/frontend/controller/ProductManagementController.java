@@ -244,7 +244,7 @@ public class ProductManagementController {
         return "product/product-detail"; // Đảm bảo có file product/product-detail.html
     }
 
-    // 5️⃣ Hiển thị form cập nhật sản phẩm
+    // Hiển thị form cập nhật sản phẩm
     @GetMapping("/admin/products/edit/{id}")
     public String showEditProductForm(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
         Product product = productService.getProductById(id)
