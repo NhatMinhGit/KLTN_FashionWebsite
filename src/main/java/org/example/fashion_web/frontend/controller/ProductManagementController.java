@@ -324,7 +324,7 @@ public class ProductManagementController {
             // Lưu hình ảnh
             if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
                 // Định nghĩa thư mục lưu ảnh
-                String uploadDir = "pics/uploads/";
+                String uploadDir = "/pics/uploads/";
 
                 // Kiểm tra nếu thư mục chưa tồn tại thì tạo mới
                 File uploadPath = new File(uploadDir);

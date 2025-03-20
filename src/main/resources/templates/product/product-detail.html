@@ -44,11 +44,11 @@
         </div>
 
         <!-- Product Details -->
-        <div class="col-md-6">
+        <div class="col-md-6" id="product-details" th:data-id="${product.id}">
             <h2 class="mb-3" th:text="${product.name}"></h2>
             <p class="text-white mb-4" th:text="${product.description}"></p>
             <div class="mb-3">
-                <span class="h4 me-2" th:text="${product.price}"></span>
+                <span class="h4 me-2" id="price" th:text ="${product.price}"></span>
                 <span class="text-muted" th:text="${product.price}"><s></s></span>
             </div>
             <div class="mb-3">
@@ -60,22 +60,11 @@
                 <span class="ms-2">4.5 (120 reviews)</span>
             </div>
             <p class="mb-4" th:text="${product.description}"></p>
-<!--            <div class="mb-4">-->
-<!--                <h5>Color:</h5>-->
-<!--                <div class="btn-group" role="group" aria-label="Color selection">-->
-<!--                    <input type="radio" class="btn-check" name="color" id="black" autocomplete="off" checked>-->
-<!--                    <label class="btn btn-outline-dark" for="black">Black</label>-->
-<!--                    <input type="radio" class="btn-check" name="color" id="silver" autocomplete="off">-->
-<!--                    <label class="btn btn-outline-secondary" for="silver">Silver</label>-->
-<!--                    <input type="radio" class="btn-check" name="color" id="blue" autocomplete="off">-->
-<!--                    <label class="btn btn-outline-primary" for="blue">Blue</label>-->
-<!--                </div>-->
-<!--            </div>-->
             <div class="mb-4">
                 <label for="quantity" class="form-label">Quantity:</label>
                 <input type="number" class="form-control" id="quantity" value="1" min="1" style="width: 80px;">
             </div>
-            <button class="btn btn-primary btn-lg mb-3 me-2">
+            <button class="btn btn-primary btn-lg mb-3 me-2" onclick="addToCart()">
                 <i class="bi bi-cart-plus"></i> Add to Cart
             </button>
             <button class="btn btn-outline-secondary btn-lg mb-3">
@@ -101,6 +90,55 @@
         document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
         // Thêm class 'active' vào ảnh được chọn
         imgElement.classList.add('active');
+    }
+
+    //add-to-cart
+    function addToCart() {
+        const productElement = document.getElementById("product-details");
+        const priceElement = document.getElementById("price");
+        const quantityElement = document.getElementById("quantity");
+
+        if (!productElement || !priceElement || !quantityElement) {
+            alert("Không tìm thấy phần tử nhập dữ liệu!");
+            return;
+        }
+
+        const productId = productElement.getAttribute("data-id");
+        let price = priceElement.textContent.trim(); // Lấy giá từ thẻ <span>
+        let quantity = quantityElement.value.trim();
+
+        // Chuyển đổi price sang số
+        // price = parseFloat(price.replace(/,/g, "")); // Loại bỏ dấu phẩy nếu có
+        quantity = parseInt(quantity);
+
+        // Kiểm tra nếu price bị NaN hoặc giá trị không hợp lệ
+        if (!productId || isNaN(price) || price <= 0 || isNaN(quantity) || quantity <= 0) {
+            alert("Vui lòng nhập giá và số lượng hợp lệ!");
+            return;
+        }
+
+        const data = {
+            productId: productId,
+            price: price,
+            quantity: quantity
+        };
+
+        console.log("Dữ liệu gửi đi:", data); // Kiểm tra giá trị trong console
+
+        fetch("/user/cart/add-to-cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(`Sản phẩm đã được thêm vào giỏ hàng!\nID: ${data.productId}\nGiá: ${data.price}\nSố lượng: ${data.quantity}`);
+                } else {
+                    alert("Có lỗi xảy ra: " + result.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
     }
 
 </script>
