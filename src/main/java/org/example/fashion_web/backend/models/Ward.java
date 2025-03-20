@@ -24,12 +24,4 @@ public class Ward {
     @Column(name = "ward_name", nullable = false, length = 255)
     private String wardName;
 
-    @Override
-    public String toString() {
-        return "Ward{" +
-                "id=" + id +
-                ", district=" + district +
-                ", wardName='" + wardName + '\'' +
-                '}';
-    }
 }

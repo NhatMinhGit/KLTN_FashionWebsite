@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách Voucher</title>
+  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+  <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .table-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .table th {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+    }
+
+    .table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    @media (max-width: 768px) {
+      .table-container {
+        padding: 10px;
+      }
+
+      .table thead {
+        display: none;
+      }
+
+      .table tbody tr {
+        display: block;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+      }
+
+      .table tbody td {
+        display: block;
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+      }
+
+      .table tbody td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        font-weight: bold;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<!-- Import Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <div th:replace="~{fragments/sidebar-profile :: sidebar}"></div>
+    </div>
+    <div class="col-md-9">
+      <h2 class=" mb-4">Danh Sách Voucher</h2>
+
+      <div class="table-container">
+        <table class="table table-bordered table-hover">
+          <thead>
+          <tr>
+            <th>Mã Voucher</th>
+            <th>Tên Voucher</th>
+            <th>Loại Giảm Giá</th>
+            <th>Giá Trị Giảm</th>
+            <th>Giá Trị Đơn Hàng Tối Thiểu</th>
+            <th>Ngày Bắt Đầu</th>
+            <th>Ngày Kết Thúc</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="voucher : ${vouchers}">
+            <td data-label="Mã Voucher" th:text="${voucher.voucherCode}"></td>
+            <td data-label="Tên Voucher" th:text="${voucher.voucherName}"></td>
+            <td data-label="Loại Giảm Giá" th:text="${voucher.discountType}"></td>
+            <td data-label="Giá Trị Giảm"
+                th:text="${#numbers.formatDecimal(voucher.discountValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
+            </td>
+            <td data-label="Đơn Hàng Tối Thiểu"
+                th:text="${#numbers.formatDecimal(voucher.minOrderValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
+            </td>
+            <td data-label="Ngày Bắt Đầu"
+                th:text="${#temporals.format(voucher.startDate, 'dd/MM/yyyy')}"></td>
+            <td data-label="Ngày Kết Thúc"
+                th:text="${#temporals.format(voucher.endDate, 'dd/MM/yyyy')}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

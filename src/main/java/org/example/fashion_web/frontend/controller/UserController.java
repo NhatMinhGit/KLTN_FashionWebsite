@@ -44,7 +44,7 @@ public class    UserController {
     public String saveUser(@ModelAttribute("user") UserDto userDto, Model model) {
         userService.save(userDto);
         model.addAttribute("message", "Registered Successfuly!");
-        return "register";
+        return "login";
     }
 
     @GetMapping("/login")

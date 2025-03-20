@@ -28,7 +28,7 @@
         <div class="sidebar">
             <ul class="list-unstyled option-menu">
                 <li>
-                    <a href="/profile" class="text-dark"
+                    <a th:href="@{/user/profile}" class="text-dark"
                        th:classappend="${currentPage == 'profile'} ? 'fw-bold disabled-link'">Tài khoản</a>
                 </li>
                 <li>
@@ -36,8 +36,8 @@
                        th:classappend="${currentPage == 'orders'} ? 'fw-bold disabled-link'">Đơn hàng</a>
                 </li>
                 <li>
-                    <a href="/offers" class="text-dark"
-                       th:classappend="${currentPage == 'offers'} ? 'fw-bold disabled-link'">Ưu đãi của tôi</a>
+                    <a th:href="@{/user/voucher}" class="text-dark"
+                       th:classappend="${currentPage == 'voucher'} ? 'fw-bold disabled-link'">Ưu đãi của tôi</a>
                 </li>
             </ul>
 

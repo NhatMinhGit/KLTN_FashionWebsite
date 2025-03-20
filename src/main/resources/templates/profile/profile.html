@@ -27,38 +27,34 @@
                 <h2>Chỉnh sửa hồ sơ</h2>
                 <hr>
                 <form id="editProfileForm" method="post" th:object="${userProfileDto}"
-                      th:action="@{/user/profile/edit}" enctype="multipart/form-data">
+                      th:action="@{/user/profile}" enctype="multipart/form-data">
                     <input type="hidden" th:field="*{id}">
 
                     <div class="mb-3">
                         <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="name" th:field="*{user.name}" required>
-                        <p th:if="${#fields.hasErrors('user.name')}" class="text-danger" th:errors="*{user.name}">
-                        </p>
                     </div>
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" th:field="*{user.email}" readonly>
+                        <input type="email" class="form-control" id="email" th:field="*{user.email}" readonly disabled>
                     </div>
 
                     <div class="mb-3">
                         <label for="avatar" class="form-label">Ảnh đại diện</label>
                         <input type="file" class="form-control" id="avatar" name="avatarFile">
-                        <img th:src="${userProfileDto.avatar != null ? userProfileDto.avatar : '/images/default-avatar.png'}"
+                        <img th:src="${userProfileDto.avatar != null ? userProfileDto.avatar : '/pics/default-avatar.jpg'}"
                              alt="User Avatar" class="img-thumbnail" width="150">
-
-
                     </div>
 
                     <div class="mb-3">
                         <label for="dob" class="form-label">Ngày sinh</label>
-                        <input type="date" class="form-control" id="dob" th:field="*{dob}">
+                        <input type="date" class="form-control" id="dob" th:field="*{dob}" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="phoneNumber" class="form-label">Số điện thoại</label>
-                        <input type="text" class="form-control" id="phoneNumber" th:field="*{phoneNumber}">
+                        <input type="text" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" required>
                     </div>
 
                     <div class="mb-3">
@@ -68,20 +64,24 @@
                             <option th:each="c : ${cities}" th:value="${c.id}" th:text="${c.cityName}"
                                     th:selected="${userProfileDto.ward?.district?.city?.id == c.id}"></option>
                         </select>
+                        <input type="hidden" id="selectedCity" name="cityIdd">
                     </div>
 
                     <div class="mb-3">
                         <label for="district" class="form-label">Quận/Huyện</label>
-                        <select class="form-control" id="district" name="districtId" disabled>
+                        <select class="form-control" id="district" name="districtId">
                             <option value="">-- Chọn Quận/Huyện --</option>
                         </select>
+                        <input type="hidden" id="selectedDistrict" name="districtIdd">
                     </div>
 
                     <div class="mb-3">
                         <label for="ward" class="form-label">Phường/Xã</label>
-                        <select class="form-control" id="ward" name="wardId" disabled>
+                        <select class="form-control" id="ward" name="wardId">
                             <option value="">-- Chọn Phường/Xã --</option>
                         </select>
+                        <input type="hidden" id="selectedWard" name="wardIdd">
+                        <span class="text-danger" id="wardError"></span>
                     </div>
 
                     <div class="mb-3">
@@ -90,7 +90,8 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                        <button type="submit" class="btn btn-primary align-end" id="btnUpdate">Cập nhật</button>
+
                     </div>
                 </form>
             </div>
@@ -105,6 +106,68 @@
         var districtSelect = document.getElementById("district");
         var wardSelect = document.getElementById("ward");
 
+        var editProfileForm = document.getElementById("editProfileForm");
+    var updateButton = document.getElementById("btnUpdate");
+
+    updateButton.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn form gửi ngay lập tức
+
+        // Lấy giá trị các trường input
+        var name = document.getElementById("name").value.trim();
+        var phoneNumber = document.getElementById("phoneNumber").value.trim();
+        var address = document.getElementById("address").value.trim();
+        var city = document.getElementById("city").value;
+        var district = document.getElementById("district").value;
+        var ward = document.getElementById("ward").value;
+
+        // Kiểm tra trường trống
+        if (!name) {
+            alert("Vui lòng nhập họ và tên!");
+            return;
+        }
+        if (!phoneNumber) {
+            alert("Vui lòng nhập số điện thoại!");
+            return;
+        }
+        if (!address) {
+            alert("Vui lòng nhập địa chỉ!");
+            return;
+        }
+        if (!city) {
+            alert("Vui lòng chọn Thành phố!");
+            return;
+        }
+        if (!district) {
+            alert("Vui lòng chọn Quận/Huyện!");
+            return;
+        }
+        if (!ward) {
+            alert("Vui lòng chọn Phường/Xã!");
+            return;
+        }
+
+        // Hiển thị xác nhận trước khi gửi form
+        if (confirm("Bạn có chắc chắn muốn cập nhật thông tin không?")) {
+            editProfileForm.submit();
+        }
+    });
+
+        // Gán giá trị dropdown vào input hidden khi thay đổi
+        citySelect.addEventListener("change", function () {
+            document.getElementById("selectedCity").value = this.value;
+            console.log("Selected City:", this.value);
+        });
+
+        districtSelect.addEventListener("change", function () {
+            document.getElementById("selectedDistrict").value = this.value;
+            console.log("Selected District:", this.value);
+        });
+
+        wardSelect.addEventListener("change", function () {
+            document.getElementById("selectedWard").value = this.value;
+            console.log("Selected Ward:", this.value);
+        });
+
         // Lấy dữ liệu từ Thymeleaf
         var selectedCityId = citySelect.value;
         var selectedDistrictId = `[[${userProfileDto.ward?.district?.id ?: ''}]]`.trim();
@@ -112,10 +175,6 @@
 
         selectedDistrictId = selectedDistrictId ? selectedDistrictId : null;
         selectedWardId = selectedWardId ? selectedWardId : null;
-
-        console.log("Selected City ID: " + selectedCityId);
-        console.log("Selected District ID: " + selectedDistrictId);
-        console.log("Selected Ward ID: " + selectedWardId);
 
         function loadDistricts(selectedDistrictId, callback) {
             var cityId = citySelect.value;
@@ -191,7 +250,6 @@
     });
 
 </script>
-
 </body>
 
 </html>
