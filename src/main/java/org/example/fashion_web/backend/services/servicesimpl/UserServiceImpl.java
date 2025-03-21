@@ -1,6 +1,7 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.UserDto;
+import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.UserService;
@@ -56,6 +57,15 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+    @Override
+    public User findByUsername(String username) {
+        return userRepository.findByName(username);
     }
 
 }
