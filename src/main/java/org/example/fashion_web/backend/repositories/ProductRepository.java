@@ -18,8 +18,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Kiểm tra xem sản phẩm có tồn tại không
     boolean existsById(Long id);
 
-    // Tìm kiếm sản phẩm theo tên (có thể áp dụng khi muốn tìm sản phẩm theo từ khóa)
-    List<Product> findByNameContaining(String name);
 
     // Lọc sản phẩm theo khoảng giá
     List<Product> findByPriceBetween(Double min, Double max);
@@ -27,5 +25,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE p.category.id IN :categoryIds")
     List<Product> findByCategoryIds(@Param("categoryIds") List<Long> categoryIds);
+
+
+    //AI function
+
+    // Tìm kiếm sản phẩm theo tên (có thể áp dụng khi muốn tìm sản phẩm theo từ khóa)
+    List<Product> findByNameContaining(String name);
 
 }
