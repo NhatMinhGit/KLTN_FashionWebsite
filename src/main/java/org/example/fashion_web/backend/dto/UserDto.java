@@ -1,24 +1,35 @@
 package org.example.fashion_web.backend.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
-
-import java.util.Date;
-
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
     private Long id;
-    @NotEmpty(message = "The name is required")
+
+    @Pattern(
+            regexp = "^[A-Z][a-z]+( [A-Z][a-z]+)+$",
+            message = "Tên phải có ít nhất hai từ, mỗi từ bắt đầu bằng chữ in hoa và không chứa ký tự đặc biệt"
+    )
     private String name;
-    @NotEmpty(message = "The email is required")
+
+    @Pattern(
+            regexp = "^[a-zA-Z0-9]{6}@gmail\\.com$",
+            message = "Email phải có đúng 6 ký tự chữ hoặc số trước '@gmail.com' và không chứa ký tự đặc biệt khác"
+    )
     private String email;
-    @NotEmpty(message = "The role is required")
+
     private String role;
-    @NotEmpty(message = "The password is required")
+
+    @Size(min = 8, message = "Mật khẩu phải có ít nhất 8 ký tự")
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])?.{8,}$",
+            message = "Gồm ít nhất một chữ cái và một số. Có thể có ký tự đặc biệt"
+    )
     private String password;
-
 }
-

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -20,8 +20,8 @@
                             <div class="col-lg-8">
                                 <div class="p-5">
                                     <div class="d-flex justify-content-between align-items-center mb-5">
-                                        <h1 class="fw-bold mb-0">Shopping Cart</h1>
-                                        <h6 class="mb-0 text-muted">3 items</h6>
+                                        <h3 class="fw-bold mb-0">Shopping Cart</h3>
+                                        <h6 class="mb-0 text-muted">[[${countCart}]]</h6>
                                     </div>
                                     <th:block th:each="item : ${cartItems}">
                                         <div class="row mb-4 d-flex justify-content-between align-items-center">
@@ -47,7 +47,7 @@
                                                 </button>
                                             </div>
                                             <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
-                                                <h6 class="mb-0" th:text="'€ ' + ${item.pricePerUnit}"></h6>
+                                                <h6 class="mb-0" th:text="${item.pricePerUnit}"></h6>
                                             </div>
                                             <form th:action="@{/user/cart/remove-from-cart}" method="post">
                                                 <input type="hidden" name="id" th:value="${item.cartItemId}" />
@@ -69,44 +69,13 @@
                             </div>
                             <div class="col-lg-4 bg-body-tertiary">
                                 <div class="p-5">
-                                    <h3 class="fw-bold mb-5 mt-2 pt-1">Summary</h3>
-                                    <hr class="my-4">
-
-                                    <div class="d-flex justify-content-between mb-4">
-                                        <h5 class="text-uppercase">items 3</h5>
-                                        <h5>€ 132.00</h5>
-                                    </div>
-
-                                    <h5 class="text-uppercase mb-3">Shipping</h5>
-
-                                    <div class="mb-4 pb-2">
-                                        <select data-mdb-select-init>
-                                            <option value="1">Standard-Delivery- €5.00</option>
-                                            <option value="2">Two</option>
-                                            <option value="3">Three</option>
-                                            <option value="4">Four</option>
-                                        </select>
-                                    </div>
-
-                                    <h5 class="text-uppercase mb-3">Give code</h5>
-
-                                    <div class="mb-5">
-                                        <div data-mdb-input-init class="form-outline">
-                                            <input type="text" id="form3Examplea2" class="form-control form-control-lg" />
-                                            <label class="form-label" for="form3Examplea2">Enter your code</label>
-                                        </div>
-                                    </div>
-
-                                    <hr class="my-4">
-
                                     <div class="d-flex justify-content-between mb-5">
-                                        <h5 class="text-uppercase">Total price</h5>
-                                        <h5>€ 137.00</h5>
+                                        <h6>Đơn hàng ước tính:</h6>
+                                        <h6 class="fw-bold">[[${totalOrderPrice}]]</h6>
                                     </div>
-
-                                    <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-dark btn-block btn-lg"
-                                             data-mdb-ripple-color="dark">Register</button>
-
+                                    <hr class="my-4">
+                                    <a  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-dark btn-block btn-lg"
+                                             data-mdb-ripple-color="dark" th:href="@{/user/order}" id="checkoutBtn">Thanh toán</a>
                                 </div>
                             </div>
                         </div>
@@ -120,25 +89,39 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 <script>
-   function updateQuantity(cartItemId, change) {
-       console.log("Cart Item ID:", cartItemId, "Change:", change);
-   }
-   // function removeFromCart(cartItemId) {
-   //     console.log("Removing cart item:", cartItemId);
-   //
-   //     fetch('/user/cart/remove-from-cart', {
-   //         method: 'POST',
-   //         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-   //         body: new URLSearchParams({ id: cartItemId })
-   //     }).then(response => {
-   //         console.log("Response status:", response.status);
-   //         if (response.ok) {
-   //             console.log("Item removed successfully!");
-   //             location.reload();
-   //         } else {
-   //             console.log("Failed to remove item!");
-   //         }
-   //     }).catch(error => console.error("Error:", error));
-   // }      
+    function updateQuantity(cartItemId, change) {
+        console.log("Cart Item ID:", cartItemId, "Change:", change);
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        var checkoutBtn = document.getElementById("checkoutBtn");
+        var countCart = [[${countCart}]]; // Lấy giá trị countCart từ Thymeleaf
+
+        checkoutBtn.addEventListener("click", function (event) {
+            if (countCart === 0) {
+                event.preventDefault(); // Ngăn chặn chuyển hướng
+                alert("Chưa có sản phẩm trong giỏ hàng để thực hiện thanh toán");
+            }
+     });
+
+
+});
+
+// function removeFromCart(cartItemId) {
+//     console.log("Removing cart item:", cartItemId);
+//
+//     fetch('/user/cart/remove-from-cart', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+//         body: new URLSearchParams({ id: cartItemId })
+//     }).then(response => {
+//         console.log("Response status:", response.status);
+//         if (response.ok) {
+//             console.log("Item removed successfully!");
+//             location.reload();
+//         } else {
+//             console.log("Failed to remove item!");
+//         }
+//     }).catch(error => console.error("Error:", error));
+// }
 </script>
 </html>

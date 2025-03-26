@@ -3,6 +3,9 @@ package org.example.fashion_web.frontend.controller;
 import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
+import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.repositories.UserRepository;
+import org.example.fashion_web.backend.services.CartService;
 import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.example.fashion_web.backend.services.UserService;
@@ -14,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.HashMap;
@@ -25,7 +29,10 @@ import java.util.stream.Collectors;
 public class UserController {
 
     @Autowired
-    UserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private UserService userService;
@@ -35,16 +42,26 @@ public class UserController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private CartService cartService;
+
     @GetMapping("/registration")
     public String getRegistrationPage(@ModelAttribute("user") UserDto userDto) {
         return "register";
     }
 
     @PostMapping("/registration")
-    public String saveUser(@ModelAttribute("user") UserDto userDto, Model model) {
-        userService.save(userDto);
-        model.addAttribute("message", "Registered Successfuly!");
-        return "register";
+    public String saveUser(@ModelAttribute("user") UserDto userDto, RedirectAttributes redirectAttributes) {
+        User user = userRepository.findByEmail(userDto.getEmail());
+        if (user == null) {
+            userService.save(userDto);
+            redirectAttributes.addFlashAttribute("message", "Registered Successfully!");
+            return "redirect:/login"; // Chuyển hướng đến trang login và hiển thị thông báo
+        } else {
+            redirectAttributes.addFlashAttribute("message", "Email đã được sử dụng!");
+            return "redirect:/registration"; // Chuyển hướng về lại trang đăng ký kèm thông báo
+        }
     }
 
     @GetMapping("/login")
@@ -56,6 +73,8 @@ public class UserController {
     public String userPage(Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
         model.addAttribute("user", userDetails);
+
+        User user = userService.findByEmail(userDetails.getUsername());
 
         // Lấy danh sách sản phẩm
         List<Product> products = productService.getAllProducts();

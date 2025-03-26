@@ -1,13 +1,14 @@
 package org.example.fashion_web.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDate;
 import java.util.Date;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table(name = "UserProfiles")
 public class UserProfile {
@@ -19,6 +20,7 @@ public class UserProfile {
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     @ManyToOne
@@ -28,6 +30,7 @@ public class UserProfile {
     @Column(name = "avatar", length = 255)
     private String avatar;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "dob")
     @Temporal(TemporalType.DATE)
     private Date dob;
@@ -42,7 +45,17 @@ public class UserProfile {
     public UserProfile () {
         this.phoneNumber = "Chưa cập nhật!";
         this.ward = null;
-        this.avatar = "Chưa cập nhật!";
+        this.avatar = "/pics/default-avatar.jpg";
         this.address = "Chưa cập nhật!";
+        this.user = null;
+    }
+
+    public UserProfile(User user, Ward ward, Date dob, String avatar, String phoneNumber, String address) {
+        this.user = user;
+        this.ward = ward;
+        this.dob = dob;
+        this.avatar = avatar;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
     }
 }

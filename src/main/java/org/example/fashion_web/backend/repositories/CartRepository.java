@@ -15,4 +15,6 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
     List<CartItems> getCartItemsByCartId(Long id);
 
     BigDecimal getTotalPriceByCartId(Long id);
+
+    Integer countByUserId(Long userId);
 }

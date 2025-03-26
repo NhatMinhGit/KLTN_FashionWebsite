@@ -32,12 +32,4 @@ public class District {
     @Column(name = "district_name", nullable = false, length = 255)
     private String districtName;
 
-    @Override
-    public String toString() {
-        return "District{" +
-                "id=" + id +
-                ", city=" + city +
-                ", districtName='" + districtName + '\'' +
-                '}';
-    }
 }
