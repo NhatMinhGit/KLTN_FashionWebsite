@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Chi tiết Đơn hàng</title>
+  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+  <h2 class="mb-4">Chi tiết Đơn hàng</h2>
+  <table class="table table-bordered">
+    <thead>
+    <tr>
+      <th>Mã Đơn hàng</th>
+      <th>Ngày Đặt hàng</th>
+      <th>Tổng tiền</th>
+      <th>Địa chỉ Giao hàng</th>
+      <th>Phương thức Thanh toán</th>
+      <th>Trạng thái</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td th:text="${order.id}"></td>
+      <td th:text="${order.orderDate}"></td>
+      <td th:text="${order.totalPrice}"></td>
+      <td th:text="${order.shippingAddress}"></td>
+      <td th:text="${order.paymentMethod}"></td>
+      <td th:text="${order.status}"></td>
+    </tr>
+    </tbody>
+  </table>
+  <a href="/user/orders" class="btn btn-primary">Xem tất cả đơn hàng</a>
+</div>
+</body>
+</html>

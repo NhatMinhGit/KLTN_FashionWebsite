@@ -21,5 +21,5 @@ public interface CartService {
 
     Cart save(Cart cart);
 
-
+    Integer getCountCart(Long userId);
 }

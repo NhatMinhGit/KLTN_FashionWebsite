@@ -3,6 +3,8 @@ package org.example.fashion_web.frontend.controller;
 import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
+import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.services.CartService;
 import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.example.fashion_web.backend.services.UserService;
@@ -35,6 +37,10 @@ public class UserController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private CartService cartService;
+
     @GetMapping("/registration")
     public String getRegistrationPage(@ModelAttribute("user") UserDto userDto) {
         return "register";
@@ -56,6 +62,8 @@ public class UserController {
     public String userPage(Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
         model.addAttribute("user", userDetails);
+
+        User user = userService.findByEmail(userDetails.getUsername());
 
         // Lấy danh sách sản phẩm
         List<Product> products = productService.getAllProducts();

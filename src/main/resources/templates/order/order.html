@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Thanh toán</title>
+  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+  <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+  <style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        max-width: 900px;
+    }
+
+    .order-summary,
+    .order-details,
+    .payment-method,
+    .order-voucher {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .order-summary h5,
+    .order-details h5,
+    .payment-method h5,
+    .order-voucher h5 {
+        font-weight: bold;
+    }
+
+    .btn-continue {
+        background-color: #ff5722;
+        color: white;
+        font-weight: bold;
+    }
+
+    .btn-continue:hover {
+        background-color: #e64a19;
+    }
+
+    .order-card img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+    }
+
+    .order-card {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .order-info {
+        flex-grow: 1;
+        margin-left: 10px;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+    }
+
+    .quantity-control button {
+        border: 1px solid #ddd;
+        background: none;
+        padding: 5px 10px;
+    }
+  </style>
+</head>
+
+<body>
+<!-- Import Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container py-4">
+  <div class="row">
+    <!-- Shipping Address -->
+    <div class="col-md-7">
+      <div class="card p-4">
+        <h5>Thông tin giao hàng</h5>
+        <p class="text-danger" style="font-size: 12px; font-style: italic;">
+          (Dữ liệu này sẽ không được lưu lại khi chưa tạo tài khoản hoặc không nhấn cập nhật)
+        </p>
+        <form id="editProfileForm" method="post" th:object="${userProfileDto}"
+              th:action="@{/user/order/save-user}" enctype="multipart/form-data">
+          <input type="hidden" th:field="*{id}" id="userId">
+          <div class="mb-3">
+            <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" th:field="*{user.name}" required>
+          </div>
+          <div class="mb-3">
+            <label for="phoneNumber" class="form-label">Số điện thoại</label> <span
+                  class="text-danger">*</span>
+            <input type="text" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="email" th:field="*{user.email}" readonly
+                   disabled>
+          </div>
+
+          <div class="mb-3">
+            <label for="city" class="form-label">Thành phố</label>
+            <select class="form-control" id="city" name="cityId">
+              <option value="">-- Chọn Thành phố --</option>
+              <option th:each="c : ${cities}" th:value="${c.id}" th:text="${c.cityName}"
+                      th:selected="${userProfileDto.ward?.district?.city?.id == c.id}"></option>
+            </select>
+            <input type="hidden" id="selectedCity" name="cityIdd">
+          </div>
+
+          <div class="mb-3">
+            <label for="district" class="form-label">Quận/Huyện</label>
+            <select class="form-control" id="district" name="districtId">
+              <option value="">-- Chọn Quận/Huyện --</option>
+            </select>
+            <input type="hidden" id="selectedDistrict" name="districtIdd">
+          </div>
+
+          <div class="mb-3">
+            <label for="ward" class="form-label">Phường/Xã</label>
+            <select class="form-control" id="ward" name="wardId">
+              <option value="">-- Chọn Phường/Xã --</option>
+            </select>
+            <input type="hidden" id="selectedWard" name="wardIdd">
+            <span class="text-danger" id="wardError"></span>
+            <input type="hidden" id="detailAddress" th:value="${detailaddress}">
+          </div>
+
+          <div class="mb-3">
+            <label for="address" class="form-label">Tòa nhà, số nhà, tên đường</label>
+            <input type="text" class="form-control" id="address" th:field="*{address}">
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary align-end" id="btnUpdate">Cập nhật</button>
+          </div>
+        </form>
+      </div>
+
+
+      <!-- Payment Method -->
+      <div class="payment-method mt-4">
+        <h5>Phương thức thanh toán</h5>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="paymentMethod" id="CASH" value="CASH" checked>
+          <label class="form-check-label" for="CASH">Thanh toán khi nhận hàng</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="paymentMethod" id="CREDIT_CARD" value="CREDIT_CARD">
+          <label class="form-check-label" for="CREDIT_CARD">Credit Card</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="paymentMethod" id="BANK_TRANSFER" value="BANK_TRANSFER">
+          <label class="form-check-label" for="BANK_TRANSFER">Chuyển khoản ngân hàng</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-md-5">
+      <!-- Order Details -->
+      <div class="order-details mt-4">
+        <h5>Chi tiết đơn hàng</h5>
+        <div th:each="item : ${cartItems}" class="order-card">
+          <img th:src="@{${productImages}}" class="img-fluid rounded-3" th:alt="${item.product.name}">
+          <div class="order-info">
+            <p class="mb-0" th:text="${item.product.name}"></p>
+            <small class="text-muted" th:text="${item.product.category.name}"></small>
+            <div class="quantity-control mt-1">
+              <!--              <button>-</button>-->
+              <!--              <span class="mx-2">2</span>-->
+              <!--              <button>+</button>-->
+              <span class="mx-2">Quantity: <span th:text="${item.quantity}"></span></span>
+            </div>
+          </div>
+          <strong th:text="${item.pricePerUnit}"></strong>
+        </div>
+      </div>
+      <!-- Modal hiển thị danh sách voucher -->
+      <div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel"
+           aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="voucherModalLabel">Danh sách Voucher</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"
+                      aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table table-striped">
+                <thead>
+                <tr>
+                  <th>Mã</th>
+                  <th>Tên</th>
+                  <th>Hạn sử dụng</th>
+                  <th>Chọn</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="voucher : ${vouchers}">
+                  <td th:text="${voucher.voucherCode}"></td>
+                  <td th:text="${voucher.voucherName}"></td>
+                  <td th:text="${#temporals.format(voucher.endDate, 'dd/MM/yyyy')}"></td>
+                  <td>
+                    <button class="btn btn-primary btn-sm apply-voucher"
+                            th:data-code="${voucher.voucherCode}"
+                            th:data-name="${voucher.voucherName}">
+                      Chọn
+                    </button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-voucher">
+        <h5>Voucher và Coupon</h5>
+        <a href="#" class="text-muted float-end" data-bs-toggle="modal" data-bs-target="#voucherModal">Xem
+          tất cả</a>
+        <div class="input-group mt-2">
+          <input type="text" class="form-control" placeholder="Nhập mã giảm giá (nếu có)"
+                 aria-label="Voucher" id="selectedVoucher">
+
+          <button class="btn btn-outline-secondary fw-bold" type="button" onclick="applyVoucher()">Áp dụng</button>
+        </div>
+      </div>
+      <div class="order-summary">
+        <h5>Đơn hàng</h5>
+        <table class="table table-borderless">
+          <tbody>
+          <tr>
+            <td>Tổng đơn hàng</td>
+            <td>:</td>
+            <td class="fw-bold" id="totalorderprice">[[${totalOrderPrice}]]</td>
+          </tr>
+          <tr>
+            <td>Phí vận chuyển</td>
+            <td>:</td>
+            <td class="text-success">Free ship</td>
+          </tr>
+
+          <tr>
+            <td>Giảm giá</td>
+            <td>:</td>
+            <td id="discount" class="text-danger">0</td>
+          </tr>
+
+          <tr class="border-top">
+            <td>
+              <h6>Thành tiền</h6>
+            </td>
+            <td>:</td>
+            <td class="fw-bold" id="totalPrice">[[${totalOrderPrice}]]</td>
+          </tr>
+          </tbody>
+        </table>
+        <button class="btn btn-continue w-100" id="checkoutBtn">Thanh toán</button>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+</body>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      console.log("DOM fully loaded and parsed");
+        var citySelect = document.getElementById("city");
+        var districtSelect = document.getElementById("district");
+        var wardSelect = document.getElementById("ward");
+
+        var editProfileForm = document.getElementById("editProfileForm");
+        var updateButton = document.getElementById("btnUpdate");
+
+        updateButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Ngăn form gửi ngay lập tức
+
+            // Lấy giá trị các trường input
+            var name = document.getElementById("name").value.trim();
+            var phoneNumber = document.getElementById("phoneNumber").value.trim();
+            var address = document.getElementById("address").value.trim();
+            var city = document.getElementById("city").value;
+            var district = document.getElementById("district").value;
+            var ward = document.getElementById("ward").value;
+
+            // Kiểm tra trường trống
+            if (!name) {
+                alert("Vui lòng nhập họ và tên!");
+                return;
+            }
+            if (!phoneNumber || phoneNumber == "Chưa cập nhật!") {
+                alert("Vui lòng nhập số điện thoại!");
+                return;
+            }
+            if (!address || address == "Chưa cập nhật!") {
+                alert("Vui lòng nhập địa chỉ!");
+                return;
+            }
+            if (!city) {
+                alert("Vui lòng chọn Thành phố!");
+                return;
+            }
+            if (!district) {
+                alert("Vui lòng chọn Quận/Huyện!");
+                return;
+            }
+            if (!ward) {
+                alert("Vui lòng chọn Phường/Xã!");
+                return;
+            }
+
+            // Hiển thị xác nhận trước khi gửi form
+            if (confirm("Bạn có chắc chắn muốn cập nhật thông tin không?")) {
+                editProfileForm.submit();
+            }
+        });
+
+        // Gán giá trị dropdown vào input hidden khi thay đổi
+        citySelect.addEventListener("change", function () {
+            document.getElementById("selectedCity").value = this.value;
+            console.log("Selected City:", this.value);
+        });
+
+        districtSelect.addEventListener("change", function () {
+            document.getElementById("selectedDistrict").value = this.value;
+            console.log("Selected District:", this.value);
+        });
+
+        wardSelect.addEventListener("change", function () {
+            document.getElementById("selectedWard").value = this.value;
+            console.log("Selected Ward:", this.value);
+        });
+
+        // Lấy dữ liệu từ Thymeleaf
+        var selectedCityId = citySelect.value;
+        var selectedDistrictId = `[[${userProfileDto.ward?.district?.id ?: ''}]]`.trim();
+        var selectedWardId = `[[${userProfileDto.ward?.id ?: ''}]]`.trim();
+
+        selectedDistrictId = selectedDistrictId ? selectedDistrictId : null;
+        selectedWardId = selectedWardId ? selectedWardId : null;
+
+        function loadDistricts(selectedDistrictId, callback) {
+            var cityId = citySelect.value;
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+
+            if (!cityId) {
+                districtSelect.disabled = true;
+                return;
+            }
+
+            fetch(`/districts?cityId=${cityId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Districts loaded: ", data);
+                    data.forEach(district => {
+                        let option = new Option(district.districtName, district.id);
+                        districtSelect.add(option);
+                        if (selectedDistrictId && district.id == selectedDistrictId) {
+                            option.selected = true;
+                        }
+                    });
+                    districtSelect.disabled = false;
+                    if (callback) callback();
+                })
+                .catch(error => console.error("Lỗi khi tải Quận/Huyện:", error));
+        }
+
+        function loadWards(selectedDistrictId, selectedWardId) {
+            var districtId = selectedDistrictId || districtSelect.value;
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+            if (!districtId) {
+                wardSelect.disabled = true;
+                return;
+            }
+
+            fetch(`/wards?districtId=${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Wards loaded: ", data);
+                    data.forEach(ward => {
+                        let option = new Option(ward.wardName, ward.id);
+                        wardSelect.add(option);
+                        if (selectedWardId && ward.id == selectedWardId) {
+                            option.selected = true;
+                        }
+                    });
+                    wardSelect.disabled = false;
+                })
+                .catch(error => console.error("Lỗi khi tải Phường/Xã:", error));
+        }
+
+        // Load districts khi city thay đổi
+        citySelect.addEventListener("change", function () {
+            loadDistricts(null, null);
+        });
+
+        // Load wards khi district thay đổi
+        districtSelect.addEventListener("change", function () {
+            loadWards(null, null);
+        });
+
+        // Load dữ liệu khi trang vừa tải
+        if (selectedCityId) {
+            loadDistricts(selectedDistrictId, function () {
+                if (selectedDistrictId) {
+                    loadWards(selectedDistrictId, selectedWardId);
+                }
+            });
+        }
+
+      // áp mã voucher
+      let voucherModal = document.getElementById("voucherModal");
+
+      voucherModal.addEventListener("shown.bs.modal", function () {
+          document.querySelectorAll(".apply-voucher").forEach(button => {
+              button.addEventListener("click", function () {
+                  let voucherCode = this.getAttribute("data-code");
+                  let voucherName = this.getAttribute("data-name");
+
+                  // Điền mã voucher vào ô nhập
+                  document.getElementById("selectedVoucher").value = voucherCode;
+
+                  // Hiển thị thông báo
+                  alert(`Bạn đã chọn voucher ${voucherName} - Có mã: ${voucherCode}`);
+
+                  // Đóng modal
+                  let modalInstance = bootstrap.Modal.getInstance(voucherModal);
+                  modalInstance.hide();
+              });
+          });
+      });
+
+      document.getElementById("checkoutBtn").addEventListener("click", function(event) {
+        event.preventDefault();
+        savePaymentInfo();
+
+        if (!confirm("Bạn chắc chắn muốn đặt hàng chứ ?")) {
+            return;
+        }
+
+        // Tạo một form ẩn và gửi POST request
+        let form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/user/order/checkout";
+
+        document.body.appendChild(form);
+        form.submit();
+
+    });
+  });
+
+  // cập nhật giá khi áp voucher
+  function applyVoucher() {
+      let voucherCode = document.getElementById("selectedVoucher").value;
+
+      if (!voucherCode) {
+        document.getElementById("totalPrice").innerHTML = document.getElementById("totalorderprice").innerHTML;
+        document.getElementById("discount").innerHTML = 0;
+      }
+
+      fetch("/apply-order-voucher?voucherCode=" + voucherCode, {
+          method: "POST"
+      })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  document.getElementById("totalPrice").innerHTML = data.newTotal;
+                  document.getElementById("discount").innerHTML = "- " + data.discountAmount;
+              } else {
+                  alert("Mã giảm giá không hợp lệ!");
+              }
+          })
+          .catch(error => console.error("Lỗi:", error));
+  }
+  ////
+  function savePaymentInfo() {
+      let addresss = document.getElementById("detailAddress").value || "Chưa có địa chỉ";
+      let paymentData = {
+          userId: document.getElementById("userId").value,
+          paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+          shippingAddress: addresss,
+          totalPrice: document.getElementById("totalPrice").innerHTML,
+          voucherCode: document.getElementById("selectedVoucher").value
+      };
+      console.log("🔹 Dữ liệu thanh toán sẽ được gửi:", paymentData); // In dữ liệu ra console
+      fetch('/payment/save-info', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(paymentData)
+      })
+      .catch(error => console.error("Lỗi:", error));
+  }
+
+</script>
+
+</html>

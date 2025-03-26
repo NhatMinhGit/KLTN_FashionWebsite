@@ -107,50 +107,50 @@
         var wardSelect = document.getElementById("ward");
 
         var editProfileForm = document.getElementById("editProfileForm");
-    var updateButton = document.getElementById("btnUpdate");
+        var updateButton = document.getElementById("btnUpdate");
 
-    updateButton.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn form gửi ngay lập tức
+        updateButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Ngăn form gửi ngay lập tức
 
-        // Lấy giá trị các trường input
-        var name = document.getElementById("name").value.trim();
-        var phoneNumber = document.getElementById("phoneNumber").value.trim();
-        var address = document.getElementById("address").value.trim();
-        var city = document.getElementById("city").value;
-        var district = document.getElementById("district").value;
-        var ward = document.getElementById("ward").value;
+            // Lấy giá trị các trường input
+            var name = document.getElementById("name").value.trim();
+            var phoneNumber = document.getElementById("phoneNumber").value.trim();
+            var address = document.getElementById("address").value.trim();
+            var city = document.getElementById("city").value;
+            var district = document.getElementById("district").value;
+            var ward = document.getElementById("ward").value;
 
-        // Kiểm tra trường trống
-        if (!name) {
-            alert("Vui lòng nhập họ và tên!");
-            return;
-        }
-        if (!phoneNumber) {
-            alert("Vui lòng nhập số điện thoại!");
-            return;
-        }
-        if (!address) {
-            alert("Vui lòng nhập địa chỉ!");
-            return;
-        }
-        if (!city) {
-            alert("Vui lòng chọn Thành phố!");
-            return;
-        }
-        if (!district) {
-            alert("Vui lòng chọn Quận/Huyện!");
-            return;
-        }
-        if (!ward) {
-            alert("Vui lòng chọn Phường/Xã!");
-            return;
-        }
+            // Kiểm tra trường trống
+            if (!name) {
+                alert("Vui lòng nhập họ và tên!");
+                return;
+            }
+            if (!phoneNumber || phoneNumber == "Chưa cập nhật!") {
+                alert("Vui lòng nhập số điện thoại!");
+                return;
+            }
+            if (!address || address == "Chưa cập nhật!") {
+                alert("Vui lòng nhập địa chỉ!");
+                return;
+            }
+            if (!city) {
+                alert("Vui lòng chọn Thành phố!");
+                return;
+            }
+            if (!district) {
+                alert("Vui lòng chọn Quận/Huyện!");
+                return;
+            }
+            if (!ward) {
+                alert("Vui lòng chọn Phường/Xã!");
+                return;
+            }
 
-        // Hiển thị xác nhận trước khi gửi form
-        if (confirm("Bạn có chắc chắn muốn cập nhật thông tin không?")) {
-            editProfileForm.submit();
-        }
-    });
+            // Hiển thị xác nhận trước khi gửi form
+            if (confirm("Bạn có chắc chắn muốn cập nhật thông tin không?")) {
+                editProfileForm.submit();
+            }
+        });
 
         // Gán giá trị dropdown vào input hidden khi thay đổi
         citySelect.addEventListener("change", function () {

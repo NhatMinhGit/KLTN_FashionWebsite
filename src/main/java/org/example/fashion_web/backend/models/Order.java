@@ -28,12 +28,16 @@ public class Order {
     private BigDecimal totalPrice;
 
     @Column(name = "status")
-    private String status;
+    private OrderStatusType status;
 
     @Column(name = "shipping_address", columnDefinition = "TEXT")
     private String shippingAddress;
 
     @Column(name = "payment_method")
     private String paymentMethod;
+
+    public enum OrderStatusType {
+        PAYING,PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
+    }
 }
 
