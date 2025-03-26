@@ -137,6 +137,9 @@
                 </div>
             </div>
             <a href="#" class="forgot-password">Quên mật khẩu?</a>
+            <div th:if="${message}" class="alert alert-info">
+                <p th:text="${message}"></p>
+            </div>
             <button type="submit" class="btn btn-primary mt-3">Đăng ký</button>
         </form>
     </div>
