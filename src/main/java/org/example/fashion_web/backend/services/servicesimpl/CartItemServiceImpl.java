@@ -1,7 +1,6 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.models.CartItems;
-import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.CartItemRepository;
 import org.example.fashion_web.backend.services.CartItemService;
@@ -12,7 +11,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class CartItemServiceImpl implements CartItemService {

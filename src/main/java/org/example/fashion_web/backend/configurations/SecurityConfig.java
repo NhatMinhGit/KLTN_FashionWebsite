@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 .requestMatchers("/add").hasAuthority("ADMIN")
                                 .requestMatchers("/edit").hasAuthority("ADMIN")
                                 .requestMatchers("/user-page").hasAuthority("USER")
+                                .requestMatchers("/chatbot").authenticated() // Đảm bảo trang này cần login
                                 .requestMatchers("/registration").permitAll()
                         .anyRequest().authenticated())
 

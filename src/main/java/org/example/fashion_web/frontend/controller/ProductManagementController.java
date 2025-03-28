@@ -290,7 +290,7 @@ public class ProductManagementController {
                                   RedirectAttributes redirectAttributes) {
         try {
             Product existingProduct = productService.getProductById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Ứng viên không tồn tại với ID: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm không tồn tại với ID: " + id));
 
             // Kiểm tra và lưu category
             Optional<Category> categoryOpt = categoryService.findByName(productForm.getCategory_name());
