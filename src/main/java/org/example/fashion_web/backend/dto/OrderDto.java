@@ -1,8 +1,13 @@
 package org.example.fashion_web.backend.dto;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
+import org.example.fashion_web.backend.models.User;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,12 +15,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
-    private Long orderId;
-    private Long userId;
-    private Long paymentId;
-    private Long voucherId;
-    private BigDecimal totalAmount;
-    private String orderStatus;
-    private LocalDateTime orderDate;
-    private List<OrderItemDto> orderItems; // Danh sách các sản phẩm trong đơn hàng
+    private Long id;
+    private User user;
+    private LocalDate created_at;
+    private BigDecimal totalPrice;
+    private String status;
+    private String shippingAddress;
+    private String paymentMethod;
 }

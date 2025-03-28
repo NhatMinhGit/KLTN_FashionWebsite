@@ -134,6 +134,7 @@
             .then(result => {
                 if (result.success) {
                     alert(`Sản phẩm đã được thêm vào giỏ hàng!\nID: ${data.productId}\nGiá: ${data.price}\nSố lượng: ${data.quantity}`);
+                    window.location.reload();
                 } else {
                     alert("Có lỗi xảy ra: " + result.message);
                 }

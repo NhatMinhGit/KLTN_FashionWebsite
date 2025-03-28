@@ -32,11 +32,18 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public BigDecimal getTotalPriceByCartId(Long id) {
+
         return cartRepository.getTotalPriceByCartId(id);
     }
 
     @Transactional // Bảo đảm dữ liệu được lưu ngay lập tức
     public Cart save(Cart cart) {
         return cartRepository.save(cart);
+    }
+
+    @Override
+    public Integer getCountCart(Long userId) {
+        Integer countByUserId = cartRepository.countByUserId(userId);
+        return countByUserId ;
     }
 }

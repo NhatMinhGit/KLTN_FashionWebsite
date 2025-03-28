@@ -43,21 +43,13 @@ public class CartManagementController {
     private CartItemService cartItemService;
     @Autowired
     private ImageService imageService;
-
+    private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
     public CartManagementController(ProductService productService) {
         this.productService = productService;
     }
     @GetMapping("/user/cart")
     public String showCart(Model model, HttpSession session, Principal principal) {
-        // Xử lý thông tin người dùng nếu có
-        if (principal != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            if (userDetails != null) {
-                model.addAttribute("user", userDetails);
-            }
-        }
-
         List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
         System.out.println(cart);
         if (cart == null) {
@@ -70,8 +62,10 @@ public class CartManagementController {
             List<Image> images = imageService.findImagesByProductId(item.getProduct().getId());
             List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
             productImages.put(item.getProduct().getId(), imageUrls);
-        }
 
+        }
+        totalOrderPrice = cartItemService.getTotalPrice(cart);
+        model.addAttribute("totalOrderPrice", cartItemService.getTotalPrice(cart));
         model.addAttribute("productImages", productImages);
         model.addAttribute("cartItems", cart);
         System.out.println("Items cart sau khi load trang cart: " + cart);
