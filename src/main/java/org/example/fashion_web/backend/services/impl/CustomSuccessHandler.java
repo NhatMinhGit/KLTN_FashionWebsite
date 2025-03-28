@@ -1,4 +1,4 @@
-package org.example.fashion_web.backend.services.servicesimpl;
+package org.example.fashion_web.backend.services.impl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

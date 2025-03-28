@@ -1,7 +1,9 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "User_Chatbot")
 public class UserChatbot {
 
@@ -30,4 +34,5 @@ public class UserChatbot {
 
     @Column(name = "last_interaction_at", nullable = false)
     private LocalDateTime lastInteractionAt;
+
 }

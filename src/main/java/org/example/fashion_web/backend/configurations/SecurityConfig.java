@@ -1,7 +1,7 @@
 package org.example.fashion_web.backend.configurations;
 
-import org.example.fashion_web.backend.services.servicesimpl.CustomSuccessHandler;
-import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetailsService;
+import org.example.fashion_web.backend.services.impl.CustomSuccessHandler;
+import org.example.fashion_web.backend.services.impl.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 .requestMatchers("/add").hasAuthority("ADMIN")
                                 .requestMatchers("/edit").hasAuthority("ADMIN")
                                 .requestMatchers("/user-page").hasAuthority("USER")
+                                .requestMatchers("/chatbot").authenticated() // Đảm bảo trang này cần login
                                 .requestMatchers("/registration").permitAll()
                         .anyRequest().authenticated())
 

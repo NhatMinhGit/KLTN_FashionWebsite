@@ -1,7 +1,6 @@
-package org.example.fashion_web.backend.services.servicesimpl;
+package org.example.fashion_web.backend.services.impl;
 
 import org.example.fashion_web.backend.dto.UserDto;
-import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.UserService;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service

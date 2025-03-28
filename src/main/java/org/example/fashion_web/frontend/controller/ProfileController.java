@@ -5,7 +5,7 @@ import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
 import org.example.fashion_web.backend.services.UserProfileService;
 import org.example.fashion_web.backend.services.UserService;
-import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
+import org.example.fashion_web.backend.services.impl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

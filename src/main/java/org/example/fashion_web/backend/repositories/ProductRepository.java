@@ -31,5 +31,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Tìm kiếm sản phẩm theo tên (có thể áp dụng khi muốn tìm sản phẩm theo từ khóa)
     List<Product> findByNameContaining(String name);
-
+    // Tìm kiếm sản phẩm theo tên
+    Product findByName(String productName);
 }

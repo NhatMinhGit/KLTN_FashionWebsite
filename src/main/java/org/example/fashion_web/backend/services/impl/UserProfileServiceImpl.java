@@ -1,4 +1,4 @@
-package org.example.fashion_web.backend.services.servicesimpl;
+package org.example.fashion_web.backend.services.impl;
 
 import org.example.fashion_web.backend.dto.UserProfileDto;
 import org.example.fashion_web.backend.models.User;
