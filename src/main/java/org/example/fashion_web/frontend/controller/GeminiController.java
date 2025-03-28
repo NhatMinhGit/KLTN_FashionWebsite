@@ -4,7 +4,7 @@ import org.example.fashion_web.backend.models.Chatbot;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.services.ChatbotService;
 import org.example.fashion_web.backend.services.UserService;
-import org.example.fashion_web.backend.services.impl.GeminiService;
+import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;

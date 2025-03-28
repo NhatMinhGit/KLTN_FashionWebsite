@@ -1,7 +1,7 @@
 package org.example.fashion_web.backend.configurations;
 
-import org.example.fashion_web.backend.services.impl.CustomSuccessHandler;
-import org.example.fashion_web.backend.services.impl.CustomUserDetailsService;
+import org.example.fashion_web.backend.services.servicesimpl.CustomSuccessHandler;
+import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

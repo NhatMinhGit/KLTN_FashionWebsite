@@ -1,4 +1,4 @@
-package org.example.fashion_web.backend.services.impl;
+package org.example.fashion_web.backend.services.servicesimpl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

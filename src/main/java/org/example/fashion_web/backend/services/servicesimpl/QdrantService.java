@@ -1,4 +1,4 @@
-package org.example.fashion_web.backend.services.impl;
+package org.example.fashion_web.backend.services.servicesimpl;
 
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;

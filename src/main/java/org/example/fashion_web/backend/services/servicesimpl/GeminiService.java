@@ -1,4 +1,4 @@
-package org.example.fashion_web.backend.services.impl;
+package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.configurations.GeminiConfig;
 import org.example.fashion_web.backend.models.*;

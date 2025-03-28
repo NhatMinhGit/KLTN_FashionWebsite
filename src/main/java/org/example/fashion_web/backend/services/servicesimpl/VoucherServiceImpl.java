@@ -1,4 +1,4 @@
-package org.example.fashion_web.backend.services.impl;
+package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.VoucherDto;
 import org.example.fashion_web.backend.models.Voucher;
