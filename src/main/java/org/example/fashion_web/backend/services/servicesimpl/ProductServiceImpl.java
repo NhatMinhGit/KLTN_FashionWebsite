@@ -105,4 +105,10 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByCategoryIds(categoryIds);
     }
 
+    @Override
+    public Page<Product> searchProducts(String keyword, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
+    }
+
+
 }

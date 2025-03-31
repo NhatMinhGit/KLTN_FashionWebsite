@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading indicator
         const loadingId = showLoadingIndicator();
 
-        fetch(`/user/chat?message=${encodeURIComponent(message)}`, {
+        fetch(`/admin/chat?message=${encodeURIComponent(message)}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         })
