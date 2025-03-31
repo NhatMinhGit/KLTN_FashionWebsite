@@ -290,7 +290,7 @@ public class ProductManagementController {
                                   RedirectAttributes redirectAttributes) {
         try {
             Product existingProduct = productService.getProductById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Ứng viên không tồn tại với ID: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm không tồn tại với ID: " + id));
 
             // Kiểm tra và lưu category
             Optional<Category> categoryOpt = categoryService.findByName(productForm.getCategory_name());
@@ -386,12 +386,22 @@ public class ProductManagementController {
         }
         return "redirect:/admin/product";
     }
+    @GetMapping("/admin/products/search")
+    @ResponseBody
+    public Page<Product> searchProducts(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return productService.searchProducts(keyword, pageable);
+    }
     @GetMapping("/user/shop")
     public String listProducts(
             @RequestParam(value = "category", required = false, defaultValue = "nam") String category,
             Model model, Principal principal) {
-        // Kiểm tra xem có dữ liệu không
-        System.out.println("Danh mục được chọn: " + category);
+//        // Kiểm tra xem có dữ liệu không
+//        System.out.println("Danh mục được chọn: " + category);
 
         // Xử lý thông tin người dùng nếu có
         if (principal != null) {
@@ -403,10 +413,10 @@ public class ProductManagementController {
 
         // Lọc sản phẩm theo danh mục
         List<Product> products = productService.getProductsByCategory(category);
-        System.out.println("Số sản phẩm tìm thấy: " + products.size());
-        for (Product p : products) {
-            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
-        }
+//        System.out.println("Số sản phẩm tìm thấy: " + products.size());
+//        for (Product p : products) {
+//            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
+//        }
         model.addAttribute("products", products);
 
         // Nhóm danh sách ảnh theo productId

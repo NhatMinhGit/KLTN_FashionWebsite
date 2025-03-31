@@ -2,17 +2,16 @@ package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Embeddable
-@EqualsAndHashCode
 public class UserChatbotId implements Serializable {
     private static final long serialVersionUID = 1L;
 

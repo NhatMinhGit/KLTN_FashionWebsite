@@ -36,4 +36,6 @@ public interface ProductService {
     int getTotalProductsCount();
 
     List<Product> getProductsByCategory(String category);
+
+    Page<Product> searchProducts(String keyword,Pageable pageable);
 }
