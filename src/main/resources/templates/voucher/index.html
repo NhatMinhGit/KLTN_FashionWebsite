@@ -23,28 +23,7 @@
 <body>
 <div class="d-flex" id="wrapper">
     <!-- Sidebar -->
-    <div class="bg-dark text-white p-3" id="sidebar-wrapper" style="width: 250px; height: 100vh;">
-        <h2 class="text-center">Admin</h2>
-        <ul class="list-unstyled">
-            <li class="my-3"><a th:href="@{/admin/product}" class="text-white text-decoration-none"><i class="fas fa-box"></i> Sản
-                phẩm</a>
-            </li>
-            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-list"></i> Danh
-                mục</a></li>
-            <li class="my-3"><a th:href="@{/admin/voucher}" class="text-white text-decoration-none"><i class="fas fa-tags"></i> Khuyến
-                mãi</a></li>
-            <li class="my-3"><a th:href="@{/admin/account}" class="text-white text-decoration-none"><i class="fas fa-users"></i> Tài khoản người
-                dùng</a></li>
-            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i
-                    class="fas fa-shopping-cart"></i> Đơn
-                hàng</a></li>
-            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i>
-                Thống kê</a>
-            </li>
-            <li class="my-3"><a href="#" class="text-white text-decoration-none"><i class="fas fa-comments"></i>
-                Chatbot</a></li>
-        </ul>
-    </div>
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
     <!-- Content -->
     <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">

@@ -1,6 +1,8 @@
 package org.example.fashion_web.backend.repositories;
 
 import org.example.fashion_web.backend.models.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,4 +35,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByNameContaining(String name);
     // Tìm kiếm sản phẩm theo tên
     Product findByName(String productName);
+    Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+
 }
