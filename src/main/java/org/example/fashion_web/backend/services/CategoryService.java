@@ -21,4 +21,6 @@ public interface CategoryService {
     List<Category> getAllChildrenCategories();
     List<Category> getAllParentCategories();
     List<Long> getAllSubCategoryIds(Long categoryId);
+
+    Optional<Category> findById(Long categoryId);
 }

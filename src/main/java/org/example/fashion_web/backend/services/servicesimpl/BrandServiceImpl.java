@@ -30,4 +30,9 @@ public class BrandServiceImpl implements BrandService {
     public Optional<Brand> findByName(String brandName) {
         return brandRepository.findByName(brandName);
     }
+
+    @Override
+    public Optional<Brand> findById(Long brandId) {
+        return brandRepository.findById(brandId);
+    }
 }

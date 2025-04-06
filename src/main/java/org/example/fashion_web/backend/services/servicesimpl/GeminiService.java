@@ -137,7 +137,7 @@ public class GeminiService {
 
         // Tạo phản hồi với số lượng sản phẩm
         return relatedProducts.stream()
-                .map(p -> "Dạ, shop hiện còn " + p.getStockQuantity() + " chiếc '" + p.getName() +
+                .map(p -> "Dạ, shop hiện còn " + p.getStock_quantity() + " chiếc '" + p.getName() +
                         "' với giá " + (p.getPrice() != null ? formatter.format(p.getPrice()) : "Chưa có giá") + " ạ.")
                 .collect(Collectors.joining("\n"));
     }
@@ -164,6 +164,7 @@ public class GeminiService {
         userChatbotRepository.save(userChatbot);
         System.out.println("Đã lưu đoạn hội thoại vào database.");
     }
+
 
 
 //    public String getConversationHistory(Long userId) {

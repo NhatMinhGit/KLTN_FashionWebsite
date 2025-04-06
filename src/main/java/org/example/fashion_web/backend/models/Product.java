@@ -35,5 +35,5 @@ public class Product {
     private String description;
 
     @Column(name = "stock_quantity", nullable = false)
-    private Integer stockQuantity;
+    private Integer stock_quantity;
 }

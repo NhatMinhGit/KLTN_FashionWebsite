@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDto {
-    private Long product_id;
     private Long brand_id;
     private Long category_id;
     private String name;
