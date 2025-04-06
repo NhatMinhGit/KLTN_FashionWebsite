@@ -83,6 +83,8 @@
         <button type="submit" class="btn btn-primary">Thêm Sản Phẩm</button>
         <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
+    <!--Chat-->
+    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
 </div>
 <script>
     const dropArea = document.getElementById("drop-area");
@@ -123,6 +125,7 @@
             reader.readAsDataURL(file);
         });
     }
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

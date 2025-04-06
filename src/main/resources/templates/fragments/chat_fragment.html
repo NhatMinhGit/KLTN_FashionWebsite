@@ -1,0 +1,32 @@
+<div th:fragment="chat_fragment" xmlns:th="http://www.thymeleaf.org">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.0/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+    <script th:src="@{/js/chat_window.js}"></script>
+    <link th:href="@{/css/chat_window.css}" rel="stylesheet">
+
+    <div id="chatContainer">
+        <!-- Tiêu đề cửa sổ chat với sự kiện click để ẩn/hiện chat -->
+        <div id="chatHeader" onclick="toggleChat()">Chat</div>
+        <div id="chatBody" style="display: block;">
+            <div class="chat-messages" id="adminMessages">
+                <!-- Tin nhắn từ admin -->
+            </div>
+
+            <div class="chat-messages" id="messages">
+                <!-- Tin nhắn từ người dùng -->
+            </div>
+        </div>
+
+        <div id="chatFooter">
+            <input type="text" id="messageInput" placeholder="Enter your message" />
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            var chatBody = document.getElementById("chatBody");
+            chatBody.style.display = (chatBody.style.display === "none" || chatBody.style.display === "") ? "block" : "none";
+        }
+    </script>
+</div>

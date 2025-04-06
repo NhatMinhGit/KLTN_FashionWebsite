@@ -7,6 +7,8 @@ import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +31,6 @@ public class GeminiController {
 
     @Autowired
     private ChatbotService chatbotService;
-
 
 
     @GetMapping("/chat")
@@ -88,5 +89,4 @@ public class GeminiController {
 
         return new ModelAndView("chat-window");
     }
-
 }

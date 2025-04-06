@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Data tree</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/card-js.js}"></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+    <!-- Content -->
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <input type="file" id="excelFile" accept=".xlsx" multiple/>
+            <button onclick="uploadExcel()">Upload Excel</button>
+        </div>
+    </div>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+    function uploadExcel() {
+        const files = document.getElementById('excelFile').files;
+        const allData = {}; // Tập hợp toàn bộ dữ liệu từ nhiều file
+
+        let filesProcessed = 0;
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+                    console.log(`Sheet: ${sheetName}`, json);  // In dữ liệu để kiểm tra
+
+                    // Nếu sheet đã tồn tại, nối thêm dữ liệu
+                    if (allData[sheetName]) {
+                        allData[sheetName] = allData[sheetName].concat(json);
+                    } else {
+                        allData[sheetName] = json;
+                    }
+                });
+
+                filesProcessed++;
+
+                // Khi đã xử lý hết tất cả các file
+                if (filesProcessed === files.length) {
+                    // Gửi dữ liệu lên backend
+                    fetch('/admin/datatree/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(allData)
+                    })
+                        .then(res => res.text())
+                        .then(msg => alert("Kết quả: " + msg));
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+    }
+</script>
+</html>
