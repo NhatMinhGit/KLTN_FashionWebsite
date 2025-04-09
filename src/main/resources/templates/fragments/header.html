@@ -35,7 +35,7 @@
                   <p class="mb-1 fw-bold" th:text="${item.product.name}"></p>
                   <div class="d-flex justify-content-between" style="font-size:12px;">
                     <p>Giá: </p>
-                    <p class="mb-0 fw-bold" th:text="${item.pricePerUnit}"></p>
+                    <p class="mb-0 fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></p>
                     <p>| Loại: </p>
                     <p class="mb-0 text-muted" th:text="${item.product.category.name}"></p>
                     <p>| Sl: </p>
@@ -54,7 +54,7 @@
               <!-- Tổng tiền -->
               <div class="d-flex justify-content-between fw-bold">
                 <span>Total: </span>
-                <span class="text-danger">[[${totalOrderPrice}]]</span>
+                <span class="text-danger">[[${@currencyFormatter.formatVND(totalOrderPrice)}]]</span>
               </div>
 
               <!-- Nút xem giỏ hàng -->

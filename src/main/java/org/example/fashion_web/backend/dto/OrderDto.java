@@ -22,4 +22,5 @@ public class OrderDto {
     private String status;
     private String shippingAddress;
     private String paymentMethod;
+    private String voucherCode;
 }

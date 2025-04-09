@@ -1,6 +1,7 @@
 package org.example.fashion_web.frontend.controller;
 
 import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.models.UserVoucher;
 import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
 import org.example.fashion_web.backend.services.VoucherService;

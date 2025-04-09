@@ -151,10 +151,10 @@ public class CartManagementController {
             // Cập nhật session
             session.setAttribute("cartItems", cartItems);
 
+
             response.put("success", true);
             response.put("message", "Sản phẩm đã được thêm vào giỏ hàng!");
             response.put("cartSize", cartItems.size());
-
             return ResponseEntity.ok(response);
 
         } catch (NumberFormatException e) {
