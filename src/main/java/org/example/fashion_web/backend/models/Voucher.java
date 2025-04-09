@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor @AllArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "Vouchers")
 public class Voucher {
@@ -56,6 +56,19 @@ public class Voucher {
         this.discountType = discountType;
         this.voucherName = voucherName;
         this.voucherCode = voucherCode;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public Voucher(){
+        this.usageLimit = 1;
+        this.endDate = LocalDate.now();
+        this.startDate = LocalDate.now();
+        this.minOrderValue = BigDecimal.valueOf(0);
+        this.discountValue = BigDecimal.valueOf(0);
+        this.discountType = "fixed";
+        this.voucherName = "No Voucher";
+        this.voucherCode = "NOVOUCHER";
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

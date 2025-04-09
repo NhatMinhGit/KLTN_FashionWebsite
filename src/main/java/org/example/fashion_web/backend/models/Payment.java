@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -26,7 +26,7 @@ public class Payment {
     private PaymentMethodType paymentMethod;
 
     @Column(name = "payment_date", nullable = false)
-    private Timestamp paymentDate;
+    private LocalDateTime paymentDate;
 
     @Column(name = "payment_status", nullable = false, length = 50)
     private String paymentStatus;

@@ -30,4 +30,11 @@ public class OrderItem {
 
     @Column(name = "price_per_unit", precision = 10, scale = 2, nullable = false)
     private BigDecimal pricePerUnit;
+
+    public OrderItem(Order order, Product product, Integer quantity, BigDecimal pricePerUnit) {
+        this.order = order;
+        this.product = product;
+        this.quantity = quantity;
+        this.pricePerUnit = pricePerUnit;
+    }
 }
