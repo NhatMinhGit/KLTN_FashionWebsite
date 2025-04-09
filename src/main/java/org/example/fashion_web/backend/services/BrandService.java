@@ -11,4 +11,6 @@ public interface BrandService {
     Brand save(Brand brand);
 
     Optional<Brand> findByName(String brandName);
+
+    Optional<Brand> findById(Long brandId);
 }

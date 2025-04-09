@@ -156,7 +156,7 @@ public class ProductManagementController {
             product.setName(productForm.getName());
             product.setPrice(productForm.getPrice());
             product.setDescription(productForm.getDescription());
-            product.setStockQuantity(productForm.getStock_quantity());
+            product.setStock_quantity(productForm.getStock_quantity());
 
 
             // Set category & brand cho product
@@ -315,7 +315,7 @@ public class ProductManagementController {
             existingProduct.setName(productForm.getName());
             existingProduct.setPrice(productForm.getPrice());
             existingProduct.setDescription(productForm.getDescription());
-            existingProduct.setStockQuantity(productForm.getStock_quantity());
+            existingProduct.setStock_quantity(productForm.getStock_quantity());
 
             // Set category & brand cho product
             existingProduct.setCategory(category);

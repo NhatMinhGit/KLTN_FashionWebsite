@@ -80,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
             product.setName(productDetails.getName());
             product.setPrice(productDetails.getPrice());
             product.setDescription(productDetails.getDescription());
-            product.setStockQuantity(productDetails.getStockQuantity());
+            product.setStock_quantity(productDetails.getStock_quantity());
             return productRepository.save(product);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + id));
     }
@@ -108,6 +108,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<Product> searchProducts(String keyword, Pageable pageable) {
         return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
+    }
+
+    @Override
+    public List<Product> saveAll(List<Product> dataList) {
+        return productRepository.saveAll(dataList);
+    }
+
+    @Override
+    public Optional<Product> findById(Long id) {
+        return productRepository.findById(id);
     }
 
 

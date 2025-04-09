@@ -59,7 +59,7 @@
                 <td th:text="${product.getCategory().getName()}">Áo sơ mi</td>
                 <td th:text="${product.getPrice()}">250.000 VND</td>
                 <td th:text="${product.getBrand().getName()}">Nhãn hàng</td>
-                <td th:text="${product.stockQuantity}">Số lượng tồn</td>
+                <td th:text="${product.getStock_quantity}">Số lượng tồn</td>
                 <td>
                     <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-warning btn-sm me-2">
                         <i class="bi bi-pencil-square"></i> Sửa
@@ -103,6 +103,7 @@
             </div>
         </nav>
     </div>
-
+    <!--Chat-->
+    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
 
 </div>
