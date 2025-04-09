@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt hàng thành công</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+
+    <style>
+        body {
+            color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-right: 20px;
+        }
+
+        .btn-custom:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        .btn-home {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .btn-home:hover {
+            background-color: #218838;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<!-- Import Header -->
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container text-center">
+    <h1 class="text-success">
+        <i class="fas fa-check-circle"></i> Đặt hàng thành công!
+    </h1>
+    <p class="lead my-3">Cảm ơn bạn đã mua sắm tại cửa hàng của chúng tôi. Đơn hàng của bạn đã được ghi nhận và đang được xử lý.</p>
+    <p class="my-4" style="color: grey;">Chúng tôi sẽ gửi email xác nhận chi tiết đơn hàng đến bạn trong thời gian sớm nhất.</p>
+
+    <a th:href="@{/user/order_list}" class="btn-custom ms-3">
+        <i class="fas fa-list"></i> Xem danh sách đơn hàng
+    </a>
+
+    <!-- Thêm nút quay về trang chủ -->
+    <a th:href="@{/user}" class="btn-home">
+        <i class="fas fa-home"></i> Quay lại trang chủ
+    </a>
+</div>
+<!-- Import Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

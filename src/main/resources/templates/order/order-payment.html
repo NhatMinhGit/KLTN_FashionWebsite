@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt hàng và Thanh toán</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <style>
+        body {
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .btn-custom {
+            background-color: red;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            width: 80%;
+            text-align: center;
+        }
+
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+
+        .payment-methods {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Import Header -->
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="container text-center">
+        <h1 class="text-success">Đặt hàng của bạn</h1>
+        <p>Thời gian còn lại để thanh toán: </p>
+        <div id="timer" class="timer">03:00:00</div>
+        <p>Chọn phương thức thanh toán:</p>
+        <div class="payment-methods d-flex justify-content-between">
+            <button class="btn btn-outline-danger w-100 mr-2">Thanh toán qua MoMo</button>
+            <button class="btn btn-outline-primary w-100 mr-2">Thanh toán qua VNPay</button>
+            <button class="btn btn-outline-success w-100">Thanh toán qua Tài khoản Ngân hàng</button>
+        </div>
+
+        <button class="btn-custom mt-4" id="paymentButton">
+            <i class="fas fa-times-circle"></i> Hủy
+        </button>
+    </div>
+    <!-- Import Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+<!-- Script cho đồng hồ đếm ngược -->
+<script>
+    var countdown = 3 * 60 * 60; // 3 giờ (tính theo giây)
+    var timerElement = document.getElementById("timer");
+
+    function updateTimer() {
+        var hours = Math.floor(countdown / 3600);
+        var minutes = Math.floor((countdown % 3600) / 60);
+        var seconds = countdown % 60;
+
+        // Hiển thị thời gian theo định dạng HH:MM:SS
+        timerElement.textContent = `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
+
+        // Giảm thời gian xuống 1 giây
+        if (countdown <= 0) {
+            clearInterval(timerInterval);
+            alert("Thời gian thanh toán đã hết!");
+        } else {
+            countdown--;
+        }
+    }
+
+    // Hàm để đảm bảo thời gian hiển thị là 2 chữ số (ví dụ: 01, 02, 03...)
+    function formatTime(time) {
+        return time < 10 ? "0" + time : time;
+    }
+
+    // Cập nhật đồng hồ mỗi giây
+    var timerInterval = setInterval(updateTimer, 1000);
+
+    // Sự kiện khi nhấn nút thanh toán
+    document.getElementById("paymentButton").addEventListener("click", function () {
+        alert("Bắt sự kiện nút bấm, thay đổi trạng thái hóa đơn thành hủy. Hiện tại đến trang các dữ liệu liên quan sẽ thay đổi và cập nhật!");
+
+    });
+</script>
+
+</body>
+
+</html>

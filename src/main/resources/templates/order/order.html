@@ -151,10 +151,6 @@
           <label class="form-check-label" for="CASH">Thanh toán khi nhận hàng</label>
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="paymentMethod" id="CREDIT_CARD" value="CREDIT_CARD">
-          <label class="form-check-label" for="CREDIT_CARD">Credit Card</label>
-        </div>
-        <div class="form-check">
           <input class="form-check-input" type="radio" name="paymentMethod" id="BANK_TRANSFER" value="BANK_TRANSFER">
           <label class="form-check-label" for="BANK_TRANSFER">Chuyển khoản ngân hàng</label>
         </div>
@@ -178,7 +174,7 @@
               <span class="mx-2">Quantity: <span th:text="${item.quantity}"></span></span>
             </div>
           </div>
-          <strong th:text="${item.pricePerUnit}"></strong>
+          <strong th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></strong>
         </div>
       </div>
       <!-- Modal hiển thị danh sách voucher -->
@@ -239,7 +235,7 @@
           <tr>
             <td>Tổng đơn hàng</td>
             <td>:</td>
-            <td class="fw-bold" id="totalorderprice">[[${totalOrderPrice}]]</td>
+            <td class="fw-bold" id="totalorderprice">[[${@currencyFormatter.formatVND(totalOrderPrice)}]]</td>
           </tr>
           <tr>
             <td>Phí vận chuyển</td>
@@ -250,7 +246,7 @@
           <tr>
             <td>Giảm giá</td>
             <td>:</td>
-            <td id="discount" class="text-danger">0</td>
+            <td id="discount" class="text-danger" data-value="0">0 đ</td>
           </tr>
 
           <tr class="border-top">
@@ -258,7 +254,7 @@
               <h6>Thành tiền</h6>
             </td>
             <td>:</td>
-            <td class="fw-bold" id="totalPrice">[[${totalOrderPrice}]]</td>
+            <td class="fw-bold" id="totalPrice" data-value="${totalOrderPrice}">[[${@currencyFormatter.formatVND(totalOrderPrice)}]]</td>
           </tr>
           </tbody>
         </table>
@@ -431,9 +427,6 @@
                   // Điền mã voucher vào ô nhập
                   document.getElementById("selectedVoucher").value = voucherCode;
 
-                  // Hiển thị thông báo
-                  alert(`Bạn đã chọn voucher ${voucherName} - Có mã: ${voucherCode}`);
-
                   // Đóng modal
                   let modalInstance = bootstrap.Modal.getInstance(voucherModal);
                   modalInstance.hide();
@@ -461,28 +454,35 @@
   });
 
   // cập nhật giá khi áp voucher
-  function applyVoucher() {
-      let voucherCode = document.getElementById("selectedVoucher").value;
+ function applyVoucher() {
+    let voucherCode = document.getElementById("selectedVoucher").value;
+    let totalPriceElement = document.getElementById("totalPrice");
+    let discountElement = document.getElementById("discount");
 
-      if (!voucherCode) {
-        document.getElementById("totalPrice").innerHTML = document.getElementById("totalorderprice").innerHTML;
-        document.getElementById("discount").innerHTML = 0;
-      }
+    if (!voucherCode) {
+        return;
+    }
 
-      fetch("/apply-order-voucher?voucherCode=" + voucherCode, {
-          method: "POST"
-      })
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  document.getElementById("totalPrice").innerHTML = data.newTotal;
-                  document.getElementById("discount").innerHTML = "- " + data.discountAmount;
-              } else {
-                  alert("Mã giảm giá không hợp lệ!");
-              }
-          })
-          .catch(error => console.error("Lỗi:", error));
-  }
+    fetch("/apply-order-voucher?voucherCode=" + voucherCode, {
+        method: "POST"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Lưu giá trị gốc vào data-value
+            totalPriceElement.setAttribute("data-value", data.newTotal);
+            discountElement.setAttribute("data-value", data.discountAmount);
+
+            // Cập nhật hiển thị đã format
+            totalPriceElement.innerHTML = data.newTotal.toLocaleString("vi-VN") + " đ";
+            discountElement.innerHTML = "- " + data.discountAmount.toLocaleString("vi-VN") + " đ";
+        } else {
+            alert("Mã giảm giá không hợp lệ!");
+        }
+    })
+    .catch(error => console.error("Lỗi:", error));
+}
+
   ////
   function savePaymentInfo() {
       let addresss = document.getElementById("detailAddress").value || "Chưa có địa chỉ";
@@ -490,8 +490,8 @@
           userId: document.getElementById("userId").value,
           paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
           shippingAddress: addresss,
-          totalPrice: document.getElementById("totalPrice").innerHTML,
-          voucherCode: document.getElementById("selectedVoucher").value
+          totalPrice: [[${totalOrderPrice}]],
+          voucherCode: document.getElementById("selectedVoucher").value.trim()
       };
       console.log("🔹 Dữ liệu thanh toán sẽ được gửi:", paymentData); // In dữ liệu ra console
       fetch('/payment/save-info', {

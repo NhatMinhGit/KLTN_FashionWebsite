@@ -2,10 +2,12 @@ package org.example.fashion_web.frontend.controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.models.CartItems;
+import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.CartItemService;
 import org.example.fashion_web.backend.services.CartService;
+import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,7 +16,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalModelAttributes {
@@ -28,6 +33,8 @@ public class GlobalModelAttributes {
     @Autowired
     private CartItemService cartItemService;
 
+    @Autowired
+    private ImageService imageService;
     @ModelAttribute
     public void addGlobalAttributes(Model model, HttpSession session, @AuthenticationPrincipal CustomUserDetails userDetail) {
         if (userDetail != null) {
@@ -37,6 +44,14 @@ public class GlobalModelAttributes {
             if (cart == null) {
                 cart = new ArrayList<>();
             }
+            // Nhóm danh sách ảnh theo productId
+            Map<Long, List<String>> productImages = new HashMap<>();
+            for (CartItems item : cart) {
+                List<Image> images = imageService.findImagesByProductId(item.getProduct().getId());
+                List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+                productImages.put(item.getProduct().getId(), imageUrls);
+            }
+            model.addAttribute("productImages", productImages);
             model.addAttribute("countCart", cart.size());
             model.addAttribute("totalOrderPrice", cartItemService.getTotalPrice(cart));
             model.addAttribute("cartItems", cart);

@@ -11,6 +11,7 @@ import java.util.List;
 
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Integer> {
+    Cart findByUserId(Long userId);
 
     List<CartItems> getCartItemsByCartId(Long id);
 

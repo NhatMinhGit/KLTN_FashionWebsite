@@ -73,7 +73,7 @@
                     </div>
 
                     <h5 th:text="${product.name}"></h5>
-                    <p class="product-price" th:text="${product.price}"></p>
+                    <p class="product-price" th:text="${@currencyFormatter.formatVND(product.price)}"></p>
                     <p th:text="${product.description}"></p>
                 </div>
             </div>
@@ -107,7 +107,7 @@
                     </div>
 
                     <h5 th:text="${product.name}"></h5>
-                    <p class="product-price" th:text="${product.price}"></p>
+                    <p class="product-price" th:text="${@currencyFormatter.formatVND(product.price)}"></p>
                     <p th:text="${product.description}"></p>
                 </div>
             </div>

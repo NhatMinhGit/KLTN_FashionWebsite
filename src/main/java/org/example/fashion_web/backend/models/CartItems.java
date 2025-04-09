@@ -39,4 +39,16 @@ public class CartItems {
     protected void onCreate() {
         this.addedAt = LocalDateTime.now();
     }
+
+    @Override
+    public String toString() {
+        return "CartItems{" +
+                "cartItemId=" + cartItemId +
+                ", cart=" + cart +
+                ", product=" + product +
+                ", quantity=" + quantity +
+                ", pricePerUnit=" + pricePerUnit +
+                ", addedAt=" + addedAt +
+                '}';
+    }
 }
