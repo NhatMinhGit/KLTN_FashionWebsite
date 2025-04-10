@@ -5,6 +5,7 @@ import org.example.fashion_web.backend.repositories.ImageRepository;
 import org.example.fashion_web.backend.services.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,5 +26,11 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public List<Image> findImagesByProductId(Long id) {
         return imageRepository.findAllByProductId(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteImageByImageUri(String imageUri) {
+        imageRepository.deleteImageByImageUri(imageUri);
     }
 }
