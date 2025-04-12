@@ -179,42 +179,59 @@ public class ProductManagementController {
             }
             // Lưu hình ảnh
             if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
-                // Lấy tên sản phẩm và dùng làm tên folder con (thay thế ký tự đặc biệt nếu cần)
-                String productName = productForm.getName().replaceAll("[^a-zA-Z0-9\\s]", "").trim().replaceAll("\\s+", "_");
+                // Lấy tên sản phẩm làm tên folder con (lọc ký tự đặc biệt)
+                String productName = productForm.getName()
+                        .trim()
+                        .replaceAll("[\\\\/:*?\"<>|]", "") // chỉ loại bỏ các ký tự không hợp lệ cho tên folder
+                        .replaceAll("\\s+", "_");
 
-                // Định nghĩa thư mục lưu ảnh theo tên sản phẩm
-                String uploadDir = "/pics/uploads/" + productName + "/";
+                // Đường dẫn lưu ảnh
+                String uploadDir = "pics/uploads/" + productName + "/";
+                File uploadPath = new File(uploadDir);
 
                 // Tạo thư mục nếu chưa tồn tại
-                File uploadPath = new File(uploadDir);
                 if (!uploadPath.exists()) {
-                    uploadPath.mkdirs();
+                    boolean created = uploadPath.mkdirs();
+                    if (!created) {
+                        System.err.println("Không thể tạo thư mục: " + uploadDir);
+                        return "";
+                    }
                 }
 
                 for (MultipartFile file : productForm.getImageFile()) {
                     if (!file.isEmpty()) {
                         try {
-                            // Tránh trùng tên file bằng cách thêm timestamp
+                            // Ghi log để debug
+                            System.out.println("Đang xử lý file: " + file.getOriginalFilename());
+                            System.out.println("Kích thước file: " + file.getSize());
+                            System.out.println("Loại file: " + file.getContentType());
+
+                            // Tạo tên file với timestamp
                             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                             String filePath = uploadDir + fileName;
 
-                            // Tạo đối tượng Image để lưu vào DB
+                            // Lưu ảnh vào hệ thống tệp
+                            Path destination = new File(filePath).toPath();
+                            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+                            System.out.println("Đã lưu ảnh tại: " + destination.toAbsolutePath());
+
+                            // Lưu thông tin ảnh vào DB
                             Image image = new Image();
                             image.setProduct(product);
-                            image.setImageUri("/" + filePath.replace("\\", "/")); // URI cho frontend dùng
+                            image.setImageUri("/" + filePath.replace("\\", "/"));
                             image.setImageName(fileName);
                             image.setImageSize((int) file.getSize());
                             image.setImageType(file.getContentType());
 
-                            // Lưu vào DB
                             imageService.save(image);
+                            System.out.println("Đã lưu thông tin ảnh vào DB: " + fileName);
 
-                            // Lưu file vật lý
-                            File destinationFile = new File(uploadPath, fileName);
-                            file.transferTo(destinationFile);
                         } catch (IOException e) {
+                            System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
                             e.printStackTrace();
                         }
+                    } else {
+                        System.err.println("File bị rỗng hoặc không hợp lệ: " + file.getOriginalFilename());
                     }
                 }
             }
@@ -226,12 +243,12 @@ public class ProductManagementController {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm sản phẩm thất bại!");
 
-            // 🔹 Truyền lại productForm để giữ dữ liệu đã nhập
+            //Truyền lại productForm để giữ dữ liệu đã nhập
             model.addAttribute("productForm", productForm);
             return "product/add-product"; // Không redirect, mà trả về trang nhập form
         }
     }
-    // 2️⃣ Xem chi tiết sản phẩm theo ID
+    // Xem chi tiết sản phẩm theo ID
     @GetMapping("/user/product-detail/{id}")
     public String viewProduct(@PathVariable Long id, Model model,Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());

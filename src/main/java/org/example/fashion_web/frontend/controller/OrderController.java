@@ -252,7 +252,7 @@ public class OrderController {
             for (CartItems item : cartItems) {
                 OrderItem orderItem = new OrderItem(newOrder, item.getProduct(), item.getQuantity(), item.getPricePerUnit());
                 Optional<Product> product = productRepository.findById(item.getProduct().getId());
-                product.get().setStockQuantity(product.get().getStockQuantity()-item.getQuantity());
+                product.get().setStock_quantity(product.get().getStock_quantity()-item.getQuantity());
                 productRepository.save(product.get());
                 orderItemRepository.save(orderItem);
             }

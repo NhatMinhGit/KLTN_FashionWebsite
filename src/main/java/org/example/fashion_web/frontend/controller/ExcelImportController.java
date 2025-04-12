@@ -132,9 +132,12 @@ public class ExcelImportController {
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
             image.setProduct(product);
+            image.setImageSize(dto.getImageSize());
+            image.setImageType(dto.getImageType());
             System.out.println("Image url: " + image.getImageUri() + ", Name: " + image.getImageName());
 
-            imageService.save(image);
+            imageService.save(image); // Lưu ảnh vào DB
+
         }
     }
     private void handleCategoryData(List<Map<String, Object>> rows) {
@@ -181,6 +184,7 @@ public class ExcelImportController {
         dto.setProductId(Long.valueOf((String.valueOf(row.get("product_id")))));
         dto.setImageUrl(String.valueOf(row.get("imageUri")));
         dto.setImageName(String.valueOf(row.get("imageName")));
+
         return dto;
     }
     private ProductDto mapToProductDto(Map<String, Object> row) {

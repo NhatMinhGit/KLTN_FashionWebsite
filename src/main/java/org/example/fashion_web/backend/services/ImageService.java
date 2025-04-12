@@ -1,6 +1,8 @@
 package org.example.fashion_web.backend.services;
 
 import org.example.fashion_web.backend.models.Image;
+import org.example.fashion_web.backend.models.Product;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -11,4 +13,5 @@ public interface ImageService {
     List<Image> findImagesByProductId(Long id);
 
     void deleteImageByImageUri(String imageUri);
+
 }
