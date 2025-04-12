@@ -23,6 +23,8 @@ public interface ProductService {
     // Kiểm tra sản phẩm có tồn tại không
     boolean existsById(Long id);
 
+    // Tìm sản phẩm theo tên
+    List<Product> findByName(String name);
     // Xóa sản phẩm theo ID
     void deleteProductById(Long id);
 
