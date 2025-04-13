@@ -8,6 +8,7 @@ import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.services.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +23,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -174,41 +179,63 @@ public class ProductManagementController {
             }
             // Lưu hình ảnh
             if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
-                // Định nghĩa thư mục lưu ảnh
-                String uploadDir = "pics/uploads/";
+                // Lấy tên sản phẩm làm tên folder con (lọc ký tự đặc biệt)
+                String productName = productForm.getName()
+                        .trim()
+                        .replaceAll("[\\\\/:*?\"<>|]", "") // chỉ loại bỏ các ký tự không hợp lệ cho tên folder
+                        .replaceAll("\\s+", "_");
 
-                // Kiểm tra nếu thư mục chưa tồn tại thì tạo mới
+                // Đường dẫn lưu ảnh
+                String uploadDir = "pics/uploads/" + productName + "/";
                 File uploadPath = new File(uploadDir);
+
+                // Tạo thư mục nếu chưa tồn tại
                 if (!uploadPath.exists()) {
-                    uploadPath.mkdirs(); // Tạo thư mục nếu chưa có
+                    boolean created = uploadPath.mkdirs();
+                    if (!created) {
+                        System.err.println("Không thể tạo thư mục: " + uploadDir);
+                        return "";
+                    }
                 }
 
                 for (MultipartFile file : productForm.getImageFile()) {
                     if (!file.isEmpty()) {
                         try {
-                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename(); // Tránh trùng tên file
+                            // Ghi log để debug
+                            System.out.println("Đang xử lý file: " + file.getOriginalFilename());
+                            System.out.println("Kích thước file: " + file.getSize());
+                            System.out.println("Loại file: " + file.getContentType());
+
+                            // Tạo tên file với timestamp
+                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                             String filePath = uploadDir + fileName;
 
-                            // Tạo đối tượng Image để lưu vào DB
+                            // Lưu ảnh vào hệ thống tệp
+                            Path destination = new File(filePath).toPath();
+                            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+                            System.out.println("Đã lưu ảnh tại: " + destination.toAbsolutePath());
+
+                            // Lưu thông tin ảnh vào DB
                             Image image = new Image();
                             image.setProduct(product);
-                            image.setImageUri(filePath); // Đường dẫn file để hiển thị
+                            image.setImageUri("/" + filePath.replace("\\", "/"));
                             image.setImageName(fileName);
                             image.setImageSize((int) file.getSize());
                             image.setImageType(file.getContentType());
 
-                            // Lưu thông tin ảnh vào database
                             imageService.save(image);
+                            System.out.println("Đã lưu thông tin ảnh vào DB: " + fileName);
 
-                            // Lưu file vào thư mục trên server
-                            File destinationFile = new File(uploadPath, fileName);
-                            file.transferTo(destinationFile);
                         } catch (IOException e) {
+                            System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
                             e.printStackTrace();
                         }
+                    } else {
+                        System.err.println("File bị rỗng hoặc không hợp lệ: " + file.getOriginalFilename());
                     }
                 }
             }
+
             System.out.println("Thông tin sản phẩm: " + product);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
             return "redirect:/admin/product";
@@ -216,12 +243,12 @@ public class ProductManagementController {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm sản phẩm thất bại!");
 
-            // 🔹 Truyền lại productForm để giữ dữ liệu đã nhập
+            //Truyền lại productForm để giữ dữ liệu đã nhập
             model.addAttribute("productForm", productForm);
             return "product/add-product"; // Không redirect, mà trả về trang nhập form
         }
     }
-    // 2️⃣ Xem chi tiết sản phẩm theo ID
+    // Xem chi tiết sản phẩm theo ID
     @GetMapping("/user/product-detail/{id}")
     public String viewProduct(@PathVariable Long id, Model model,Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
@@ -265,6 +292,15 @@ public class ProductManagementController {
             newBrand.setId(product.getBrand().getId());
             return brandService.save(newBrand);
         });
+
+        // Kiểm tra và lưu ảnh
+        List<Image> imageList = imageService.findImagesByProductId(product.getId());
+        List<String> imageUrls = imageList.stream()
+                .map(Image::getImageUri)
+                .collect(Collectors.toList());
+
+
+
         // Chuyển đổi đối tượng Product thành ProductForm để dễ dàng xử lý trong form
         ProductForm productForm = new ProductForm();
         productForm.setProduct_id(product.getId());
@@ -273,21 +309,26 @@ public class ProductManagementController {
         productForm.setName(product.getName());
         productForm.setPrice(product.getPrice());
         productForm.setDescription(product.getDescription());
+        productForm.setStock_quantity(product.getStock_quantity());
         productForm.setBrand_name(product.getBrand().getName());
         productForm.setCategory_name(product.getCategory().getName());
 
-        productForm.setImageFile(productForm.getImageFile());
-        System.out.println("#"+productForm.getImageFile());
+//        productForm.setImageFile(productForm.getImageFile());
+//        System.out.println("#"+productForm.getImageFile());
 
         model.addAttribute("categories", categoryService.getAllChildrenCategories()); // Lấy danh mục
+        model.addAttribute("brands", brandService.getAllBrands()); // Lấy danh mục
+        model.addAttribute("imageUrls", imageUrls);
+        System.out.println(imageUrls);
         model.addAttribute("productForm", productForm);
         return "product/update-products";
     }
     // Xử lý cập nhật ứng viên
     @PostMapping("/admin/products/edit/{id}")
     public String updateProduct(@PathVariable("id") Long id,
-                                  @ModelAttribute("productForm") ProductForm productForm,
-                                  RedirectAttributes redirectAttributes) {
+                                @ModelAttribute("productForm") ProductForm productForm,
+                                @RequestParam(value = "deletedImages", required = false) List<String> deletedImages,
+                                RedirectAttributes redirectAttributes) {
         try {
             Product existingProduct = productService.getProductById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm không tồn tại với ID: " + id));
@@ -311,7 +352,6 @@ public class ProductManagementController {
             });
 
             // Tạo product
-
             existingProduct.setName(productForm.getName());
             existingProduct.setPrice(productForm.getPrice());
             existingProduct.setDescription(productForm.getDescription());
@@ -323,40 +363,90 @@ public class ProductManagementController {
 
             // Lưu hình ảnh
             if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
-                // Định nghĩa thư mục lưu ảnh
-                String uploadDir = "/pics/uploads/";
+                // Lấy tên sản phẩm làm tên folder con (lọc ký tự đặc biệt)
+                String productName = productForm.getName()
+                        .trim()
+                        .replaceAll("[\\\\/:*?\"<>|]", "") // chỉ loại bỏ các ký tự không hợp lệ cho tên folder
+                        .replaceAll("\\s+", "_");
 
-                // Kiểm tra nếu thư mục chưa tồn tại thì tạo mới
+                // Đường dẫn lưu ảnh
+                String uploadDir = "pics/uploads/" + productName + "/";
                 File uploadPath = new File(uploadDir);
+
+                // Tạo thư mục nếu chưa tồn tại
                 if (!uploadPath.exists()) {
-                    uploadPath.mkdirs(); // Tạo thư mục nếu chưa có
+                    boolean created = uploadPath.mkdirs();
+                    if (!created) {
+                        System.err.println("Không thể tạo thư mục: " + uploadDir);
+                        return "";
+                    }
                 }
 
                 for (MultipartFile file : productForm.getImageFile()) {
                     if (!file.isEmpty()) {
                         try {
-                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename(); // Tránh trùng tên file
+                            // Ghi log để debug
+                            System.out.println("Đang xử lý file: " + file.getOriginalFilename());
+                            System.out.println("Kích thước file: " + file.getSize());
+                            System.out.println("Loại file: " + file.getContentType());
+
+                            // Tạo tên file với timestamp
+                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                             String filePath = uploadDir + fileName;
 
-                            // Tạo đối tượng Image để lưu vào DB
+                            // Lưu ảnh vào hệ thống tệp
+                            Path destination = new File(filePath).toPath();
+                            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+                            System.out.println("Đã lưu ảnh tại: " + destination.toAbsolutePath());
+
+                            // Lưu thông tin ảnh vào DB
                             Image image = new Image();
                             image.setProduct(existingProduct);
-                            image.setImageUri(filePath); // Đường dẫn file để hiển thị
+                            image.setImageUri("/" + filePath.replace("\\", "/"));
                             image.setImageName(fileName);
                             image.setImageSize((int) file.getSize());
                             image.setImageType(file.getContentType());
 
-                            // Lưu thông tin ảnh vào database
                             imageService.save(image);
+                            System.out.println("Đã lưu thông tin ảnh vào DB: " + fileName);
 
-                            // Lưu file vào thư mục trên server
-                            File destinationFile = new File(uploadPath, fileName);
-                            file.transferTo(destinationFile);
                         } catch (IOException e) {
+                            System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
                             e.printStackTrace();
                         }
+                    } else {
+                        System.err.println("File bị rỗng hoặc không hợp lệ: " + file.getOriginalFilename());
                     }
                 }
+            }
+
+
+            // Xoá ảnh được chọn
+            if (deletedImages != null && !deletedImages.isEmpty()) {
+                for (String imageUri : deletedImages) {
+                    // Chuyển đổi URL thành đường dẫn vật lý
+                    String uploadBasePath = "pics/uploads/"; // Đặt đúng thư mục gốc
+                    String relativePath = imageUri.startsWith("/") ? imageUri.substring(1) : imageUri;
+                    File fileToDelete = new File(relativePath);
+
+                    if (fileToDelete.exists()) {
+                        boolean deleted = fileToDelete.delete();
+                        if (deleted) {
+                            System.out.println("Đã xoá file vật lý: " + fileToDelete.getAbsolutePath());
+                        } else {
+                            System.err.println("Không thể xoá file vật lý: " + fileToDelete.getAbsolutePath());
+                        }
+                    } else {
+                        System.err.println("File không tồn tại: " + fileToDelete.getAbsolutePath());
+                    }
+
+                    System.out.println("Xoá imageUri: " + relativePath); // debug
+
+                    // Xoá bản ghi trong DB
+                    imageService.deleteImageByImageUri(imageUri);
+                }
+            }else {
+                System.out.println("Không có xóa file nào cả");
             }
 
 
