@@ -1,6 +1,7 @@
 package org.example.fashion_web.frontend.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
 import org.example.fashion_web.backend.dto.DistrictDto;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.dto.UserProfileDto;
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -168,7 +170,6 @@ public class OrderController {
         BigDecimal priceWithVoucher = totalOrderPrice;
         BigDecimal discountAmount = BigDecimal.valueOf(0);
         Voucher voucher = voucherRepository.findByVoucherCode(voucherCode);
-        System.out.println(voucher.toString());
         if (voucher.getDiscountType().equals("percentage")) {
             BigDecimal discountRate = voucher.getDiscountValue().divide(BigDecimal.valueOf(100));
             discountAmount = priceWithVoucher.multiply(discountRate);
@@ -207,7 +208,9 @@ public class OrderController {
         try {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
             List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
-
+            for (CartItems item : cartItems) {
+                System.out.println(item.toString()); // in ra toString()
+            }
             // Add validation
             if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
                 model.addAttribute("errorMessage", "Invalid order information");
@@ -230,31 +233,56 @@ public class OrderController {
             newOrder.setTotalPrice(paymentInfo.getTotalPrice());
             newOrder.setShippingAddress(paymentInfo.getShippingAddress());
             newOrder.setPaymentMethod(paymentInfo.getPaymentMethod());
-            if (paymentInfo.getPaymentMethod().equals(Payment.PaymentMethodType.CASH)) {
+            if (paymentInfo.getPaymentMethod().equals("CASH")) {
                 newOrder.setStatus(Order.OrderStatusType.PENDING);
-            } else {
+                orderRepository.save(newOrder);
+                //lưu payment vào database
+                Payment payment = new Payment();
+                payment.setOrder(newOrder);
+                payment.setPaymentMethod(Payment.PaymentMethodType.valueOf(paymentInfo.getPaymentMethod()));
+                payment.setPaymentDate(LocalDateTime.now());
+                payment.setPaymentStatus(String.valueOf(0));
+                paymentRepository.save(payment);
+            } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
+                orderRepository.save(newOrder);
             }
 
-            orderRepository.save(newOrder);
-            System.out.println(paymentInfo.getPaymentMethod());
-            session.removeAttribute("cartItems");
-            session.removeAttribute("paymentInfo");
-            return "redirect:/user";
-//            if (paymentInfo.getPaymentMethod().equals("CASH")) {
-//                session.removeAttribute("cartItems");
-//                session.removeAttribute("paymentInfo");
-//                return "redirect:/user";
-//            } else {
-//                return "redirect:/order/confirmation/" + newOrder.getId();
-//            }
+            // lưu orderitem vào database
+            for (CartItems item : cartItems) {
+                OrderItem orderItem = new OrderItem(newOrder, item.getProduct(), item.getQuantity(), item.getPricePerUnit());
+                Optional<Product> product = productRepository.findById(item.getProduct().getId());
+                product.get().setStock_quantity(product.get().getStock_quantity()-item.getQuantity());
+                productRepository.save(product.get());
+                orderItemRepository.save(orderItem);
+            }
+
+            //lưu voucher user vào database
+            if (!paymentInfo.getVoucherCode().isEmpty()) {
+                UserVoucher userVoucher = new UserVoucher();
+                userVoucher.setUser(user);
+                userVoucher.setOrder(newOrder);
+                Voucher voucher = voucherRepository.findByVoucherCode(paymentInfo.getVoucherCode());
+                voucher.setUsageLimit(voucher.getUsageLimit() - 1);
+                voucherRepository.save(voucher);
+                userVoucher.setVoucher(voucher);
+                userVoucher.setUsedDate(LocalDateTime.now());
+                userVoucherRepository.save(userVoucher);
+            }
+
+            if (paymentInfo.getPaymentMethod().equals("CASH")) {
+                session.removeAttribute("cartItems");
+                session.removeAttribute("paymentInfo");
+                return "order/order-confirmination";
+            } else {
+                return "/order/order-payment";
+            }
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Order processing failed: " + e.getMessage());
+            System.out.println(e.getMessage());
             return "redirect:/user/order";
         }
     }
-
-
 
     //lưu user
     @PostMapping("/user/order/save-user")

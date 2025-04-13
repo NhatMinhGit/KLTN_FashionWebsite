@@ -58,6 +58,11 @@ public class ProductServiceImpl implements ProductService {
         return false;
     }
 
+    @Override
+    public List<Product> findByName(String name) {
+        return productRepository.findByName(name);
+    }
+
     // Xóa sản phẩm theo ID
     @Override
     public void deleteProductById(Long id) {

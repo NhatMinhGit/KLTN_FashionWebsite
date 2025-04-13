@@ -48,8 +48,9 @@
             <h2 class="mb-3" th:text="${product.name}"></h2>
             <p class="text-white mb-4" th:text="${product.description}"></p>
             <div class="mb-3">
-                <span class="h4 me-2" id="price" th:text ="${product.price}"></span>
-                <span class="text-muted" th:text="${product.price}"><s></s></span>
+                <span id="price" th:text ="${product.price}" style="display: none;"></span>
+                <span class="h4 me-2" th:text="${@currencyFormatter.formatVND(product.price)}"></span>
+<!--                <span class="text-muted" th:text="${@currencyFormatter.formatVND(product.price)}"><s></s></span>-->
             </div>
             <div class="mb-3">
                 <i class="bi bi-star-fill text-warning"></i>
@@ -141,9 +142,10 @@
             })
             .catch(error => console.error("Error:", error));
     }
-    <!--Chat-->
-    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
+
 </script>
+<!--Chat-->
+<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
