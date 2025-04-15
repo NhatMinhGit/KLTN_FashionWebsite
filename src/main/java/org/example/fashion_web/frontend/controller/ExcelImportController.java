@@ -15,6 +15,7 @@ import org.example.fashion_web.backend.services.CategoryService;
 import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -41,28 +42,52 @@ public class ExcelImportController {
         return new ModelAndView("product/data-tree");
     }
 
+//    @PostMapping("/admin/datatree/import")
+//    public ResponseEntity<String> importExcel(@RequestBody Map<String, List<Map<String, Object>>> data) {
+//        // Duyệt qua từng sheet trong dữ liệu nhận được
+//        data.forEach((sheetName, rows) -> {
+//            // Tùy theo sheetName, bạn sẽ xử lý dữ liệu tương ứng (Product, Brand, Category,...)
+//            try {
+//                if ("Product".equals(sheetName)) {
+//                    handleProductData(rows);
+//                } else if ("Category".equals(sheetName)) {
+//                    handleCategoryData(rows);
+//                } else if ("Brand".equals(sheetName)) {
+//                    handleBrandData(rows);
+//                } else if ("Image".equals(sheetName)) {
+//                    handleImageData(rows);
+//                }
+//            } catch (Exception e) {
+//                System.err.println("Lỗi xử lý sheet " + sheetName + ": " + e.getMessage());
+//            }
+//            // Có thể tiếp tục thêm các sheet khác nếu cần
+//        });
+//        return ResponseEntity.ok("Đã import " + data.size() + " sheets.");
+//    }
     @PostMapping("/admin/datatree/import")
     public ResponseEntity<String> importExcel(@RequestBody Map<String, List<Map<String, Object>>> data) {
-        // Duyệt qua từng sheet trong dữ liệu nhận được
-        data.forEach((sheetName, rows) -> {
-            // Tùy theo sheetName, bạn sẽ xử lý dữ liệu tương ứng (Product, Brand, Category,...)
-            try {
-                if ("Product".equals(sheetName)) {
-                    handleProductData(rows);
-                } else if ("Category".equals(sheetName)) {
-                    handleCategoryData(rows);
-                } else if ("Brand".equals(sheetName)) {
-                    handleBrandData(rows);
-                } else if ("Image".equals(sheetName)) {
-                    handleImageData(rows);
-                }
-            } catch (Exception e) {
-                System.err.println("Lỗi xử lý sheet " + sheetName + ": " + e.getMessage());
+        try {
+            if (data.containsKey("Category")) {
+                handleCategoryData(data.get("Category"));
             }
-            // Có thể tiếp tục thêm các sheet khác nếu cần
-        });
+            if (data.containsKey("Brand")) {
+                handleBrandData(data.get("Brand"));
+            }
+            if (data.containsKey("Product")) {
+                handleProductData(data.get("Product"));
+            }
+            if (data.containsKey("Image")) {
+                handleImageData(data.get("Image"));
+            }
+            // Có thể thêm sheet khác theo thứ tự mong muốn
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi import dữ liệu: " + e.getMessage());
+        }
+
         return ResponseEntity.ok("Đã import " + data.size() + " sheets.");
     }
+
 
     private void handleProductData(List<Map<String, Object>> rows) {
         for (Map<String, Object> row : rows) {
@@ -142,36 +167,58 @@ public class ExcelImportController {
     }
     private void handleCategoryData(List<Map<String, Object>> rows) {
         for (Map<String, Object> row : rows) {
-
-            CategoryDto dto = mapToCategoryDto(row); // Chuyển đổi row thành ProductDto
+            CategoryDto dto = mapToCategoryDto(row);
             Optional<Category> categoryExisting = categoryService.findByName(dto.getCategoryName());
-            if(categoryExisting.isPresent()){
+
+            if (categoryExisting.isPresent()) {
                 System.out.println("Category đã tồn tại: " + categoryExisting.get().getName());
             } else {
                 Category category = new Category();
                 category.setName(dto.getCategoryName());
                 category.setDescription(dto.getDescription());
 
-                // Lấy parent category từ DB
-                Category categoryParent = categoryService.findById(dto.getParentCategoryId())
-                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                // KHÔNG dùng orElseThrow nếu parentId là null
+                if (dto.getParentCategoryId() != null) {
+                    Optional<Category> parentCategory = categoryService.findById(dto.getParentCategoryId());
+                    if (parentCategory.isPresent()) {
+                        category.setParentCategory(parentCategory.get());
+                    } else {
+                        System.out.println("Không tìm thấy parent category id = " + dto.getParentCategoryId()
+                                + " cho category: " + dto.getCategoryName());
+                        category.setParentCategory(null); // fallback về null
+                    }
+                } else {
+                    category.setParentCategory(null); // category gốc
+                }
 
-                category.setParentCategory(categoryParent);
-                System.out.println("Category: " + category.getName() + ", Description: " + category.getDescription() + ", Parent category: " + category.getParentCategory().getName());
+                System.out.println("→ Category: " + category.getName()
+                        + ", Parent: " + (category.getParentCategory() != null ? category.getParentCategory().getName() : "null"));
 
                 categoryService.save(category);
             }
-
         }
     }
+
 
     private CategoryDto mapToCategoryDto(Map<String, Object> row) {
         CategoryDto dto = new CategoryDto();
         dto.setCategoryName(String.valueOf(row.get("category_name")));
         dto.setDescription(String.valueOf(row.get("description")));
-        dto.setParentCategoryId(Long.valueOf(String.valueOf(row.get("parent_category_id"))));
+
+        Object parentIdObj = row.get("parent_category_id");
+        if (parentIdObj != null && !String.valueOf(parentIdObj).isBlank()) {
+            try {
+                dto.setParentCategoryId(Long.valueOf(String.valueOf(parentIdObj)));
+            } catch (NumberFormatException e) {
+                dto.setParentCategoryId(null); // fallback nếu lỗi dữ liệu
+            }
+        } else {
+            dto.setParentCategoryId(null);
+        }
         return dto;
     }
+
+
     private BrandDto mapToBrandDto(Map<String, Object> row) {
         BrandDto dto = new BrandDto();
         dto.setBrandName(String.valueOf(row.get("brand_name")));

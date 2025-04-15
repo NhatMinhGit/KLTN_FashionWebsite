@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/statistic.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+
+    <!-- Page Content -->
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
+            <h1 class="h2">Doanh số theo từng năm</h1>
+            <div class="btn-toolbar">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ -->
+        <canvas id="myChartYears" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
+
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
+            <h1 class="h2">Doanh số trong năm</h1>
+            <div class="btn-toolbar">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                </div>
+                <!-- Dropdown chọn năm -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="yearOnlyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="selectedYearOnly">2025</span>
+                    </button>
+                        <ul class="dropdown-menu" aria-labelledby="yearDropdown">
+                            <li><a class="dropdown-item year-option" href="#" data-value="2020">2020</a></li>
+                            <li><a class="dropdown-item year-option" href="#" data-value="2021">2021</a></li>
+                            <li><a class="dropdown-item year-option" href="#" data-value="2022">2022</a></li>
+                            <li><a class="dropdown-item year-option" href="#" data-value="2023">2023</a></li>
+                            <li><a class="dropdown-item year-option" href="#" data-value="2024">2024</a></li>
+                            <li><a class="dropdown-item year-option" href="#" data-value="2025">2025</a></li>
+                        </ul>
+                </div>
+            </div>
+        </div>
+        <canvas id="myChartYear" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
+
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
+            <h1 class="h2">Doanh số sản phẩm bán chạy trong 30 ngày qua</h1>
+            <div class="btn-toolbar">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                </div>
+                <!-- Dropdown chọn năm -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="yearForSalesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="selectedYearForSales">2025</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="yearDropdown">
+                        <li><a class="dropdown-item year-option" href="#" data-value="2020">2020</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2021">2021</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2022">2022</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2023">2023</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2024">2024</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2025">2025</a></li>
+                    </ul>
+                </div>
+                <!-- Dropdown chọn tháng -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="monthForSalesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="selectedMonthForSales">Tháng 1</span> <!-- Mặc định tháng 1 -->
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="monthDropdown">
+                        <li><a class="dropdown-item month-option" href="#" data-value="1">Tháng 1</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="2">Tháng 2</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="3">Tháng 3</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="4">Tháng 4</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="5">Tháng 5</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="6">Tháng 6</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="7">Tháng 7</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="8">Tháng 8</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="9">Tháng 9</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="10">Tháng 10</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="11">Tháng 11</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="12">Tháng 12</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Biểu đồ sản phẩm -->
+        <canvas id="myChartProducts" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
+
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
+            <h1 class="h2">Doanh số theo danh mục </h1>
+            <div class="btn-toolbar">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                </div>
+                <!-- Dropdown chọn năm -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="yearForCategoriesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="selectedYearForCategories">2025</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="yearDropdown">
+                        <li><a class="dropdown-item year-option" href="#" data-value="2020">2020</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2021">2021</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2022">2022</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2023">2023</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2024">2024</a></li>
+                        <li><a class="dropdown-item year-option" href="#" data-value="2025">2025</a></li>
+                    </ul>
+                </div>
+                <!-- Dropdown chọn tháng -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="monthForCategoriesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="selectedMonthForCategories">Tháng 1</span> <!-- Mặc định tháng 1 -->
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="monthDropdown">
+                        <li><a class="dropdown-item month-option" href="#" data-value="1">Tháng 1</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="2">Tháng 2</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="3">Tháng 3</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="4">Tháng 4</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="5">Tháng 5</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="6">Tháng 6</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="7">Tháng 7</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="8">Tháng 8</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="9">Tháng 9</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="10">Tháng 10</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="11">Tháng 11</a></li>
+                        <li><a class="dropdown-item month-option" href="#" data-value="12">Tháng 12</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Biểu đồ doanh thu theo danh mục -->
+        <canvas id="myChartCategories" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
+    </div>
+</div>
+
+</body>
+</html>
