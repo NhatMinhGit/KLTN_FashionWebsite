@@ -30,7 +30,6 @@ ext {
 }
 
 dependencies {
-//	implementation 'xyz.qdrant:qdrant-client:1.4.0'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20250107'
@@ -65,6 +64,15 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+
+//	//Tích hợp elasticsearch
+//	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+//
+//	// https://mvnrepository.com/artifact/org.elasticsearch.gradle/build-tools
+//	implementation 'org.elasticsearch.gradle:build-tools:8.17.4'
+//	//Tích hợp Redis
+//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 dependencyManagement {
