@@ -30,7 +30,6 @@ ext {
 }
 
 dependencies {
-//	implementation 'xyz.qdrant:qdrant-client:1.4.0'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 	// https://mvnrepository.com/artifact/org.json/json
 	implementation 'org.json:json:20250107'
