@@ -1,23 +1,35 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
 import org.example.fashion_web.backend.models.Category;
+import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.repositories.CategoryRepository;
+import org.example.fashion_web.backend.repositories.ImageRepository;
 import org.example.fashion_web.backend.repositories.ProductRepository;
 import org.example.fashion_web.backend.services.CategoryService;
+import org.example.fashion_web.backend.services.DiscountService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+    @Autowired
+    private Cloudinary cloudinary;
 
     @Autowired
     private ProductRepository productRepository;
@@ -26,8 +38,13 @@ public class ProductServiceImpl implements ProductService {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private ImageRepository imageRepository;
+
+    @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private DiscountService discountService;
 
 
     // Lấy danh sách tất cả sản phẩm
@@ -64,14 +81,70 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByName(name);
     }
 
+    public String extractPublicId(String imageUrl) {
+        try {
+            int index = imageUrl.indexOf("/upload/");
+            if (index == -1) return null;
+
+            String publicIdWithVersion = imageUrl.substring(index + 8); // bỏ /upload/
+            String[] parts = publicIdWithVersion.split("/", 2);
+            if (parts.length < 2) return null;
+
+            String publicIdEncoded = parts[1];
+            String publicIdDecoded = URLDecoder.decode(publicIdEncoded, StandardCharsets.UTF_8.name());
+
+            // Cắt bỏ phần đuôi mở rộng như .jpg, .png
+            int dotIndex = publicIdDecoded.lastIndexOf(".");
+            if (dotIndex != -1) {
+                publicIdDecoded = publicIdDecoded.substring(0, dotIndex);
+            }
+
+            return publicIdDecoded;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     // Xóa sản phẩm theo ID
     @Override
-    public void deleteProductById(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy sản phẩm để xóa với ID: " + id);
+    public void deleteProductById(Long productId) {
+        // Kiểm tra sản phẩm có tồn tại không
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+
+        // Lấy danh sách ảnh liên kết với sản phẩm
+        List<Image> images = imageRepository.findAllByProductId(productId);
+
+        for (Image image : images) {
+            String imageUrl = image.getImageUri();
+
+            if (imageUrl != null && imageUrl.startsWith("https://res.cloudinary.com")) {
+                try {
+                    // Trích xuất public_id từ URL
+                    String publicId = extractPublicId(imageUrl);
+
+                    if (publicId != null) {
+                        // Gọi Cloudinary xoá ảnh
+                        Map<String, String> result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                        System.out.println("Xóa ảnh Cloudinary [" + publicId + "]: " + result);
+                    } else {
+                        System.err.println("Không thể trích xuất public_id từ URL: " + imageUrl);
+                    }
+                } catch (IOException e) {
+                    System.err.println("Lỗi khi xoá ảnh từ Cloudinary: " + imageUrl);
+                    e.printStackTrace();
+                }
+            }
+
+            // Xoá bản ghi ảnh trong DB
+            imageRepository.delete(image);
         }
-        productRepository.deleteById(id);
+
+        // Xoá sản phẩm khỏi DB
+        productRepository.delete(product);
     }
+
 
     // Tạo sản phẩm mới
     @Override
@@ -81,12 +154,15 @@ public class ProductServiceImpl implements ProductService {
 
     // Cập nhật thông tin sản phẩm
     @Override
-    public Product updateProduct(Long id, Product productDetails) {
-        return productRepository.findById(id).map(product -> {
+    public void updateProduct(Long id, Product productDetails) {
+        productRepository.findById(id).map(product -> {
             product.setName(productDetails.getName());
             product.setPrice(productDetails.getPrice());
             product.setDescription(productDetails.getDescription());
-            product.setStock_quantity(productDetails.getStock_quantity());
+//            product.setStockQuantity(productDetails.getStockQuantity());
+            // Cập nhật lại danh sách sizes (xóa cũ, thêm mới)
+            product.getSizes().clear(); // hoặc dùng cascade remove
+            product.getSizes().addAll(productDetails.getSizes());
             return productRepository.save(product);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + id));
     }
@@ -124,6 +200,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Optional<Product> findById(Long id) {
         return productRepository.findById(id);
+    }
+
+    @Override
+    public List<Product> searchByKeyword(String keyword) {
+        return productRepository.findByNameContaining(keyword); // Tìm kiếm sản phẩm theo tên
     }
 
 

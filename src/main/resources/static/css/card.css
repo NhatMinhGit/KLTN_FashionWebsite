@@ -31,3 +31,10 @@
 .product-image:first-child {
     opacity: 1;
 }
+.original-price {
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+.discounted-price {
+    font-size: 1.1rem;
+}

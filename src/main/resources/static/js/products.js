@@ -2,7 +2,7 @@ let currentPage = 0;
 let pageSize = 10; // Số sản phẩm mỗi trang
 
 function searchProducts(page = 0) {
-    let keyword = document.getElementById("searchKeyword").value;
+    let keyword = document.getElementById("searchKeywordAdmin").value;
     currentPage = page;
 
     fetch(`/admin/products/search?keyword=${keyword}&page=${page}&size=${pageSize}`)

@@ -1,7 +1,6 @@
 package org.example.fashion_web.frontend.controller;
 
 import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
 import org.example.fashion_web.backend.dto.DistrictDto;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.dto.UserProfileDto;
@@ -80,6 +79,9 @@ public class OrderController {
 
     @Autowired
     private UserVoucherRepository userVoucherRepository;
+
+    @Autowired
+    private SizeRepository sizeRepository;
 
     private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
@@ -251,9 +253,31 @@ public class OrderController {
             // lưu orderitem vào database
             for (CartItems item : cartItems) {
                 OrderItem orderItem = new OrderItem(newOrder, item.getProduct(), item.getQuantity(), item.getPricePerUnit());
-                Optional<Product> product = productRepository.findById(item.getProduct().getId());
-                product.get().setStock_quantity(product.get().getStock_quantity()-item.getQuantity());
-                productRepository.save(product.get());
+                Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
+//                product.get().setStockQuantity(product.get().getStockQuantity()-item.getQuantity());
+
+                productOpt.ifPresentOrElse(product -> {
+                    // Tìm size tương ứng với sản phẩm
+                    Optional<Size> sizeOpt = product.getSizes().stream()
+                            .filter(size -> size.getSizeName().equalsIgnoreCase(item.getSize().getSizeName())) // Kiểm tra theo tên size
+                            .findFirst();
+
+                    // Nếu tìm thấy kích cỡ, giảm số lượng tồn kho của nó
+                    sizeOpt.ifPresentOrElse(size -> {
+                        if (size.getStockQuantity() >= item.getQuantity()) {
+                            size.setStockQuantity(size.getStockQuantity() - item.getQuantity());
+                            sizeRepository.save(size); // Lưu lại size đã cập nhật
+                        } else {
+                            throw new RuntimeException("Not enough stock for size: " + size.getSizeName());
+                        }
+                    }, () -> {
+                        throw new RuntimeException("Size not found for product: " + product.getName());
+                    });
+
+                }, () -> {
+                    throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
+                });
+                productRepository.save(productOpt.get());
                 orderItemRepository.save(orderItem);
             }
 

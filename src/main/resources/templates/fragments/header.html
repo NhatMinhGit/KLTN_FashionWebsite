@@ -1,14 +1,19 @@
 <div th:fragment="header" xmlns:sec="http://www.w3.org/1999/xhtml">
   <link th:href="@{/css/header.css}" rel="stylesheet">
+  <script th:src="@{/js/header.js}"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <div class="p-3 mb-3 border-bottom">
     <div class="container">
       <div class="d-flex flex-wrap align-items-center justify-content-between">
         <!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
         <!--                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>-->
         <!--            </a>-->
-        <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
-          <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
+        <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" id="search-form">
+          <input type="text" id="search-input" placeholder="Tìm kiếm sản phẩm...">
+          <button type="button" onclick="searchProducts(event)">Tìm kiếm</button>
         </form>
+
+
         <h1 class="text-white">
           MNT Fashion Shop
         </h1>

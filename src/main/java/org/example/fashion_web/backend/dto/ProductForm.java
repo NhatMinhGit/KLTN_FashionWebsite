@@ -4,7 +4,9 @@ import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Getter
@@ -19,7 +21,8 @@ public class ProductForm {
     private String name;
     private BigDecimal price;
     private String description;
-    private int stock_quantity;
+    // Thêm danh sách size và quantity
+    private Map<String, Integer> sizeQuantities = new HashMap<>();
 
     //Thông tin thương hiệu
     private String brand_name;

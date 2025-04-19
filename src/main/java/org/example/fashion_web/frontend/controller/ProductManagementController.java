@@ -1,14 +1,14 @@
 package org.example.fashion_web.frontend.controller;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.example.fashion_web.backend.dto.CategoryForm;
 import org.example.fashion_web.backend.dto.ProductForm;
+import org.example.fashion_web.backend.dto.ProductWithImagesDto;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
-import org.example.fashion_web.backend.models.Brand;
-import org.example.fashion_web.backend.models.Category;
-import org.example.fashion_web.backend.models.Image;
-import org.example.fashion_web.backend.models.Product;
+import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.services.*;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,12 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,6 +34,8 @@ import java.util.stream.Collectors;
 
 public class ProductManagementController {
 
+    @Autowired
+    private Cloudinary cloudinary;
     @Autowired
     private final ProductService productService;
     @Autowired
@@ -47,6 +48,11 @@ public class ProductManagementController {
     private final UserService userService; // Giả sử bạn có UserService để lấy thông tin người dùng
     @Autowired
     private UserDetailsService userDetailsService; // Inject UserDetailsService
+    @Autowired
+    private DiscountService discountService;
+    @Autowired
+    private SizeService sizeService;
+
     public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, ImageService imageService, UserService userService) {
         this.productService = productService;
         this.brandService = brandService;
@@ -129,6 +135,8 @@ public class ProductManagementController {
         }
     }
 
+
+
     @GetMapping("/admin/products/add")
     public String showAddProductForm(Model model) {
         model.addAttribute("productForm", new ProductForm());
@@ -137,13 +145,16 @@ public class ProductManagementController {
     }
 
     @PostMapping("/admin/products/add")
-    public String addProduct(@ModelAttribute("productForm") ProductForm productForm, Model model, RedirectAttributes redirectAttributes) {
+    public String addProduct(@ModelAttribute("productForm") ProductForm productForm,
+                             @RequestParam(value = "imageUrls", required = false) List<String> imageUrls,
+                             Model model, RedirectAttributes redirectAttributes) {
         try {
             // Kiểm tra và lưu category
             Optional<Category> categoryOpt = categoryService.findByName(productForm.getCategory_name());
             Category category = categoryOpt.orElseGet(() -> {
                 Category newCategory = new Category();
                 newCategory.setId(productForm.getCategory_id());
+                newCategory.setName(productForm.getCategory_name());
                 return categoryService.save(newCategory);
             });
 
@@ -155,49 +166,43 @@ public class ProductManagementController {
                 return brandService.save(newBrand);
             });
 
-
             // Tạo product
             Product product = new Product();
             product.setName(productForm.getName());
             product.setPrice(productForm.getPrice());
             product.setDescription(productForm.getDescription());
-            product.setStock_quantity(productForm.getStock_quantity());
-
+//            product.setStockQuantity(productForm.getStock_quantity());
 
             // Set category & brand cho product
             product.setCategory(category);
             product.setBrand(brand);
 
             productService.save(product);
-            if (productForm.getImageFile() == null) {
-                System.out.println("Không có file nào được gửi lên!");
-            } else {
-                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
-                for (MultipartFile file : productForm.getImageFile()) {
-                    System.out.println("Tên file: " + file.getOriginalFilename());
-                }
+
+            //Lưu size
+            List<Size> sizes = new ArrayList<>();
+
+            for (Map.Entry<String, Integer> entry : productForm.getSizeQuantities().entrySet()) {
+                String sizeName = entry.getKey();
+                Integer quantity = entry.getValue();
+
+                // Bỏ qua nếu số lượng là null hoặc 0
+                if (quantity == null || quantity <= 0) continue;
+
+                Size size = new Size();
+                size.setSizeName(sizeName);
+                size.setStockQuantity(quantity);
+                size.setProduct(product);
+
+                sizes.add(size);
             }
-            // Lưu hình ảnh
+
+            sizeService.saveAll(sizes);
+
+
+            //Lưu ảnh
             if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
-                // Lấy tên sản phẩm làm tên folder con (lọc ký tự đặc biệt)
-                String productName = productForm.getName()
-                        .trim()
-                        .replaceAll("[\\\\/:*?\"<>|]", "") // chỉ loại bỏ các ký tự không hợp lệ cho tên folder
-                        .replaceAll("\\s+", "_");
-
-                // Đường dẫn lưu ảnh
-                String uploadDir = "pics/uploads/" + productName + "/";
-                File uploadPath = new File(uploadDir);
-
-                // Tạo thư mục nếu chưa tồn tại
-                if (!uploadPath.exists()) {
-                    boolean created = uploadPath.mkdirs();
-                    if (!created) {
-                        System.err.println("Không thể tạo thư mục: " + uploadDir);
-                        return "";
-                    }
-                }
-
+                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
                 for (MultipartFile file : productForm.getImageFile()) {
                     if (!file.isEmpty()) {
                         try {
@@ -206,32 +211,55 @@ public class ProductManagementController {
                             System.out.println("Kích thước file: " + file.getSize());
                             System.out.println("Loại file: " + file.getContentType());
 
-                            // Tạo tên file với timestamp
-                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                            String filePath = uploadDir + fileName;
+                            String productName = product.getName();  // Tên sản phẩm
+                            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+                            String fullFileName = FilenameUtils.getBaseName(file.getOriginalFilename());
 
-                            // Lưu ảnh vào hệ thống tệp
-                            Path destination = new File(filePath).toPath();
-                            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
-                            System.out.println("Đã lưu ảnh tại: " + destination.toAbsolutePath());
+                            // Tạo thư mục dựa trên tên sản phẩm
+                            String folderPath = "pics/uploads/" + productName;  // Tạo thư mục theo tên sản phẩm
 
-                            // Lưu thông tin ảnh vào DB
+                            // Thay đoạn xử lý file bằng Cloudinary
+                            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                                    "public_id", folderPath + "/" + fullFileName,  // Đặt public_id với đường dẫn thư mục sản phẩm
+                                    "overwrite", true,
+                                    "resource_type", "image"
+                            ));
+
+                            // DEBUG kết quả trả về
+                            System.out.println("Kết quả upload từ Cloudinary:");
+                            for (Object key : uploadResult.keySet()) {
+                                System.out.println(key + " : " + uploadResult.get(key));
+                            }
+                            String imageUrl = (String) uploadResult.get("secure_url");
+
                             Image image = new Image();
                             image.setProduct(product);
-                            image.setImageUri("/" + filePath.replace("\\", "/"));
-                            image.setImageName(fileName);
+                            image.setImageUri(imageUrl);
+                            image.setImageName(file.getOriginalFilename());
                             image.setImageSize((int) file.getSize());
                             image.setImageType(file.getContentType());
 
+
+                            // Ghi log trước khi lưu
+                            System.out.println("=== ĐANG LƯU ẢNH VÀO DB ===");
+                            System.out.println("Thông tin ảnh: ");
+                            System.out.println("Tên: " + image.getImageName());
+                            System.out.println("URI: " + image.getImageUri());
+                            System.out.println("Size: " + image.getImageSize());
+                            System.out.println("Loại: " + image.getImageType());
+                            System.out.println("Product ID: " + (product.getId() != null ? product.getId() : "null"));
+
+
+
                             imageService.save(image);
-                            System.out.println("Đã lưu thông tin ảnh vào DB: " + fileName);
+
+
+
 
                         } catch (IOException e) {
                             System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
                             e.printStackTrace();
                         }
-                    } else {
-                        System.err.println("File bị rỗng hoặc không hợp lệ: " + file.getOriginalFilename());
                     }
                 }
             }
@@ -243,11 +271,12 @@ public class ProductManagementController {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm sản phẩm thất bại!");
 
-            //Truyền lại productForm để giữ dữ liệu đã nhập
+            // Truyền lại productForm để giữ dữ liệu đã nhập
             model.addAttribute("productForm", productForm);
             return "product/add-product"; // Không redirect, mà trả về trang nhập form
         }
     }
+
     // Xem chi tiết sản phẩm theo ID
     @GetMapping("/user/product-detail/{id}")
     public String viewProduct(@PathVariable Long id, Model model,Principal principal) {
@@ -259,18 +288,38 @@ public class ProductManagementController {
         if (product == null) {
             return "redirect:/user"; // Fix đường dẫn redirect
         }
+        BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice());
+        product.setEffectivePrice(effectivePrice);
 
         // Lấy danh sách ảnh và chỉ lấy đường dẫn ảnh (imageUrl)
-        List<String> productImages = imageService.findImagesByProductId(id)
-                .stream()
-                .map(Image::getImageUri) // Chỉ lấy URL ảnh
+        List<Image> imageList = imageService.findImagesByProductId(product.getId());
+        List<String> productImages = imageList.stream()
+                .map(Image::getImageUri)
+                .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
                 .collect(Collectors.toList());
 
+        List<Size> sizes = product.getSizes(); // đã được ánh xạ bởi JPA
+        model.addAttribute("sizes", sizes);
         model.addAttribute("product", product);
         model.addAttribute("productImages", productImages);
         return "product/product-detail"; // Đảm bảo có file product/product-detail.html
     }
-
+    // Hàm chuẩn hóa tên sản phẩm thành slug
+    public static String encodeForCloudinary(String input) {
+        try {
+            return URLEncoder.encode(input, StandardCharsets.UTF_8.toString())
+                    .replace("+", "%20")
+                    .replace("%21", "!")
+                    .replace("%27", "'")
+                    .replace("%28", "(")
+                    .replace("%29", ")")
+                    .replace("%7E", "~");
+        } catch (Exception e) {
+            return input;
+        }
+    }
     // Hiển thị form cập nhật sản phẩm
     @GetMapping("/admin/products/edit/{id}")
     public String showEditProductForm(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
@@ -294,12 +343,15 @@ public class ProductManagementController {
         });
 
         // Kiểm tra và lưu ảnh
+        String encodedProductName = encodeForCloudinary(product.getName());
+
         List<Image> imageList = imageService.findImagesByProductId(product.getId());
+
         List<String> imageUrls = imageList.stream()
                 .map(Image::getImageUri)
+                .filter(uri -> uri.startsWith("https://res.cloudinary.com"))
+                .filter(uri -> uri.contains("/pics/uploads/" + encodedProductName + "/"))
                 .collect(Collectors.toList());
-
-
 
         // Chuyển đổi đối tượng Product thành ProductForm để dễ dàng xử lý trong form
         ProductForm productForm = new ProductForm();
@@ -309,20 +361,59 @@ public class ProductManagementController {
         productForm.setName(product.getName());
         productForm.setPrice(product.getPrice());
         productForm.setDescription(product.getDescription());
-        productForm.setStock_quantity(product.getStock_quantity());
+//        productForm.setStock_quantity(product.getStockQuantity());
+
+        List<Size> sizes = sizeService.findAllByProductId(product.getId());
+        Map<String, Integer> sizeQuantities = new HashMap<>();
+        for (Size size : sizes) {
+            sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
+        }
+        productForm.setSizeQuantities(sizeQuantities);
+
+
         productForm.setBrand_name(product.getBrand().getName());
         productForm.setCategory_name(product.getCategory().getName());
-
-//        productForm.setImageFile(productForm.getImageFile());
-//        System.out.println("#"+productForm.getImageFile());
 
         model.addAttribute("categories", categoryService.getAllChildrenCategories()); // Lấy danh mục
         model.addAttribute("brands", brandService.getAllBrands()); // Lấy danh mục
         model.addAttribute("imageUrls", imageUrls);
+        model.addAttribute("sizes", sizes);
         System.out.println(imageUrls);
         model.addAttribute("productForm", productForm);
         return "product/update-products";
     }
+    // Hàm tách public_id từ URL của Cloudinary
+
+    public String extractPublicId(String imageUrl) {
+        try {
+            int index = imageUrl.indexOf("/upload/");
+            if (index == -1) return null;
+
+            String publicIdWithVersion = imageUrl.substring(index + 8);
+            String[] parts = publicIdWithVersion.split("/", 2);
+            if (parts.length < 2) return null;
+
+            String publicIdEncoded = parts[1];
+            String publicIdDecoded = URLDecoder.decode(publicIdEncoded, StandardCharsets.UTF_8.name());
+
+            // Xoá đuôi mở rộng như .png, .jpg, .jpeg nếu có
+            int dotIndex = publicIdDecoded.lastIndexOf(".");
+            if (dotIndex != -1) {
+                publicIdDecoded = publicIdDecoded.substring(0, dotIndex);
+            }
+
+            return publicIdDecoded;
+        } catch (Exception e) {
+            System.err.println("Lỗi khi trích xuất public_id từ URL: " + imageUrl);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+
+
     // Xử lý cập nhật ứng viên
     @PostMapping("/admin/products/edit/{id}")
     public String updateProduct(@PathVariable("id") Long id,
@@ -355,33 +446,32 @@ public class ProductManagementController {
             existingProduct.setName(productForm.getName());
             existingProduct.setPrice(productForm.getPrice());
             existingProduct.setDescription(productForm.getDescription());
-            existingProduct.setStock_quantity(productForm.getStock_quantity());
+//            existingProduct.setStockQuantity(productForm.getStock_quantity());
+            List<Size> sizes = new ArrayList<>();
 
+            for (Map.Entry<String, Integer> entry : productForm.getSizeQuantities().entrySet()) {
+                String sizeName = entry.getKey();
+                Integer quantity = entry.getValue();
+
+                // Bỏ qua nếu số lượng là null hoặc 0
+                if (quantity == null || quantity <= 0) continue;
+
+                Size size = new Size();
+                size.setSizeName(sizeName);
+                size.setStockQuantity(quantity);
+                size.setProduct(existingProduct);
+
+                sizes.add(size);
+            }
+
+            sizeService.saveAll(sizes);
             // Set category & brand cho product
             existingProduct.setCategory(category);
             existingProduct.setBrand(brand);
 
             // Lưu hình ảnh
-            if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
-                // Lấy tên sản phẩm làm tên folder con (lọc ký tự đặc biệt)
-                String productName = productForm.getName()
-                        .trim()
-                        .replaceAll("[\\\\/:*?\"<>|]", "") // chỉ loại bỏ các ký tự không hợp lệ cho tên folder
-                        .replaceAll("\\s+", "_");
-
-                // Đường dẫn lưu ảnh
-                String uploadDir = "pics/uploads/" + productName + "/";
-                File uploadPath = new File(uploadDir);
-
-                // Tạo thư mục nếu chưa tồn tại
-                if (!uploadPath.exists()) {
-                    boolean created = uploadPath.mkdirs();
-                    if (!created) {
-                        System.err.println("Không thể tạo thư mục: " + uploadDir);
-                        return "";
-                    }
-                }
-
+            if (productForm.getImageFile() != null) {
+                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
                 for (MultipartFile file : productForm.getImageFile()) {
                     if (!file.isEmpty()) {
                         try {
@@ -390,32 +480,55 @@ public class ProductManagementController {
                             System.out.println("Kích thước file: " + file.getSize());
                             System.out.println("Loại file: " + file.getContentType());
 
-                            // Tạo tên file với timestamp
-                            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                            String filePath = uploadDir + fileName;
+                            String productName = existingProduct.getName();  // Tên sản phẩm
+                            String baseFileName = FilenameUtils.getBaseName(file.getOriginalFilename());  // không có đuôi
 
-                            // Lưu ảnh vào hệ thống tệp
-                            Path destination = new File(filePath).toPath();
-                            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
-                            System.out.println("Đã lưu ảnh tại: " + destination.toAbsolutePath());
 
-                            // Lưu thông tin ảnh vào DB
+                            // Tạo thư mục dựa trên tên sản phẩm
+                            String folderPath = "pics/uploads/" + productName;  // Tạo thư mục theo tên sản phẩm
+
+                            // Thay đoạn xử lý file bằng Cloudinary
+                            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                                    "public_id", folderPath + "/" + baseFileName,  // Đặt public_id với đường dẫn thư mục sản phẩm
+                                    "overwrite", true,
+                                    "resource_type", "image"
+                            ));
+
+                            // DEBUG kết quả trả về
+                            System.out.println("Kết quả upload từ Cloudinary:");
+                            for (Object key : uploadResult.keySet()) {
+                                System.out.println(key + " : " + uploadResult.get(key));
+                            }
+                            String imageUrl = (String) uploadResult.get("secure_url");
+
                             Image image = new Image();
                             image.setProduct(existingProduct);
-                            image.setImageUri("/" + filePath.replace("\\", "/"));
-                            image.setImageName(fileName);
+                            image.setImageUri(imageUrl);
+                            image.setImageName(file.getOriginalFilename());
                             image.setImageSize((int) file.getSize());
                             image.setImageType(file.getContentType());
 
+
+                            // Ghi log trước khi lưu
+                            System.out.println("=== ĐANG LƯU ẢNH VÀO DB ===");
+                            System.out.println("Thông tin ảnh: ");
+                            System.out.println("Tên: " + image.getImageName());
+                            System.out.println("URI: " + image.getImageUri());
+                            System.out.println("Size: " + image.getImageSize());
+                            System.out.println("Loại: " + image.getImageType());
+                            System.out.println("Product ID: " + (existingProduct.getId() != null ? existingProduct.getId() : "null"));
+
+
+
                             imageService.save(image);
-                            System.out.println("Đã lưu thông tin ảnh vào DB: " + fileName);
+
+
+
 
                         } catch (IOException e) {
                             System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
                             e.printStackTrace();
                         }
-                    } else {
-                        System.err.println("File bị rỗng hoặc không hợp lệ: " + file.getOriginalFilename());
                     }
                 }
             }
@@ -424,33 +537,44 @@ public class ProductManagementController {
             // Xoá ảnh được chọn
             if (deletedImages != null && !deletedImages.isEmpty()) {
                 for (String imageUri : deletedImages) {
-                    // Chuyển đổi URL thành đường dẫn vật lý
-                    String uploadBasePath = "pics/uploads/"; // Đặt đúng thư mục gốc
-                    String relativePath = imageUri.startsWith("/") ? imageUri.substring(1) : imageUri;
-                    File fileToDelete = new File(relativePath);
+                    // Kiểm tra xem URL có phải từ Cloudinary không
+                    if (imageUri.startsWith("https://res.cloudinary.com")) {
+                        try {
+                            // Gọi API của Cloudinary để xoá ảnh
+                            System.out.println("Đang xoá ảnh từ Cloudinary với URL: " + imageUri);
 
-                    if (fileToDelete.exists()) {
-                        boolean deleted = fileToDelete.delete();
-                        if (deleted) {
-                            System.out.println("Đã xoá file vật lý: " + fileToDelete.getAbsolutePath());
-                        } else {
-                            System.err.println("Không thể xoá file vật lý: " + fileToDelete.getAbsolutePath());
+                            // Tách public_id từ URL
+                            String publicId = extractPublicId(imageUri);
+//                            String publicId = "pics/uploads/%C3%81o%20Thun%20Nam/%C3%81o%20s%C6%A1%20mi%20oxford%20nam%20tay%20d%C3%A0i%20form%20fitted%20-%20Smartshirt.png";
+
+                            if (publicId != null) {
+                                // Sử dụng public_id để xoá ảnh từ Cloudinary
+                                Map<String, String> result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                                System.out.println("Kết quả xoá từ Cloudinary: " + result);
+
+                                // Xoá bản ghi trong DB sau khi xoá ảnh trên Cloudinary
+                                imageService.deleteImageByImageUri(imageUri);
+                            } else {
+                                System.err.println("Không thể tách public_id từ URL: " + imageUri);
+                            }
+
+                        } catch (IOException e) {
+                            System.err.println("Lỗi khi xoá ảnh từ Cloudinary: " + imageUri);
+                            e.printStackTrace();
                         }
                     } else {
-                        System.err.println("File không tồn tại: " + fileToDelete.getAbsolutePath());
+                        // Nếu không phải ảnh Cloudinary, bỏ qua hoặc xử lý theo yêu cầu
+                        System.out.println("Đây không phải là ảnh Cloudinary: " + imageUri);
                     }
-
-                    System.out.println("Xoá imageUri: " + relativePath); // debug
-
-                    // Xoá bản ghi trong DB
-                    imageService.deleteImageByImageUri(imageUri);
                 }
-            }else {
-                System.out.println("Không có xóa file nào cả");
+            } else {
+                System.out.println("Không có ảnh nào để xoá.");
             }
 
 
-            // Lưu địa chỉ và ứng viên
+
+
+            // Lưu địa chỉ và Sản Phẩm
             productService.updateProduct(id, existingProduct);
 
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật ứng viên thành công!");
@@ -486,6 +610,11 @@ public class ProductManagementController {
         Pageable pageable = PageRequest.of(page, size);
         return productService.searchProducts(keyword, pageable);
     }
+
+
+
+
+
     @GetMapping("/user/shop")
     public String listProducts(
             @RequestParam(value = "category", required = false, defaultValue = "nam") String category,
@@ -501,19 +630,31 @@ public class ProductManagementController {
             }
         }
 
+
+
         // Lọc sản phẩm theo danh mục
         List<Product> products = productService.getProductsByCategory(category);
 //        System.out.println("Số sản phẩm tìm thấy: " + products.size());
 //        for (Product p : products) {
 //            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
 //        }
+        for (Product product : products) {
+            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice());
+            product.setEffectivePrice(effectivePrice);
+        }
         model.addAttribute("products", products);
 
         // Nhóm danh sách ảnh theo productId
         Map<Long, List<String>> productImages = new HashMap<>();
         for (Product product : products) {
-            List<Image> images = imageService.findImagesByProductId(product.getId());
-            List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+            // Kiểm tra và lưu ảnh
+            List<Image> imageList = imageService.findImagesByProductId(product.getId());
+            List<String> imageUrls = imageList.stream()
+                    .map(Image::getImageUri)
+                    .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
+                    .collect(Collectors.toList());
             productImages.put(product.getId(), imageUrls);
         }
 
@@ -521,6 +662,46 @@ public class ProductManagementController {
         model.addAttribute("currentCategory", category); // Lưu danh mục hiện tại để xử lý giao diện
 
         return "shop"; // Trả về trang shop.html chung
+    }
+
+    @GetMapping("/user/shop/search")
+    @ResponseBody
+    public List<ProductWithImagesDto> searchProducts(@RequestParam("keyword") String keyword) {
+        // Lấy danh sách sản phẩm từ service
+        List<Product> products = productService.searchByKeyword(keyword);
+
+        // Xử lý ảnh cho từng sản phẩm
+        List<ProductWithImagesDto> productDtos = products.stream()
+                .map(product -> {
+                    // Lấy danh sách ảnh từ imageService
+                    List<Image> imageList = imageService.findImagesByProductId(product.getId());
+                    List<String> imageUrls = imageList.stream()
+                            .map(Image::getImageUri)
+                            .filter(url -> url.startsWith("https://res.cloudinary.com")) // Lọc ảnh từ Cloudinary
+                            .collect(Collectors.toList());
+
+                    Map<String, Integer> sizeQuantities = new HashMap<>();
+                    for (Size size : product.getSizes()) {
+                        sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
+                    }
+
+                    // Sau đó gán vào DTO
+                    return new ProductWithImagesDto(
+                            product.getId(),
+                            product.getBrand().getId(),
+                            product.getCategory().getId(),
+                            product.getName(),
+                            product.getPrice(),
+                            product.getDescription(),
+                            sizeQuantities,
+                            imageUrls
+                    );
+
+                })
+                .collect(Collectors.toList());
+
+        // Trả về danh sách sản phẩm dưới dạng JSON
+        return productDtos;
     }
 
 }

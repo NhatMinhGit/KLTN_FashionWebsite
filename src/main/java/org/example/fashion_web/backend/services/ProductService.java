@@ -32,7 +32,7 @@ public interface ProductService {
     void addProduct(Product product);
 
     // Cập nhật thông tin sản phẩm
-    Product updateProduct(Long id, Product productDetails);
+    void updateProduct(Long id, Product productDetails);
 
     int getTotalProductsCount();
 
@@ -42,4 +42,6 @@ public interface ProductService {
 
     List<Product> saveAll(List<Product> dataList);
     Optional<Product> findById(Long id);
+
+    List<Product> searchByKeyword(String keyword);
 }

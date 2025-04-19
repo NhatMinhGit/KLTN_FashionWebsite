@@ -48,8 +48,8 @@
             <h2 class="mb-3" th:text="${product.name}"></h2>
             <p class="text-white mb-4" th:text="${product.description}"></p>
             <div class="mb-3">
-                <span id="price" th:text ="${product.price}" style="display: none;"></span>
-                <span class="h4 me-2" th:text="${@currencyFormatter.formatVND(product.price)}"></span>
+                <span id="price" th:text ="${product.effectivePrice}" style="display: none;"></span>
+                <span class="h4 me-2" th:text="${@currencyFormatter.formatVND(product.effectivePrice)}"></span>
 <!--                <span class="text-muted" th:text="${@currencyFormatter.formatVND(product.price)}"><s></s></span>-->
             </div>
             <div class="mb-3">
@@ -60,10 +60,19 @@
                 <i class="bi bi-star-half text-warning"></i>
                 <span class="ms-2">4.5 (120 reviews)</span>
             </div>
-            <p class="mb-4" th:text="${product.description}"></p>
+            <p class="mb-4" th:text="${product.description}"></p>+
             <div class="mb-4">
-                <label for="quantity" class="form-label">Quantity:</label>
-                <input type="number" class="form-control" id="quantity" value="1" min="1" style="width: 80px;">
+                <label for="sizeSelect" class="form-label">Size:</label>
+                <select class="form-select" id="sizeSelect" required>
+                    <option th:each="size : ${sizes}"
+                            th:value="${size.sizeName}"
+                            th:text="${size.sizeName} + ' (Còn ' + ${size.stockQuantity} + ')'">
+                    </option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="quantity" class="form-label">Số lượng:</label>
+                <input type="number" id="quantity" class="form-control" value="1" min="1" required>
             </div>
             <button class="btn btn-primary btn-lg mb-3 me-2" onclick="addToCart()">
                 <i class="bi bi-cart-plus"></i> Add to Cart
@@ -98,8 +107,10 @@
         const productElement = document.getElementById("product-details");
         const priceElement = document.getElementById("price");
         const quantityElement = document.getElementById("quantity");
+        const sizeSelect = document.getElementById("sizeSelect");
+        const selectedSize = sizeSelect.value; // Hoặc .options[sizeSelect.selectedIndex].text nếu muốn cả tên + tồn kho
 
-        if (!productElement || !priceElement || !quantityElement) {
+        if (!productElement || !priceElement || !selectedSize) {
             alert("Không tìm thấy phần tử nhập dữ liệu!");
             return;
         }
@@ -121,7 +132,8 @@
         const data = {
             productId: productId,
             price: price,
-            quantity: quantity
+            quantity: quantity,
+            size: selectedSize  // Thêm dòng này
         };
 
         console.log("Dữ liệu gửi đi:", data); // Kiểm tra giá trị trong console

@@ -30,7 +30,7 @@
         </div>
         <!-- Thanh tìm kiếm -->
         <div class="mb-3 d-flex">
-            <input type="text" id="searchKeyword" class="form-control me-2" placeholder="Nhập từ khóa">
+            <input type="text" id="searchKeywordAdmin" class="form-control me-2" placeholder="Nhập từ khóa">
             <button class="btn btn-primary" onclick="searchProducts()">Tìm kiếm</button>
         </div>
         <!-- Bảng danh sách sản phẩm -->
@@ -48,7 +48,7 @@
                 <th>Danh mục</th>
                 <th>Giá</th>
                 <th>Nhãn hàng</th>
-                <th>Số lượng tồn</th>
+<!--                <th>Số lượng tồn</th>-->
                 <th>Hành động</th>
             </tr>
             </thead>
@@ -59,7 +59,7 @@
                 <td th:text="${product.getCategory().getName()}">Áo sơ mi</td>
                 <td th:text="${product.getPrice()}">250.000 VND</td>
                 <td th:text="${product.getBrand().getName()}">Nhãn hàng</td>
-                <td th:text="${product.getStock_quantity}">Số lượng tồn</td>
+<!--                <td th:text="${product.getStockQuantity()}">Số lượng tồn</td>-->
                 <td>
                     <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-warning btn-sm me-2">
                         <i class="bi bi-pencil-square"></i> Sửa

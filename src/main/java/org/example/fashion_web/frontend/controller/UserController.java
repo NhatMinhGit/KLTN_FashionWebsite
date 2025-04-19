@@ -5,11 +5,9 @@ import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.models.Image;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.repositories.OrderItemRepository;
 import org.example.fashion_web.backend.repositories.UserRepository;
-import org.example.fashion_web.backend.services.CartService;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.ProductService;
-import org.example.fashion_web.backend.services.UserService;
+import org.example.fashion_web.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +44,14 @@ public class UserController {
     private ProductService productService;
 
     @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
     private CartService cartService;
+
+    @Autowired
+    private DiscountService discountService;
+
 
     @GetMapping("/registration")
     public String getRegistrationPage(@ModelAttribute("user") UserDto userDto) {
@@ -81,8 +87,14 @@ public class UserController {
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
 
-        // Nhóm danh sách ảnh theo productId
+        for (Product product : products) {
+            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice());
+            product.setEffectivePrice(effectivePrice);
+        }
         Map<Long, List<String>> productImages = new HashMap<>();
+        // Nhóm danh sách ảnh theo productId
         for (Product product : products) {
             List<Image> images = imageService.findImagesByProductId(product.getId());
             List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());

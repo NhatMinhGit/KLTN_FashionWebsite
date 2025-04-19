@@ -19,7 +19,7 @@ public class Image {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "image_uri", nullable = false, length = 255)
+    @Column(name = "image_uri", nullable = false, length = 1024)
     private String imageUri;
 
     @Column(name = "image_name", nullable = false, length = 255)
