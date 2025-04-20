@@ -41,8 +41,5 @@ public class OrderItem {
         this.quantity = quantity;
         this.pricePerUnit = pricePerUnit;
     }
-    public OrderItem() {
-        // JPA cần constructor rỗng để khởi tạo entity từ database
-    }
 
 }
