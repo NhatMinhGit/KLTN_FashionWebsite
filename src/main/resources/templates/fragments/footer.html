@@ -2,31 +2,50 @@
     <link th:href="@{/css/footer.css}" rel="stylesheet">
     <footer class="footer">
         <div class="footer-container">
-            <div>
-                <h3>MNT Fashion VIETNAM</h3>
-                <p>Mã số thuế: 0101468497</p>
-                <p>Văn phòng: 20/1 Trần Quốc Toản, P.4, Gò Vấp</p>
+            <!-- Cột 1: Logo + Giới thiệu -->
+            <div class="footer-brand">
+                <img src="../../static/pics/logo/KLTNlogo.jpg" alt="MNT Fashion" class="footer-logo" width="300" height="400">
+                <p>MNT Fashion là thương hiệu thời trang hàng đầu Việt Nam với phong cách hiện đại, trẻ trung.</p>
+                <p><strong>Hotline:</strong> <a href="tel:19001234">1900 1234</a></p>
+                <p><strong>Email:</strong> <a href="mailto:support@mntfashion.vn">support@mntfashion.vn</a></p>
             </div>
+
+            <!-- Cột 2 -->
             <div>
-                <h3>About us</h3>
+                <h3>About Us</h3>
                 <p><a th:href="@{/contact}">Liên hệ</a></p>
                 <p><a th:href="@{/services}">Thông tin dịch vụ</a></p>
                 <p><a th:href="@{/careers}">Tuyển dụng</a></p>
                 <p><a th:href="@{/stores}">Hệ thống cửa hàng</a></p>
             </div>
+
+            <!-- Cột 3 -->
             <div>
-                <h3>Policy</h3>
+                <h3>Chính sách</h3>
                 <p><a th:href="@{/warranty-policy}">Chính sách bảo hành</a></p>
-                <p><a th:href="@{/return-policy}">Chính sách đổi trả hàng</a></p>
+                <p><a th:href="@{/return-policy}">Chính sách đổi trả</a></p>
                 <p><a th:href="@{/payment-policy}">Chính sách thanh toán</a></p>
                 <p><a th:href="@{/shopping-guide}">Hướng dẫn mua hàng</a></p>
             </div>
+
+            <!-- Cột 4 -->
             <div>
-                <h3>Instruction</h3>
-                <p><a th:href="@{/online-shopping-guide}">Hướng dẫn mua hàng Online</a></p>
-                <p><a th:href="@{/payment-guide}">Hướng dẫn thanh toán</a></p>
-                <p><a th:href="@{/return-guide}">Hướng dẫn đổi hàng</a></p>
-                <p><a th:href="@{/warranty-guide}">Hướng dẫn bảo hành</a></p>
+                <h3>Hướng dẫn</h3>
+                <p><a th:href="@{/online-shopping-guide}">Mua hàng Online</a></p>
+                <p><a th:href="@{/payment-guide}">Thanh toán</a></p>
+                <p><a th:href="@{/return-guide}">Đổi hàng</a></p>
+                <p><a th:href="@{/warranty-guide}">Bảo hành</a></p>
+            </div>
+        </div>
+
+        <!-- Dòng dưới cùng -->
+        <div class="footer-bottom">
+            <p>&copy; 2025 MNT Fashion. All rights reserved.</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
             </div>
         </div>
     </footer>

@@ -48,62 +48,111 @@
 </head>
 
 <body>
-    <!-- Import Header -->
-    <div th:replace="~{fragments/header :: header}"></div>
-    <div class="container text-center">
-        <h1 class="text-success">Đặt hàng của bạn</h1>
-        <p>Thời gian còn lại để thanh toán: </p>
-        <div id="timer" class="timer">03:00:00</div>
-        <p>Chọn phương thức thanh toán:</p>
-        <div class="payment-methods d-flex justify-content-between">
-            <button class="btn btn-outline-danger w-100 mr-2">Thanh toán qua MoMo</button>
-            <button class="btn btn-outline-primary w-100 mr-2">Thanh toán qua VNPay</button>
-            <button class="btn btn-outline-success w-100">Thanh toán qua Tài khoản Ngân hàng</button>
-        </div>
+<!-- Import Header -->
+<div th:replace="~{fragments/header :: header}"></div>
 
-        <button class="btn-custom mt-4" id="paymentButton">
-            <i class="fas fa-times-circle"></i> Hủy
-        </button>
+<div class="container text-center">
+    <h1 class="text-success">Đặt hàng của bạn</h1>
+    <p>Thời gian còn lại để thanh toán: </p>
+    <div id="timer" class="timer">03:00:00</div>
+
+    <p>Chọn phương thức thanh toán:</p>
+    <div class="payment-methods d-flex justify-content-between">
+        <button class="btn btn-outline-danger w-100 mr-2">Thanh toán qua MoMo</button>
+        <button class="btn btn-outline-primary w-100 mr-2">Thanh toán qua VNPay</button>
+        <button class="btn btn-outline-success w-100">Thanh toán qua Tài khoản Ngân hàng</button>
     </div>
-    <!-- Import Footer -->
-    <div th:replace="~{fragments/footer :: footer}"></div>
-<!-- Script cho đồng hồ đếm ngược -->
-<script>
-    var countdown = 3 * 60 * 60; // 3 giờ (tính theo giây)
-    var timerElement = document.getElementById("timer");
+
+    <button class="btn-custom mt-4" id="paymentButton">
+        <i class="fas fa-times-circle"></i> Hủy
+    </button>
+</div>
+
+<!-- Import Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+
+<script th:inline="javascript">
+    const orderId = [[${order.id}]];
+    const serverDeadline = [[${deadlineTimestamp}]];
+
+    const storageKey = 'deadline_' + orderId;
+
+    // Nếu chưa có deadline trong localStorage, lưu lại từ server
+    if (!localStorage.getItem(storageKey)) {
+        localStorage.setItem(storageKey, serverDeadline);
+    }
+
+    const storedDeadline = parseInt(localStorage.getItem(storageKey));
+    const timerElement = document.getElementById("timer");
+
+    // Gửi deadline client về backend để cập nhật đồng bộ
+    fetch(`/user/user-order/${orderId}/update-deadline`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ deadline: storedDeadline })
+    }).catch(err => console.warn("Không thể gửi deadline về server:", err));
+
+    function formatTime(t) {
+        return t < 10 ? "0" + t : t;
+    }
 
     function updateTimer() {
-        var hours = Math.floor(countdown / 3600);
-        var minutes = Math.floor((countdown % 3600) / 60);
-        var seconds = countdown % 60;
+        let countdown = Math.floor((storedDeadline - Date.now()) / 1000);
+        if (countdown < 0) countdown = 0;
 
-        // Hiển thị thời gian theo định dạng HH:MM:SS
+        const hours = Math.floor(countdown / 3600);
+        const minutes = Math.floor((countdown % 3600) / 60);
+        const seconds = countdown % 60;
+
         timerElement.textContent = `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
 
-        // Giảm thời gian xuống 1 giây
         if (countdown <= 0) {
             clearInterval(timerInterval);
             alert("Thời gian thanh toán đã hết!");
-        } else {
-            countdown--;
+
+            fetch(`/user/user-order/${orderId}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if (res.ok) {
+                    alert("Đơn hàng đã bị hủy do hết thời gian.");
+                    localStorage.removeItem(storageKey);
+                    location.href = "/user/user-order";
+                }
+            });
         }
     }
 
-    // Hàm để đảm bảo thời gian hiển thị là 2 chữ số (ví dụ: 01, 02, 03...)
-    function formatTime(time) {
-        return time < 10 ? "0" + time : time;
-    }
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
 
-    // Cập nhật đồng hồ mỗi giây
-    var timerInterval = setInterval(updateTimer, 1000);
-
-    // Sự kiện khi nhấn nút thanh toán
     document.getElementById("paymentButton").addEventListener("click", function () {
-        alert("Bắt sự kiện nút bấm, thay đổi trạng thái hóa đơn thành hủy. Hiện tại đến trang các dữ liệu liên quan sẽ thay đổi và cập nhật!");
+        if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
 
+        fetch(`/user/user-order/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => {
+            if (res.ok) {
+                alert("Đơn hàng đã được hủy.");
+                localStorage.removeItem(storageKey);
+                location.href = "/user/user-order";
+            } else {
+                alert("Không thể hủy đơn hàng. Vui lòng thử lại.");
+            }
+        })
+        .catch(err => {
+            console.error("Lỗi hủy đơn:", err);
+            alert("Có lỗi xảy ra khi hủy đơn.");
+        });
     });
 </script>
-
-</body>
 
 </html>

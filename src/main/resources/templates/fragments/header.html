@@ -1,6 +1,6 @@
 <div th:fragment="header" xmlns:sec="http://www.w3.org/1999/xhtml">
   <link th:href="@{/css/header.css}" rel="stylesheet">
-  <div class="p-3 mb-3 border-bottom">
+  <div class="p-3 mb border-bottom">
     <div class="container">
       <div class="d-flex flex-wrap align-items-center justify-content-between">
         <!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
@@ -10,7 +10,7 @@
           <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
         </form>
         <h1 class="text-white">
-          MNT Fashion Shop
+          <img src="../../static/pics/logo/KLTNlogo.jpg" alt="MNT Fashion" width="500" height="600">
         </h1>
         <div class="d-flex flex-wrap align-items-center">
           <a th:href="@{/user/wishlist}" class="me-3 text-light"><i class="fa-regular fa-star"></i></a>
@@ -70,8 +70,8 @@
             <h6 class="text-white">Welcome, [[${user.getName()}]]</h6>
             <ul class="dropdown-menu text-small" style="">
               <li><a class="dropdown-item" th:href="@{/user/profile}">My Profiles</a></li>
-              <li><a class="dropdown-item" href="#">My Orders</a></li>
-              <li><a class="dropdown-item" href="#">My Coupons</a></li>
+              <li><a class="dropdown-item" th:href="@{/user/user-order}">My Orders</a></li>
+              <li><a class="dropdown-item" th:href="@{/user/voucher}">My Coupons</a></li>
               <li>
                 <hr class="dropdown-divider">
               </li>

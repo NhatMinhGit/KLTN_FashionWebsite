@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>My Orders</title>
+  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+  <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+  <style>
+    .product-img { width: 60px; height: 60px; object-fit: cover; }
+    .status-paying { color: orange; font-weight: 500; }
+    .status-pending { color: #ffc107; font-weight: 500; }
+    .status-paid { color: #0d6efd; font-weight: 500; }
+    .status-shipped { color: #6610f2; font-weight: 500; }
+    .status-completed { color: #198754; font-weight: 600; }
+    .status-cancelled { color: #dc3545; font-weight: 500; }
+  </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-3">
+      <div th:replace="~{fragments/sidebar-profile :: sidebar}"></div>
+    </div>
+    <div class="col-md-9">
+      <div class="container">
+        <h2 class="mb-4">My Orders</h2>
+        <div class="accordion" id="orderAccordion">
+          <div class="accordion-item" th:each="order : ${orders}">
+            <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+              <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      th:data-deadline="${orderDeadlines[order.id]}"
+                      th:data-bs-target="'#collapse' + ${order.id}"
+                      th:data-order-id="${order.id}"
+                      th:data-status="${order.status.name()}"
+                      th:aria-controls="'collapse' + ${order.id}"
+                      aria-expanded="false">
+                <span class="me-auto">
+                  <strong th:text="'Order #' + ${order.id}"></strong><br>
+                  <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                    <th:block th:switch="${order.status}">
+                      <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                      <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                      <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                      <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                      <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                      <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                    </th:block>
+                    <span th:text="${order.status.name()}"></span>
+                  </span>
+                </span>
+                <div class="ms-auto text-end">
+                  <strong>Total:</strong>
+                  <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                </div>
+              </button>
+            </h2>
+            <div class="accordion-collapse collapse"
+                 th:id="'collapse' + ${order.id}"
+                 th:attr="aria-labelledby='heading' + ${order.id}"
+                 data-bs-parent="#orderAccordion">
+              <div class="accordion-body">
+                <div th:if="${order.status.name() == 'PAYING'}"
+                     th:id="'timer-' + ${order.id}"
+                     class="text-danger fw-bold mb-3">
+                  Thời gian còn lại để thanh toán:
+                  <span class="paying-timer" th:id="'countdown-' + ${order.id}"></span>
+                </div>
+                <div class="mb-3">
+                  <strong>Địa chỉ giao hàng:</strong><br>
+                  <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                </div>
+                <hr>
+                <strong>Sản phẩm:</strong><br>
+                <div class="order-items" th:id="'items-' + ${order.id}">Loading...</div>
+                <div class="text-end mt-3">
+                  <button class="btn btn-danger btn-sm cancel-order-btn"
+                          th:id="'cancel-btn-' + ${order.id}"
+                          th:data-order-id="${order.id}"
+                          th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING'}">
+                    Hủy đơn
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div> <!-- end each -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const accordion = document.getElementById('orderAccordion');
+
+    document.querySelectorAll('.accordion-button').forEach(button => {
+      const status = button.getAttribute('data-status');
+      const orderId = button.getAttribute('data-order-id');
+      const deadline = button.getAttribute('data-deadline');
+
+      if (status === 'PAYING' && deadline && parseInt(deadline) > 0) {
+        const target = document.getElementById('countdown-' + orderId);
+        const cancelBtn = document.getElementById('cancel-btn-' + orderId);
+        let countdown = Math.floor((parseInt(deadline) - Date.now()) / 1000);
+        if (countdown < 0) countdown = 0;
+
+        function format(t) {
+          return t < 10 ? '0' + t : t;
+        }
+
+        function updateCountdown() {
+          const hours = Math.floor(countdown / 3600);
+          const minutes = Math.floor((countdown % 3600) / 60);
+          const seconds = countdown % 60;
+          target.textContent = `${format(hours)}:${format(minutes)}:${format(seconds)}`;
+
+          if (countdown <= 0) {
+            clearInterval(timer);
+            target.textContent = "Đã hết hạn - Đang hủy đơn...";
+
+            fetch(`/user/user-order/${orderId}/cancel`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+              if (res.ok) {
+                target.textContent = "Đã hết hạn - Đơn đã bị hủy";
+                if (cancelBtn) cancelBtn.style.display = 'none';
+
+                const statusSpan = button.querySelector('.status-paying');
+                if (statusSpan) {
+                  statusSpan.classList.remove('status-paying');
+                  statusSpan.classList.add('status-cancelled');
+                  statusSpan.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> CANCELLED`;
+                }
+              } else {
+                target.textContent = "Đã hết hạn - Hủy đơn thất bại";
+              }
+            })
+            .catch(err => {
+              console.error("Lỗi khi tự hủy đơn:", err);
+              target.textContent = "Lỗi khi hủy đơn";
+            });
+          }
+
+          countdown--;
+        }
+
+        updateCountdown();
+        const timer = setInterval(updateCountdown, 1000);
+      }
+    });
+
+    accordion.addEventListener('show.bs.collapse', function (event) {
+      const button = event.target.previousElementSibling.querySelector('button');
+      const orderId = button.getAttribute('data-order-id');
+      const itemsContainer = document.getElementById('items-' + orderId);
+      const status = button.getAttribute('data-status');
+
+      if (itemsContainer.dataset.loaded === 'true') return;
+
+      fetch('/user/user-order/' + orderId + '/items')
+        .then(response => response.json())
+        .then(data => {
+          let html = '';
+          data.forEach(item => {
+            html += `
+              <div class="d-flex align-items-center mb-3">
+                <img src="${item.productImageUrl}" class="product-img me-3" alt="Product">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">${item.productName}</h6>
+                  <small>Quantity: ${item.quantity}</small><br>
+                  <small>Price: ${item.pricePerUnit}</small>
+                </div>
+                ${status === 'COMPLETED' ? `<a class="btn btn-outline-primary btn-sm" href="#">Review</a>` : ''}
+              </div>`;
+          });
+          itemsContainer.innerHTML = html;
+          itemsContainer.dataset.loaded = 'true';
+        })
+        .catch(err => {
+          console.error('Error loading items:', err);
+          itemsContainer.innerHTML = `<p class="text-danger">Lỗi tải sản phẩm: ${err.message}</p>`;
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('cancel-order-btn')) {
+        const orderId = e.target.getAttribute('data-order-id');
+        if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng #" + orderId + " không?")) return;
+
+        fetch(`/user/user-order/${orderId}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => {
+          if (res.ok) {
+            alert("Đã hủy đơn hàng thành công!");
+            location.reload();
+          } else {
+            return res.text().then(msg => { throw new Error(msg); });
+          }
+        })
+        .catch(err => {
+          alert("Lỗi khi hủy đơn hàng: " + err.message);
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
