@@ -44,12 +44,39 @@ public class GeminiAdminController {
         if (isStockQuery(message)) {
             response = geminiService.checkStock(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        } else if (isMonthlyRenvenue(message)) {
+            response = geminiService.checkMonthlyRenvenue(message);
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        } else if (isYearlyRenvenue(message)) {
+            response = geminiService.checkYearlyRenvenue(message);
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        } else if (isOptimalBussinessPlan(message)) {
+            response =  "<b>1. Nhập thêm các sản phẩm bán chạy như </b>:<br>" + geminiService.checkTopProductsRenvenue(message)
+                    +   "<br><b>2. Nhập thêm các sản phẩm tiềm năng theo mùa và sự kiện</b>:<br>"
+                    +   "Thời trang theo mùa: <br>" + geminiService.getVietnamWeatherSuggestion(message) + "<br>"
+                    +   "Thời trang sự kiện: <br>" + geminiService.getVietnamEventSuggestion(message)
+            ;
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        } else if (isBESTSELLERS(message)) {
+            response = geminiService.checkTopProductsRenvenue(message);
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         } else {
             response = geminiService.chatWithAI(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    private boolean isBESTSELLERS(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("best sellers") ||
+                lowerCaseMessage.contains("bán chạy") ||
+                lowerCaseMessage.contains("được yêu thích") ||
+                lowerCaseMessage.contains("trending");
     }
 
     private boolean isStockQuery(String message) {
@@ -63,7 +90,41 @@ public class GeminiAdminController {
                 lowerCaseMessage.contains("số lượng");
 
     }
+    private boolean isMonthlyRenvenue(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
 
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("doanh thu") ||
+                lowerCaseMessage.contains("tình hình tháng này") ||
+                lowerCaseMessage.contains("tháng này") ||
+                lowerCaseMessage.contains("this month revenue") ||
+                lowerCaseMessage.contains("phân tích doanh thu");
+    }
+
+    private boolean isYearlyRenvenue(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("doanh thu") ||
+                lowerCaseMessage.contains("tình hình năm này") ||
+                lowerCaseMessage.contains("năm này") ||
+                lowerCaseMessage.contains("this year revenue") ||
+                lowerCaseMessage.contains("phân tích doanh thu");
+    }
+    private boolean isOptimalBussinessPlan(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("chiến lược") ||
+                lowerCaseMessage.contains("bussiness plan") ||
+                lowerCaseMessage.contains("optimal bussiness plan") ||
+                lowerCaseMessage.contains("tương lai") ||
+                lowerCaseMessage.contains("phân tích chiến lược") ||
+                lowerCaseMessage.contains("tăng doanh số");
+    }
 
     @GetMapping("/chatbot")
     public ModelAndView chatbotPage(Principal principal, Model model) {
