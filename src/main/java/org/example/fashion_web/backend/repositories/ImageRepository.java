@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Long> {
@@ -13,4 +14,6 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
 
     @Transactional
     void deleteImageByImageUri(String imageUri);
+
+    Optional<Image> findFirstByProduct_Id(Long productId);
 }

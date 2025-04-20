@@ -12,5 +12,5 @@ public interface VoucherService {
     Voucher save(VoucherDto voucherDto);
     Page<Voucher> getAllVouchers(Pageable pageable);
     List<Voucher> getAllVouchers();
-
+    List<Voucher> getAllVouchersAvilable(Long userId);
 }

@@ -26,6 +26,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -137,7 +138,8 @@ public class OrderController {
         userProfile.getWard().getDistrict().getCity().getCityName()
         : "Chưa cập nhật!";
 
-        List<Voucher> vouchers = voucherService.getAllVouchers(); // Lấy danh sách voucher từ service
+        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(user.getId()); // Lấy danh sách voucher từ service
+
         model.addAttribute("detailaddress", address);
         model.addAttribute("vouchers", vouchers);
         model.addAttribute("totalOrderPrice", totalOrderPrice);
@@ -146,6 +148,7 @@ public class OrderController {
         System.out.println("Items cart sau khi load trang cart: " + cart);
 
         model.addAttribute("cities", cities);
+
         return "order/order";
     }
 
@@ -170,6 +173,8 @@ public class OrderController {
         BigDecimal priceWithVoucher = totalOrderPrice;
         BigDecimal discountAmount = BigDecimal.valueOf(0);
         Voucher voucher = voucherRepository.findByVoucherCode(voucherCode);
+        voucher.setUsageLimit(voucher.getUsageLimit()-1);
+        voucherRepository.save(voucher);
         if (voucher.getDiscountType().equals("percentage")) {
             BigDecimal discountRate = voucher.getDiscountValue().divide(BigDecimal.valueOf(100));
             discountAmount = priceWithVoucher.multiply(discountRate);
@@ -245,8 +250,19 @@ public class OrderController {
                 paymentRepository.save(payment);
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
+                // lưu orderitem vào database
+                for (CartItems item : cartItems) {
+                    OrderItem orderItem = new OrderItem(newOrder, item.getProduct(), item.getQuantity(), item.getPricePerUnit());
+                    Optional<Product> product = productRepository.findById(item.getProduct().getId());
+                    productRepository.save(product.get());
+                    orderItemRepository.save(orderItem);
+                }
                 orderRepository.save(newOrder);
+                session.setAttribute("cartItems", null); // clear cart
+                session.setAttribute("paymentOrderId", newOrder.getId()); // lưu orderId
+                return "redirect:/user/order/payment";
             }
+
 
             // lưu orderitem vào database
             for (CartItems item : cartItems) {
