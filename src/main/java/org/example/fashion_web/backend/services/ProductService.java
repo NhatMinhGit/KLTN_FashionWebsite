@@ -25,6 +25,7 @@ public interface ProductService {
 
     // Tìm sản phẩm theo tên
     List<Product> findByName(String name);
+    Optional<Product> findOptByName(String name);
     // Xóa sản phẩm theo ID
     void deleteProductById(Long id);
 

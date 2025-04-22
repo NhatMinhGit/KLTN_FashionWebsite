@@ -1,39 +1,15 @@
 package org.example.fashion_web.backend.models;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class ChatMessage {
-    private User user;
+    // Getters và Setters
+    private String sender;
+    private String recipient;
     private String content;
-    private String senderType; // "admin" hoặc "user"
+    private String roomId;
 
-    public ChatMessage() {}
-
-    public ChatMessage(User user, String content, String senderType) {
-        this.user = user;
-        this.content = content;
-        this.senderType = senderType;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getSenderType() {
-        return senderType;
-    }
-
-    public void setSenderType(String senderType) {
-        this.senderType = senderType;
-    }
 }

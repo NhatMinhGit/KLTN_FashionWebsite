@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -18,15 +17,18 @@ public class ProductDiscount {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = true)
     private Product product;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = true)
+    private Category category;
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-    @Column(name = "discount_amount", nullable = true)
-    private BigDecimal discountAmount;
+//    @Column(name = "discount_amount", nullable = true)
+//    private BigDecimal discountAmount;
     @Column(name = "discount_percent", nullable = true)
     private Integer discountPercent;
 

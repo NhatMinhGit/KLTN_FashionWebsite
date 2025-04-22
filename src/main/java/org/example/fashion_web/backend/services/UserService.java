@@ -16,7 +16,10 @@ public interface UserService {
     Page<User> getAllUsers(Pageable pageable);
     boolean updateUserStatus(Long id, boolean status);
 
+    List<User> findAll();
     Optional<User> findById(Long id);
     User findByUsername(String username);
+
+    List<User> getAllUsersExceptCurrent();
 
 }

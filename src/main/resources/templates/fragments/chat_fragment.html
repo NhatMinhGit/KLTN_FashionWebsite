@@ -1,32 +1,23 @@
 <div th:fragment="chat_fragment" xmlns:th="http://www.thymeleaf.org">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.0/stomp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
-    <script th:src="@{/js/chat_window.js}"></script>
-    <link th:href="@{/css/chat_window.css}" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link th:href="@{/css/chat_window.css}" rel="stylesheet" />
+
+    <input type="hidden" id="sender" th:value="${#authentication.name}" />
+    <input type="hidden" id="recipient" value="admin" />
+    <input type="hidden" id="roomId" />
 
     <div id="chatContainer">
-        <!-- Tiêu đề cửa sổ chat với sự kiện click để ẩn/hiện chat -->
-        <div id="chatHeader" onclick="toggleChat()">Chat</div>
+        <div id="chatHeader" onclick="toggleChat()">Chat với Admin</div>
         <div id="chatBody" style="display: block;">
-            <div class="chat-messages" id="adminMessages">
-                <!-- Tin nhắn từ admin -->
-            </div>
-
-            <div class="chat-messages" id="messages">
-                <!-- Tin nhắn từ người dùng -->
-            </div>
+            <div class="chat-messages" id="messages"></div> <!-- Đây là nơi hiển thị tin nhắn -->
         </div>
-
         <div id="chatFooter">
-            <input type="text" id="messageInput" placeholder="Enter your message" />
-            <button id="sendButton">Send</button>
+            <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." />
+            <button id="sendButton">Gửi</button>
         </div>
     </div>
+    <script th:src="@{/js/chat_window.js}"></script>
 
-    <script>
-        function toggleChat() {
-            var chatBody = document.getElementById("chatBody");
-            chatBody.style.display = (chatBody.style.display === "none" || chatBody.style.display === "") ? "block" : "none";
-        }
-    </script>
+
 </div>

@@ -100,3 +100,18 @@
     font-size: 0.8em;
     color: gray;
 }
+
+.chat-window {
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+.chat-window h4 {
+    margin-top: 0;
+    font-size: 16px;
+    background: #eee;
+    padding: 5px;
+}
+.chat-messages div {
+    margin: 4px 0;
+    font-size: 14px;
+}

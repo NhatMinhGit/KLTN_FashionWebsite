@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý mã giảm giá</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/header.js}"></script>
+</head>
+
+<body>
+
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+
+    <!-- Nội dung chính -->
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Quản lý mã giảm giá</h1>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-dark">
+                    <i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]
+                </span>
+                <span sec:authorize="isAuthenticated">
+                    <a class="btn btn-danger text-white" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </span>
+            </div>
+        </div>
+
+        <!-- Thanh tìm kiếm -->
+        <div class="mb-3 d-flex">
+            <input type="text" id="searchKeyword" class="form-control me-2" placeholder="Nhập từ khóa">
+            <button class="btn btn-primary" onclick="searchDiscounts()">Tìm kiếm</button>
+        </div>
+
+        <!-- Nút thêm mới -->
+        <a th:href="@{/admin/discount/add}" class="btn btn-success mb-3">
+            <i class="bi bi-plus-lg"></i> Thêm mã giảm giá mới
+        </a>
+
+        <!-- Bảng danh sách mã giảm giá -->
+        <table class="table table-bordered" id="discountTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã giảm giá</th>
+                <th>Giá trị (%)</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tr th:each="discount : ${discountPage}">
+                <td th:text="${discount.id}">1</td>
+                <td th:text="${discount.name}">Giảm mùa hè</td>
+                <td th:text="${discount.discountPercent}">20%</td>
+                <td>
+                    <span th:if="${discount.product != null}" th:text="'Sản phẩm: ' + ${discount.product.name}"></span>
+                    <span th:if="${discount.category != null}" th:text="'Danh mục: ' + ${discount.category.name}"></span>
+                </td>
+                <td th:text="${#dates.format(discount.startTime, 'dd/MM/yyyy')}">01/04/2025</td>
+                <td th:text="${#dates.format(discount.endTime, 'dd/MM/yyyy')}">30/04/2025</td>
+                <td>
+                    <a th:href="@{/admin/discount/edit/{id}(id=${discount.id})}" class="btn btn-warning btn-sm me-2">
+                        <i class="bi bi-pencil-square"></i> Sửa
+                    </a>
+                    <a th:href="@{/admin/discount/delete/{id}(id=${discount.id})}" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Bạn có chắc chắn muốn xóa giảm giá này?')">
+                        <i class="bi bi-trash"></i> Xóa
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chat -->
+<div th:replace="~{fragments/adminchat_fragment :: adminchat_fragment}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

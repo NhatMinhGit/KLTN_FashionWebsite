@@ -27,6 +27,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,6 +62,7 @@ public class ProductManagementController {
         this.userService = userService;
     }
 
+
     @GetMapping("/admin/product")
     public String listProducts(
             @RequestParam(defaultValue = "0") Integer page,
@@ -94,6 +96,12 @@ public class ProductManagementController {
         }
     }
 
+    @GetMapping("/admin/test-discount")
+    public String testApplyDiscount() {
+        LocalDate now = LocalDate.now();
+        discountService.applyDiscountFor3LowSellingCategories(now.minusDays(30), now);
+        return "redirect:/admin/product";
+    }
 
 
     @GetMapping("/admin/products/add-category")
@@ -638,10 +646,19 @@ public class ProductManagementController {
 //        for (Product p : products) {
 //            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
 //        }
+        // Lấy giảm giá cho toàn bộ danh mục, nếu có
+        Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true,category);
+
         for (Product product : products) {
-            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
-                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-                    .orElse(product.getPrice());
+            BigDecimal effectivePrice;
+            if (categoryDiscount.isPresent()) {
+                // Áp dụng giảm giá cho toàn bộ danh mục
+                effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
+            } else {
+                effectivePrice = discountService.getActiveDiscountForProduct(product)
+                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                        .orElse(product.getPrice());
+            }
             product.setEffectivePrice(effectivePrice);
         }
         model.addAttribute("products", products);

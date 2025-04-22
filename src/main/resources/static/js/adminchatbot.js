@@ -91,11 +91,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return response.text(); //Nếu backend trả về plain text
             })
-            .then(data => addMessage(data, 'ai')) //Xử lý phản hồi
+            .then(data => {
+                setTimeout(() => {
+                    removeLoadingIndicator(loadingId); // Xoá spinner
+                    addMessage(data, 'ai');            // Hiển thị phản hồi từ AI
+                }, 700);
+            })
             .catch(error => {
                 console.error('Error:', error);
+                removeLoadingIndicator(loadingId);
                 addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
             });
+        //
     }
 
     // Function to add a message to the chat

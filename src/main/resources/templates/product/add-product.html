@@ -106,7 +106,7 @@
         <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
     <!--Chat-->
-    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
+<!--    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
 </div>
 <script>
     const dropArea = document.getElementById("drop-area");
@@ -188,7 +188,7 @@
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        // formData.append('folder', `products/${productName}`); // 👈 Tạo folder riêng cho từng sản phẩm
+
 
         const res = await fetch(CLOUDINARY_URL, {
             method: 'POST',

@@ -1,0 +1,63 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 900px;
+}
+
+.order-summary,
+.order-details,
+.payment-method,
+.order-voucher {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.order-summary h5,
+.order-details h5,
+.payment-method h5,
+.order-voucher h5 {
+    font-weight: bold;
+}
+
+.btn-continue {
+    background-color: #ff5722;
+    color: white;
+    font-weight: bold;
+}
+
+.btn-continue:hover {
+    background-color: #e64a19;
+}
+
+.order-card img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+}
+
+.order-card {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.order-info {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-control button {
+    border: 1px solid #ddd;
+    background: none;
+    padding: 5px 10px;
+}

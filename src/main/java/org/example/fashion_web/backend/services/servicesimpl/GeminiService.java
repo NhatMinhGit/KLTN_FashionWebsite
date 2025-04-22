@@ -5,11 +5,9 @@ import org.example.fashion_web.backend.dto.ProductRevenueDto;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
 import org.example.fashion_web.backend.services.UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -53,6 +51,9 @@ public class GeminiService {
 
     @Autowired
     private ChatbotRepository chatbotRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Autowired
     private UserService userService;
@@ -281,18 +282,6 @@ public class GeminiService {
 //    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
         // Lưu đoạn hội thoại vào database
     public void saveConversation(Long userId,String interactionLog) {
         // Tìm user trong database
@@ -403,6 +392,144 @@ public class GeminiService {
                 String.join(", ", currentSuggestions) + ".<br>" +
                 "Bạn cũng có thể chuẩn bị sớm cho " + nextSeason + " – các mặt hàng như: " +
                 String.join(", ", nextSuggestions) + ".";
+    }
+
+
+//    public String checkPrice(String message) {
+//        // Bước 1: Tách giá
+//        Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu)?");
+//        Matcher matcher = pattern.matcher(message.toLowerCase());
+//
+//        List<Long> priceList = new ArrayList<>();
+//
+//        while (matcher.find()) {
+//            String numberPart = matcher.group(1).replace(",", "").replace(".", "");
+//            String unit = matcher.group(2);
+//
+//            long value = Long.parseLong(numberPart);
+//
+//            if (unit != null) {
+//                switch (unit) {
+//                    case "k":
+//                    case "nghìn":
+//                        value *= 1_000;
+//                        break;
+//                    case "tr":
+//                    case "triệu":
+//                        value *= 1_000_000;
+//                        break;
+//                }
+//            }
+//
+//            priceList.add(value);
+//        }
+//
+//        // Bước 2: Xác định khoảng giá
+//        long minPrice = 0;
+//        long maxPrice = Long.MAX_VALUE;
+//
+//        if (priceList.size() == 1) {
+//            long basePrice = priceList.get(0);
+//            minPrice = Math.max(0, basePrice - 50_000);  // tránh âm giá
+//            maxPrice = basePrice + 50_000;
+//        } else if (priceList.size() >= 2) {
+//            minPrice = Math.min(priceList.get(0), priceList.get(1));
+//            maxPrice = Math.max(priceList.get(0), priceList.get(1));
+//        }
+//
+//        // Bước 3: Truy vấn cơ sở dữ liệu
+//        List<Product> products = productRepository.findByPriceBetween(minPrice, maxPrice);
+//        // Bước 4: Xây dựng chuỗi kết quả
+//        if (products.isEmpty()) {
+//            return "Không tìm thấy sản phẩm nào trong khoảng giá yêu cầu.";
+//        }
+//
+//        StringBuilder result = new StringBuilder("<b>Các sản phẩm phù hợp:</b>");
+//        for (Product product : products) {
+//            result.append("<br> - ")
+//                    .append(product.getName())
+//                    .append(" (")
+//                    .append(product.getPrice())
+//                    .append(" VND)\n");
+//        }
+//
+//        return result.toString().trim();
+//    }
+
+    public String checkPriceAndCategory(String message) {
+        String lowerCaseMessage = message.toLowerCase();
+
+        // --- Bước 1: Tách giá ---
+        Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu)?");
+        Matcher matcher = pattern.matcher(lowerCaseMessage);
+
+        List<Long> priceList = new ArrayList<>();
+        while (matcher.find()) {
+            String numberPart = matcher.group(1).replace(",", "").replace(".", "");
+            String unit = matcher.group(2);
+            long value = Long.parseLong(numberPart);
+
+            if (unit != null) {
+                switch (unit) {
+                    case "k":
+                    case "nghìn":
+                        value *= 1_000;
+                        break;
+                    case "tr":
+                    case "triệu":
+                        value *= 1_000_000;
+                        break;
+                }
+            }
+
+            priceList.add(value);
+        }
+
+        // --- Bước 2: Xác định khoảng giá ---
+        long minPrice = 0;
+        long maxPrice = Long.MAX_VALUE;
+
+        if (priceList.size() == 1) {
+            long basePrice = priceList.get(0);
+            minPrice = Math.max(0, basePrice - 50_000);
+            maxPrice = basePrice + 50_000;
+        } else if (priceList.size() >= 2) {
+            minPrice = Math.min(priceList.get(0), priceList.get(1));
+            maxPrice = Math.max(priceList.get(0), priceList.get(1));
+        }
+
+        // --- Bước 3: Kiểm tra danh mục ---
+        List<Category> categories = categoryRepository.getAllByParentCategoryNotNull();
+        Optional<String> matchedCategory = categories.stream()
+                .map(cat -> cat.getName().toLowerCase())
+                .filter(lowerCaseMessage::contains)
+                .findFirst();
+
+        List<Product> products;
+
+        if (matchedCategory.isPresent()) {
+            // Nếu có danh mục -> lọc theo khoảng giá và danh mục
+            products = productRepository.findByPriceBetweenAndCategoryName(minPrice, maxPrice, matchedCategory.get());
+        } else {
+            // Nếu không có danh mục -> chỉ lọc theo giá
+            products = productRepository.findByPriceBetween(minPrice, maxPrice);
+        }
+
+        // --- Bước 4: Trả kết quả ---
+        if (products.isEmpty()) {
+            return "Không tìm thấy sản phẩm nào phù hợp với yêu cầu.";
+        }
+
+        StringBuilder result = new StringBuilder("<b>Các sản phẩm phù hợp:</b>");
+        for (Product product : products) {
+            result.append("<br> - ")
+                    .append(product.getName())
+                    .append(" (")
+                    .append(product.getPrice())
+                    .append(" VND)");
+        }
+
+        return result.toString().trim();
     }
 
 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Giảm Giá</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <script th:src="@{/js/discounts.js}"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            Quản Lý Giảm Giá (Product Discount)
+        </div>
+        <div class="card-body">
+            <form th:action="@{/admin/discounts/add}" method="post" th:object="${discountForm}" onsubmit="return validateDates()">
+                <div class="mb-3">
+                    <label class="form-label">Tên chương trình giảm giá:</label>
+                    <input type="text" class="form-control" th:field="*{name}" placeholder="Ví dụ: Giảm giá mùa hè">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mức giảm giá (%):</label>
+                    <input type="number" class="form-control" th:field="*{discountPercent}" placeholder="VD: 10" min="0" max="100" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Ngày bắt đầu:</label>
+                    <input type="date" class="form-control" th:field="*{startDate}" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Ngày kết thúc:</label>
+                    <input type="date" class="form-control" th:field="*{endDate}" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Trạng thái:</label>
+                    <select class="form-control" th:field="*{status}">
+                        <option th:value="true">Kích hoạt</option>
+                        <option th:value="false">Không kích hoạt</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Áp dụng cho:</label>
+                    <select class="form-control" id="applyType" name="applyType" onchange="toggleApplyTarget()">
+                        <option value="">-- Chọn kiểu áp dụng --</option>
+                        <option value="product">Sản phẩm</option>
+                        <option value="category">Loại hàng</option>
+                    </select>
+                </div>
+
+                <div id="productSelect" class="mb-3" style="display: none;">
+                    <label class="form-label">Chọn sản phẩm:</label>
+                    <select class="form-control" name="productId">
+                        <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}"></option>
+                    </select>
+                </div>
+
+                <div id="categorySelect" class="mb-3" style="display: none;">
+                    <label class="form-label">Chọn loại hàng:</label>
+                    <select class="form-control" name="categoryId">
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">Lưu Giảm Giá</button>
+                    <button type="button" class="btn btn-danger" onclick="clearDiscountFields()">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

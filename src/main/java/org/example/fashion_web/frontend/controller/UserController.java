@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -76,6 +77,15 @@ public class UserController {
         return "login";
     }
 
+
+    @GetMapping("/users")
+    @ResponseBody
+    public List<String> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(User::getEmail)
+                .collect(Collectors.toList());
+    }
     @GetMapping("user")
     public String userPage(Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
@@ -101,6 +111,8 @@ public class UserController {
             productImages.put(product.getId(), imageUrls);
         }
 
+        List<User> userList = userRepository.findAll();
+        model.addAttribute("userList", userList);
         // Gửi danh sách ảnh theo productId vào model
         model.addAttribute("productImages", productImages);
 
@@ -127,8 +139,8 @@ public class UserController {
     public String adminPage (Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
         model.addAttribute("user", userDetails);
+        model.addAttribute("userList", userService.findAll());
         return "admin";
     }
-
 
 }

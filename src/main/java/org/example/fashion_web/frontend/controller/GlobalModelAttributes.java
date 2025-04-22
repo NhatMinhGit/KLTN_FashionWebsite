@@ -8,6 +8,7 @@ import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.CartItemService;
 import org.example.fashion_web.backend.services.CartService;
 import org.example.fashion_web.backend.services.ImageService;
+import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +29,9 @@ public class GlobalModelAttributes {
     private UserRepository userRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private CartService cartService;
 
     @Autowired
@@ -35,6 +39,7 @@ public class GlobalModelAttributes {
 
     @Autowired
     private ImageService imageService;
+
     @ModelAttribute
     public void addGlobalAttributes(Model model, HttpSession session, @AuthenticationPrincipal CustomUserDetails userDetail) {
         if (userDetail != null) {
@@ -51,6 +56,7 @@ public class GlobalModelAttributes {
                 List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
                 productImages.put(item.getProduct().getId(), imageUrls);
             }
+//            model.addAttribute("userList", userService.findAll());
             model.addAttribute("productImages", productImages);
             model.addAttribute("countCart", cart.size());
             model.addAttribute("totalOrderPrice", cartItemService.getTotalPrice(cart));

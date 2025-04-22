@@ -12,4 +12,10 @@ import java.util.Optional;
 public interface DiscountRepository extends JpaRepository<ProductDiscount,Long> {
 
     Optional<ProductDiscount> findFirstByProductAndStartTimeBeforeAndEndTimeAfter(Product product, LocalDateTime startTime, LocalDateTime endTime);
+
+    Optional<ProductDiscount> findById(Long id);
+
+
+    Optional<ProductDiscount> findProductDiscountByActiveAndCategory_Name(boolean active, String name);
+
 }

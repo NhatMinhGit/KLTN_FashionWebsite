@@ -11,7 +11,6 @@ import org.example.fashion_web.backend.repositories.CategoryRepository;
 import org.example.fashion_web.backend.repositories.ImageRepository;
 import org.example.fashion_web.backend.repositories.ProductRepository;
 import org.example.fashion_web.backend.services.CategoryService;
-import org.example.fashion_web.backend.services.DiscountService;
 import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -43,8 +42,8 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private DiscountService discountService;
+//    @Autowired
+//    private DiscountService discountService;
 
 
     // Lấy danh sách tất cả sản phẩm
@@ -79,6 +78,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> findByName(String name) {
         return productRepository.findByName(name);
+    }
+
+    @Override
+    public Optional<Product> findOptByName(String name) {
+        return productRepository.findProductByName(name);
     }
 
     public String extractPublicId(String imageUrl) {
