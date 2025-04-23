@@ -53,26 +53,9 @@ public class UserOrderController {
     public String voucherIndex(Model model, Principal principal, @AuthenticationPrincipal CustomUserDetails userDetail) {
         List<Order> orders = orderRepository.findByUser_Id(userDetail.getUser().getId());
         List<Voucher> vouchers = voucherService.getAllVouchersAvilable(userDetail.getUser().getId());
-        for (int i = 0; i < orders.size(); i++) {
-            System.out.println(orders.toString());
-        }
-        // Tạo map deadline
-        Map<Long, Long> orderDeadlines = new HashMap<>();
-        for (Order order : orders) {
-            if (order.getStatus() == Order.OrderStatusType.PAYING) {
-                long deadlineMillis = order.getCreatedAt()
-                        .plusHours(3)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()
-                        .toEpochMilli();
-                orderDeadlines.put(order.getId(), deadlineMillis);
-            }
-        }
-
 
         model.addAttribute("currentPage", "orders");
         model.addAttribute("orders", orders);
-        model.addAttribute("orderDeadlines", orderDeadlines); // <-- THÊM DÒNG NÀY
         model.addAttribute("currencyFormatter", currencyFormatter);
 
         return "user-order/user-order";
@@ -88,9 +71,11 @@ public class UserOrderController {
         }
         return items.stream().map(item -> {
             String productName = item.getProduct().getName();
-            String imageUrl = imageRepository.findFirstByProduct_Id(item.getProduct().getId())
-                    .map(Image::getImageUri)
-                    .orElse("/img/no-image.png"); // ảnh mặc định nếu không có
+//            String imageUrl = imageRepository.findFirstByProduct_Id(item.getProduct().getId())
+//                    .map(Image::getImageUri)
+//                    .orElse("/img/no-image.png"); // ảnh mặc định nếu không có
+            //chỉnh sửa sau khi có hình ảnh
+            String imageUrl = "";
             String priceFormatted = currencyFormatter.formatVND(item.getPricePerUnit());
 
             return new OrderItemDto(productName, imageUrl, item.getQuantity(), priceFormatted);
@@ -117,7 +102,7 @@ public class UserOrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Đơn hàng không thể hủy ở trạng thái hiện tại.");
         }
 
-        order.setStatus(Order.OrderStatusType.COMPLETED);
+        order.setStatus(Order.OrderStatusType.CANCELLED);
         orderRepository.save(order);
 
         return ResponseEntity.ok("Đơn hàng đã được hủy thành công.");

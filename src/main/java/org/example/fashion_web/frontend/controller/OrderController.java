@@ -1,7 +1,9 @@
 package org.example.fashion_web.frontend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
+import org.example.fashion_web.backend.configurations.VNPAYService;
 import org.example.fashion_web.backend.dto.DistrictDto;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.dto.UserProfileDto;
@@ -81,6 +83,9 @@ public class OrderController {
 
     @Autowired
     private UserVoucherRepository userVoucherRepository;
+
+    @Autowired
+    private VNPAYService vnPayService;
 
     private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
@@ -209,20 +214,15 @@ public class OrderController {
     }
 
     @PostMapping("/user/order/checkout")
-    public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail) {
+    public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail, HttpServletRequest request) {
         try {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
             List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
-            for (CartItems item : cartItems) {
-                System.out.println(item.toString()); // in ra toString()
-            }
             // Add validation
             if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
                 model.addAttribute("errorMessage", "Invalid order information");
                 return "redirect:/user/order";
             }
-
-
             // Validate order total
             if (paymentInfo.getTotalPrice().compareTo(BigDecimal.ZERO) <= 0) {
                 model.addAttribute("errorMessage", "Invalid order total");
@@ -250,6 +250,7 @@ public class OrderController {
                 paymentRepository.save(payment);
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
+                orderRepository.save(newOrder);
                 // lưu orderitem vào database
                 for (CartItems item : cartItems) {
                     OrderItem orderItem = new OrderItem(newOrder, item.getProduct(), item.getQuantity(), item.getPricePerUnit());
@@ -257,10 +258,12 @@ public class OrderController {
                     productRepository.save(product.get());
                     orderItemRepository.save(orderItem);
                 }
-                orderRepository.save(newOrder);
-                session.setAttribute("cartItems", null); // clear cart
-                session.setAttribute("paymentOrderId", newOrder.getId()); // lưu orderId
-                return "redirect:/user/order/payment";
+
+                // Tạo URL thanh toán VNPAY
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String vnpayUrl = vnPayService.createOrder(session, request, newOrder.getId(), baseUrl);
+                session.setAttribute("paymentOrderId", newOrder.getId()); // Lưu orderId
+                return "redirect:" + vnpayUrl;
             }
 
 
@@ -285,14 +288,10 @@ public class OrderController {
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
             }
+            session.removeAttribute("cartItems");
+            session.removeAttribute("paymentInfo");
+            return "order/order-confirmination";
 
-            if (paymentInfo.getPaymentMethod().equals("CASH")) {
-                session.removeAttribute("cartItems");
-                session.removeAttribute("paymentInfo");
-                return "order/order-confirmination";
-            } else {
-                return "/order/order-payment";
-            }
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Order processing failed: " + e.getMessage());
             System.out.println(e.getMessage());

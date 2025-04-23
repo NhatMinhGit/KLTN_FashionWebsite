@@ -31,6 +31,8 @@ public class Payment {
     @Column(name = "payment_status", nullable = false, length = 50)
     private String paymentStatus;
 
+    @Column(name = "bank_code", length = 50)
+    private String bankCode;
     public enum PaymentMethodType {
         CASH, CREDIT_CARD, BANK_TRANSFER, E_WALLET
     }

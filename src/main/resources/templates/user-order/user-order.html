@@ -33,7 +33,6 @@
               <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
                       type="button"
                       data-bs-toggle="collapse"
-                      th:data-deadline="${orderDeadlines[order.id]}"
                       th:data-bs-target="'#collapse' + ${order.id}"
                       th:data-order-id="${order.id}"
                       th:data-status="${order.status.name()}"
@@ -64,12 +63,6 @@
                  th:attr="aria-labelledby='heading' + ${order.id}"
                  data-bs-parent="#orderAccordion">
               <div class="accordion-body">
-                <div th:if="${order.status.name() == 'PAYING'}"
-                     th:id="'timer-' + ${order.id}"
-                     class="text-danger fw-bold mb-3">
-                  Thời gian còn lại để thanh toán:
-                  <span class="paying-timer" th:id="'countdown-' + ${order.id}"></span>
-                </div>
                 <div class="mb-3">
                   <strong>Địa chỉ giao hàng:</strong><br>
                   <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
@@ -97,64 +90,6 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const accordion = document.getElementById('orderAccordion');
-
-    document.querySelectorAll('.accordion-button').forEach(button => {
-      const status = button.getAttribute('data-status');
-      const orderId = button.getAttribute('data-order-id');
-      const deadline = button.getAttribute('data-deadline');
-
-      if (status === 'PAYING' && deadline && parseInt(deadline) > 0) {
-        const target = document.getElementById('countdown-' + orderId);
-        const cancelBtn = document.getElementById('cancel-btn-' + orderId);
-        let countdown = Math.floor((parseInt(deadline) - Date.now()) / 1000);
-        if (countdown < 0) countdown = 0;
-
-        function format(t) {
-          return t < 10 ? '0' + t : t;
-        }
-
-        function updateCountdown() {
-          const hours = Math.floor(countdown / 3600);
-          const minutes = Math.floor((countdown % 3600) / 60);
-          const seconds = countdown % 60;
-          target.textContent = `${format(hours)}:${format(minutes)}:${format(seconds)}`;
-
-          if (countdown <= 0) {
-            clearInterval(timer);
-            target.textContent = "Đã hết hạn - Đang hủy đơn...";
-
-            fetch(`/user/user-order/${orderId}/cancel`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-            })
-            .then(res => {
-              if (res.ok) {
-                target.textContent = "Đã hết hạn - Đơn đã bị hủy";
-                if (cancelBtn) cancelBtn.style.display = 'none';
-
-                const statusSpan = button.querySelector('.status-paying');
-                if (statusSpan) {
-                  statusSpan.classList.remove('status-paying');
-                  statusSpan.classList.add('status-cancelled');
-                  statusSpan.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> CANCELLED`;
-                }
-              } else {
-                target.textContent = "Đã hết hạn - Hủy đơn thất bại";
-              }
-            })
-            .catch(err => {
-              console.error("Lỗi khi tự hủy đơn:", err);
-              target.textContent = "Lỗi khi hủy đơn";
-            });
-          }
-
-          countdown--;
-        }
-
-        updateCountdown();
-        const timer = setInterval(updateCountdown, 1000);
-      }
-    });
 
     accordion.addEventListener('show.bs.collapse', function (event) {
       const button = event.target.previousElementSibling.querySelector('button');
