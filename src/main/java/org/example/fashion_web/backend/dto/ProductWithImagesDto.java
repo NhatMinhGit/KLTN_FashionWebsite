@@ -20,4 +20,5 @@ public class ProductWithImagesDto {
     private String description;
     private Map<String, Integer> sizeQuantities;
     private List<String> imageUrls;
+    private List<ProductVariantDto> productVariants;
 }

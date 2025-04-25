@@ -29,6 +29,10 @@ public class CartItems {
     @JoinColumn(name = "size_id", nullable = true) // Đưa vào quan hệ với Size (có thể null)
     private Size size;  // Thêm trường để lưu thông tin về size
 
+    @ManyToOne
+    @JoinColumn(name = "variant_id", nullable = true)
+    private ProductVariant variant;
+
     @Column(name = "quantity", nullable = false)
     private int quantity;
 

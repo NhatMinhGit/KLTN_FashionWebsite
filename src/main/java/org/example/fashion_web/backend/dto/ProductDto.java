@@ -17,5 +17,5 @@ public class ProductDto {
     private BigDecimal price;
     private String description;
     private List<SizeDto> sizes; // Thêm danh sách các kích cỡ vào ProductDto
-
+    private List<ProductVariantDto> productVariants;
 }

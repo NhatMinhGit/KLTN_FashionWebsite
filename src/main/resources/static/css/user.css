@@ -203,3 +203,10 @@ body {
     width: 250px;
     border-radius: 5px;
 }
+
+.carousel-image {
+    width: 100%;
+    height: 500px; /* Set a fixed height for the images */
+    object-fit: cover; /* Ensures the image covers the container without distortion */
+}
+

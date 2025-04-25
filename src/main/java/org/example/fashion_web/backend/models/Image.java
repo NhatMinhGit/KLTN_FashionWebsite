@@ -1,12 +1,16 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "Images")
 public class Image {
 
@@ -15,9 +19,12 @@ public class Image {
     @Column(name = "image_id")
     private Long id;
 
+//    @ManyToOne
+//    @JoinColumn(name = "product_id", nullable = false)
+//    private Product product;
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @JoinColumn(name = "product_variant_id")
+    private ProductVariant productVariant;
 
     @Column(name = "image_uri", nullable = false, length = 1024)
     private String imageUri;

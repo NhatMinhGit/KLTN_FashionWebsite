@@ -7,21 +7,28 @@
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <link th:href="@{/css/product-detail.css}" rel="stylesheet">
-    <script th:src="@{/js/product-detail.js}"></script>
 </head>
 <body>
-<!--Header-->
+
+<!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
+
 <div class="container mt-5">
     <div class="row">
         <!-- Product Images -->
         <div class="col-md-6 mb-4">
-            <!-- Ảnh chính - hiển thị ảnh đầu tiên mặc định -->
-            <img th:src="@{${productImages[0]}}" id="mainImage" class="d-block w-100 product-img" th:alt="${product.name}">
+            <div th:if="${imagesByColor != null and imagesByColor.containsKey(selectedColor) and not #lists.isEmpty(imagesByColor.get(selectedColor))}">
+                <img th:src="@{${imagesByColor.get(selectedColor)[0]}}"
+                     id="mainImage"
+                     class="d-block w-100 product-img"
+                     th:alt="${product.name}">
+            </div>
+            <div th:unless="${imagesByColor != null and imagesByColor.containsKey(selectedColor) and not #lists.isEmpty(imagesByColor.get(selectedColor))}">
+                <p>Không có ảnh cho màu đã chọn.</p>
+            </div>
 
-            <!-- Danh sách ảnh nhỏ -->
-            <div class="d-flex justify-content-between mt-2 carousel-item">
-                <img th:each="imageUri : ${productImages}"
+            <div class="d-flex justify-content-between mt-2 carousel-item" id="thumbnailContainer">
+                <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"
                      th:src="@{${imageUri}}"
                      class="thumbnail"
                      th:alt="${product.name}"
@@ -30,62 +37,178 @@
         </div>
 
         <!-- Product Details -->
-        <div class="col-md-6" id="product-details" th:data-id="${product.id}">
+        <div class="col-md-6" id="product-details" th:data-id="${product.id}" th:data-variant-id="${variantIdByColor.get(selectedColor)}">
+            <input type="hidden" id="productId" th:value="${product.id}">
             <h2 class="mb-3" th:text="${product.name}"></h2>
             <p class="text-white mb-4" th:text="${product.description}"></p>
+
             <div class="mb-3">
-                <span id="price" th:text ="${product.effectivePrice}" style="display: none;"></span>
+                <span id="price" th:text="${product.effectivePrice}" style="display: none;"></span>
                 <span class="h4 me-2" th:text="${@currencyFormatter.formatVND(product.effectivePrice)}"></span>
-<!--                <span class="text-muted" th:text="${@currencyFormatter.formatVND(product.price)}"><s></s></span>-->
             </div>
-            <div class="mb-3">
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-half text-warning"></i>
-                <span class="ms-2">4.5 (120 reviews)</span>
+
+            <!-- Chọn màu -->
+            <div class="mb-4" >
+                <label for="colorSelect" class="form-label">Màu sắc:</label>
+                <select class="form-select" id="colorSelect" required>
+                    <option value="" selected disabled>Chọn màu</option>
+                    <option th:each="color : ${sizesByColor.keySet()}"
+                            th:value="${color}"
+                            th:text="${color}"
+                            th:selected="${color == selectedColor}">
+                    </option>
+                </select>
+                <input type="hidden" id="selectedColor" name="selectedColor" th:value="${selectedColor}">
             </div>
-            <p class="mb-4" th:text="${product.description}"></p>+
+
+            <!-- Chọn size -->
             <div class="mb-4">
-                <label for="sizeSelect" class="form-label">Size:</label>
                 <select class="form-select" id="sizeSelect" required>
-                    <option th:each="size : ${sizes}"
-                            th:value="${size.sizeName}"
-                            th:text="${size.sizeName} + ' (Còn ' + ${size.stockQuantity} + ')'">
+                    <option th:each="sizeInfo : ${sizesByColor.get(selectedColor)}"
+                            th:value="${sizeInfo.sizeValue}"
+                            th:text="${sizeInfo.sizeValue + ' (Stock: ' + sizeInfo.stockQuantity + ')'}">
                     </option>
                 </select>
             </div>
+
+            <!-- Số lượng -->
             <div class="mb-4">
                 <label for="quantity" class="form-label">Số lượng:</label>
                 <input type="number" id="quantity" class="form-control" value="1" min="1" required>
             </div>
+
             <button class="btn btn-primary btn-lg mb-3 me-2" onclick="addToCart()">
-                <i class="bi bi-cart-plus"></i> Add to Cart
+                <i class="fas fa-cart-plus"></i> Thêm vào giỏ
             </button>
             <button class="btn btn-outline-secondary btn-lg mb-3">
-                <i class="bi bi-heart"></i> Add to Wishlist
+                <i class="fas fa-heart"></i> Yêu thích
             </button>
-            <div class="mt-4">
-                <h5>Key Features:</h5>
-                <ul>
-                    <li>Industry-leading noise cancellation</li>
-                    <li>30-hour battery life</li>
-                    <li>Touch sensor controls</li>
-                    <li>Speak-to-chat technology</li>
-                </ul>
-            </div>
         </div>
     </div>
 </div>
 
-<script>
+<!-- Bình luận -->
+<div class="container mt-5">
+    <h4 class="mb-4">Bình luận</h4>
 
-</script>
-<!--Chat-->
-<!--<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
-<!--Footer-->
+    <form th:action="@{/user/product-detail/{id}/comments(id=${product.id})}" method="post"
+          class="mb-4 p-4 rounded shadow-sm bg-light">
+        <div class="mb-3">
+            <label class="form-label d-block mb-2 text-black">Đánh giá của bạn:</label>
+            <div class="star-rating">
+                <input type="radio" id="star5" name="rating" value="5" required><label for="star5">★</label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+            </div>
+        </div>
+
+        <div class="mb-3 text-black">
+            <label for="commentContent" class="form-label">Bình luận của bạn:</label>
+            <textarea class="form-control" id="commentContent" name="comment" rows="3" placeholder="Nhập bình luận..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">Gửi bình luận</button>
+    </form>
+
+    <div th:if="${#lists.isEmpty(feedbacks)}">
+        <p class="text-black fst-italic">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+    </div>
+
+    <div class="comment-container mb-4 p-3 rounded border bg-white shadow-sm" style="max-height: 300px; overflow-y: auto;">
+        <div th:each="feedback : ${feedbacks}" class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0 fw-bold text-primary" th:text="${feedback.user.name}">Tên người dùng</h6>
+                <small class="text-muted" th:text="${#dates.format(feedback.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+            </div>
+            <div class="mb-1">
+                <span class="badge bg-warning text-dark">
+                    ⭐ <span th:text="${feedback.rating}">5</span>/5
+                </span>
+            </div>
+            <p class="mb-0 text-black" th:text="${feedback.comment}">Nội dung bình luận</p>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script th:src="@{/js/product-detail.js}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const productId = document.getElementById("productId").value;
+        const colorSelect = document.getElementById("colorSelect");
+        const sizeSelect = document.getElementById("sizeSelect");
+
+        async function updateSizeOptions(selectedColor) {
+            try {
+                const response = await fetch(`/api/sizes/${productId}/${selectedColor}`);
+                const sizes = await response.json();
+
+                if (sizes.length === 0) {
+                    sizeSelect.innerHTML = '<option disabled selected>Không có size</option>';
+                    return;
+                }
+
+                sizeSelect.innerHTML = sizes.map(size =>
+                    `<option value="${size.sizeValue}">${size.sizeValue} (Stock: ${size.stockQuantity})</option>`
+                ).join("");
+            } catch (error) {
+                console.error("Lỗi khi lấy size:", error);
+                sizeSelect.innerHTML = '<option disabled selected>Lỗi khi tải size</option>';
+            }
+        }
+        async function updateProductImages(selectedColor) {
+            try {
+                const response = await fetch(`/api/images/${productId}/${selectedColor}`);
+                const images = await response.json();
+
+                if (images.length === 0) {
+                    mainImage.src = ""; // Nếu không có ảnh, xóa ảnh chính
+                    mainImage.alt = "Không có ảnh cho màu này.";
+                    thumbnailContainer.innerHTML = "<p>Không có ảnh cho màu đã chọn.</p>";
+                    return;
+                }
+
+                // Cập nhật ảnh chính
+                mainImage.src = images[0]; // Đặt ảnh đầu tiên làm ảnh chính
+                mainImage.alt = "Ảnh sản phẩm";
+
+                // Cập nhật các ảnh thu nhỏ
+                thumbnailContainer.innerHTML = images.map(imageUri =>
+                    `<img src="${imageUri}" class="thumbnail" onclick="changeImage(this)" />`
+                ).join("");
+            } catch (error) {
+                console.error("Lỗi khi lấy ảnh:", error);
+                mainImage.src = "";
+                mainImage.alt = "Lỗi khi tải ảnh";
+                thumbnailContainer.innerHTML = "<p>Lỗi khi tải ảnh</p>";
+            }
+        }
+        // Khi người dùng chọn màu
+        colorSelect.addEventListener("change", function () {
+            const selectedColor = colorSelect.value;
+            updateSizeOptions(selectedColor);
+            updateProductImages(selectedColor);
+
+            // Cập nhật giá trị selectedColor hidden input nếu cần
+            const selectedColorInput = document.getElementById("selectedColor");
+            if (selectedColorInput) {
+                selectedColorInput.value = selectedColor;
+            }
+        });
+
+        // Gọi sẵn khi load nếu có sẵn selectedColor
+        const preselectedColor = colorSelect.value;
+        if (preselectedColor) {
+            updateSizeOptions(preselectedColor);
+            updateProductImages(preselectedColor);
+
+        }
+    });
+</script>
 
 </body>
 </html>

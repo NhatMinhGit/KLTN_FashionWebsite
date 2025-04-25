@@ -26,6 +26,7 @@ public class Size {
     private Integer stockQuantity;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "variant_id")
+    private ProductVariant productVariant;
+
 }

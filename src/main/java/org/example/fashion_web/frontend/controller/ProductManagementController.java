@@ -2,12 +2,13 @@ package org.example.fashion_web.frontend.controller;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import jakarta.persistence.EntityNotFoundException;
 import org.apache.commons.io.FilenameUtils;
-import org.example.fashion_web.backend.dto.CategoryForm;
-import org.example.fashion_web.backend.dto.ProductForm;
-import org.example.fashion_web.backend.dto.ProductWithImagesDto;
+import org.example.fashion_web.backend.dto.*;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
 import org.example.fashion_web.backend.models.*;
+import org.example.fashion_web.backend.repositories.ProductVariantRepository;
+import org.example.fashion_web.backend.repositories.SizeRepository;
 import org.example.fashion_web.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -27,6 +29,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,13 +56,27 @@ public class ProductManagementController {
     private DiscountService discountService;
     @Autowired
     private SizeService sizeService;
+    @Autowired
+    private FeedBackService feedBackService;
+    @Autowired
+    private CommentService commentService;
+    @Autowired
+    private final ProductVariantService productVariantService;
 
-    public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, ImageService imageService, UserService userService) {
+    @Autowired
+    private SizeRepository sizeRepository;
+
+    @Autowired
+    private ProductVariantRepository productVariantRepository;
+
+
+    public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, ImageService imageService, UserService userService, ProductVariantService productVariantService) {
         this.productService = productService;
         this.brandService = brandService;
         this.categoryService = categoryService;
         this.imageService = imageService;
         this.userService = userService;
+        this.productVariantService = productVariantService;
     }
 
 
@@ -137,7 +154,7 @@ public class ProductManagementController {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm danh mục sản phẩm thất bại!");
 
-            // 🔹 Truyền lại productForm để giữ dữ liệu đã nhập
+            // Truyền lại productForm để giữ dữ liệu đã nhập
             model.addAttribute("categoryForm", categoryForm);
             return "product/add-category"; // Không redirect, mà trả về trang nhập form
         }
@@ -154,9 +171,10 @@ public class ProductManagementController {
 
     @PostMapping("/admin/products/add")
     public String addProduct(@ModelAttribute("productForm") ProductForm productForm,
-                             @RequestParam(value = "imageUrls", required = false) List<String> imageUrls,
+                             @RequestParam("imageFile") List<MultipartFile> imageFiles,
                              Model model, RedirectAttributes redirectAttributes) {
         try {
+
             // Kiểm tra và lưu category
             Optional<Category> categoryOpt = categoryService.findByName(productForm.getCategory_name());
             Category category = categoryOpt.orElseGet(() -> {
@@ -187,90 +205,165 @@ public class ProductManagementController {
 
             productService.save(product);
 
-            //Lưu size
-            List<Size> sizes = new ArrayList<>();
 
-            for (Map.Entry<String, Integer> entry : productForm.getSizeQuantities().entrySet()) {
-                String sizeName = entry.getKey();
-                Integer quantity = entry.getValue();
 
-                // Bỏ qua nếu số lượng là null hoặc 0
-                if (quantity == null || quantity <= 0) continue;
+            // === Xử lý tạo variant & size ===
+            List<ProductVariant> variants = new ArrayList<>();
+            // Lấy danh sách màu từ form (giả sử productForm.getColors() trả về List<String>)
+            List<String> colors = productForm.getImageColors();
 
-                Size size = new Size();
-                size.setSizeName(sizeName);
-                size.setStockQuantity(quantity);
-                size.setProduct(product);
+            // Lặp qua từng màu để tạo ProductVariant
+            for (String color : colors) {
+                ProductVariant variant = new ProductVariant();
+                variant.setColor(color);
+                variant.setProduct(product);
+                productVariantService.save(variant); // Lưu variant và lấy ID
 
-                sizes.add(size);
+                // Lặp qua các size và số lượng từ form để tạo Size cho variant hiện tại
+                for (Map.Entry<String, Integer> entry : productForm.getSizeQuantities().entrySet()) {
+                    String sizeName = entry.getKey();
+                    Integer quantity = entry.getValue();
+
+                    if (quantity == null || quantity <= 0) continue;
+
+                    Size size = new Size();
+                    size.setSizeName(sizeName);
+                    size.setStockQuantity(quantity);
+                    size.setProductVariant(variant); // Thiết lập liên kết với variant
+
+                    sizeService.save(size); // Lưu size
+                }
+                variants.add(variant);
             }
 
-            sizeService.saveAll(sizes);
+// Bạn có thể set variants cho product nếu logic của bạn cần
+            product.setVariants(variants);
 
 
             //Lưu ảnh
-            if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
-                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
-                for (MultipartFile file : productForm.getImageFile()) {
-                    if (!file.isEmpty()) {
-                        try {
-                            // Ghi log để debug
-                            System.out.println("Đang xử lý file: " + file.getOriginalFilename());
-                            System.out.println("Kích thước file: " + file.getSize());
-                            System.out.println("Loại file: " + file.getContentType());
+            if (!variants.isEmpty()) {
+                // Lặp qua tất cả các variants để gán ảnh cho từng variant
+                for (ProductVariant variant : variants) {
+                    // Lặp qua tất cả các file ảnh được gửi lên từ form
+                    for (MultipartFile file : productForm.getImageFile()) {
+                        if (!file.isEmpty()) {
+                            try {
+                                // Ghi log để debug
+                                System.out.println("Đang xử lý file: " + file.getOriginalFilename());
+                                System.out.println("Kích thước file: " + file.getSize());
+                                System.out.println("Loại file: " + file.getContentType());
 
-                            String productName = product.getName();  // Tên sản phẩm
-                            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-                            String fullFileName = FilenameUtils.getBaseName(file.getOriginalFilename());
+                                String productName = product.getName();  // Tên sản phẩm
+                                String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+                                String fullFileName = FilenameUtils.getBaseName(file.getOriginalFilename());
 
-                            // Tạo thư mục dựa trên tên sản phẩm
-                            String folderPath = "pics/uploads/" + productName;  // Tạo thư mục theo tên sản phẩm
+                                // Tạo thư mục dựa trên tên sản phẩm
+                                String folderPath = "pics/uploads/" + productName;  // Tạo thư mục theo tên sản phẩm
 
-                            // Thay đoạn xử lý file bằng Cloudinary
-                            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                                    "public_id", folderPath + "/" + fullFileName,  // Đặt public_id với đường dẫn thư mục sản phẩm
-                                    "overwrite", true,
-                                    "resource_type", "image"
-                            ));
+                                // Upload file lên Cloudinary
+                                Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                                        "public_id", folderPath + "/" + fullFileName,  // Đặt public_id với đường dẫn thư mục sản phẩm
+                                        "overwrite", true,
+                                        "resource_type", "image"
+                                ));
 
-                            // DEBUG kết quả trả về
-                            System.out.println("Kết quả upload từ Cloudinary:");
-                            for (Object key : uploadResult.keySet()) {
-                                System.out.println(key + " : " + uploadResult.get(key));
+                                // DEBUG kết quả trả về
+                                System.out.println("Kết quả upload từ Cloudinary:");
+                                for (Object key : uploadResult.keySet()) {
+                                    System.out.println(key + " : " + uploadResult.get(key));
+                                }
+                                String imageUrl = (String) uploadResult.get("secure_url");
+
+                                // Tạo đối tượng Image và gán thông tin
+                                Image image = new Image();
+                                image.setProductVariant(variant); // Gán ProductVariant cho Image
+                                image.setImageUri(imageUrl); // Đặt URI ảnh từ Cloudinary
+                                image.setImageName(file.getOriginalFilename()); // Đặt tên file ảnh
+                                image.setImageSize((int) file.getSize()); // Đặt kích thước ảnh
+                                image.setImageType(file.getContentType()); // Đặt loại file ảnh
+
+                                // Ghi log trước khi lưu vào DB
+                                System.out.println("=== ĐANG LƯU ẢNH VÀO DB ===");
+                                System.out.println("Thông tin ảnh: ");
+                                System.out.println("Tên: " + image.getImageName());
+                                System.out.println("URI: " + image.getImageUri());
+                                System.out.println("Size: " + image.getImageSize());
+                                System.out.println("Loại: " + image.getImageType());
+                                System.out.println("Product Variant ID: " + (variant.getId() != null ? variant.getId() : "null"));
+
+                                // Lưu ảnh vào cơ sở dữ liệu
+                                imageService.save(image);
+
+                            } catch (IOException e) {
+                                System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
+                                e.printStackTrace();
                             }
-                            String imageUrl = (String) uploadResult.get("secure_url");
-
-                            Image image = new Image();
-                            image.setProduct(product);
-                            image.setImageUri(imageUrl);
-                            image.setImageName(file.getOriginalFilename());
-                            image.setImageSize((int) file.getSize());
-                            image.setImageType(file.getContentType());
-
-
-                            // Ghi log trước khi lưu
-                            System.out.println("=== ĐANG LƯU ẢNH VÀO DB ===");
-                            System.out.println("Thông tin ảnh: ");
-                            System.out.println("Tên: " + image.getImageName());
-                            System.out.println("URI: " + image.getImageUri());
-                            System.out.println("Size: " + image.getImageSize());
-                            System.out.println("Loại: " + image.getImageType());
-                            System.out.println("Product ID: " + (product.getId() != null ? product.getId() : "null"));
-
-
-
-                            imageService.save(image);
-
-
-
-
-                        } catch (IOException e) {
-                            System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
-                            e.printStackTrace();
                         }
                     }
                 }
             }
+//            if (productForm.getImageFile() != null && !productForm.getImageFile().isEmpty()) {
+//                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
+//                for (MultipartFile file : productForm.getImageFile()) {
+//                    if (!file.isEmpty()) {
+//                        try {
+//                            // Ghi log để debug
+//                            System.out.println("Đang xử lý file: " + file.getOriginalFilename());
+//                            System.out.println("Kích thước file: " + file.getSize());
+//                            System.out.println("Loại file: " + file.getContentType());
+//
+//                            String productName = product.getName();  // Tên sản phẩm
+//                            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+//                            String fullFileName = FilenameUtils.getBaseName(file.getOriginalFilename());
+//
+//                            // Tạo thư mục dựa trên tên sản phẩm
+//                            String folderPath = "pics/uploads/" + productName;  // Tạo thư mục theo tên sản phẩm
+//
+//                            // Thay đoạn xử lý file bằng Cloudinary
+//                            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+//                                    "public_id", folderPath + "/" + fullFileName,  // Đặt public_id với đường dẫn thư mục sản phẩm
+//                                    "overwrite", true,
+//                                    "resource_type", "image"
+//                            ));
+//
+//                            // DEBUG kết quả trả về
+//                            System.out.println("Kết quả upload từ Cloudinary:");
+//                            for (Object key : uploadResult.keySet()) {
+//                                System.out.println(key + " : " + uploadResult.get(key));
+//                            }
+//                            String imageUrl = (String) uploadResult.get("secure_url");
+//
+//                            Image image = new Image();
+//                            image.setProductVariant();
+//                            image.setImageUri(imageUrl);
+//                            image.setImageName(file.getOriginalFilename());
+//                            image.setImageSize((int) file.getSize());
+//                            image.setImageType(file.getContentType());
+//
+//
+//                            // Ghi log trước khi lưu
+//                            System.out.println("=== ĐANG LƯU ẢNH VÀO DB ===");
+//                            System.out.println("Thông tin ảnh: ");
+//                            System.out.println("Tên: " + image.getImageName());
+//                            System.out.println("URI: " + image.getImageUri());
+//                            System.out.println("Size: " + image.getImageSize());
+//                            System.out.println("Loại: " + image.getImageType());
+//                            System.out.println("Product ID: " + (product.getId() != null ? product.getId() : "null"));
+//
+//
+//
+//                            imageService.save(image);
+//
+//
+//
+//
+//                        } catch (IOException e) {
+//                            System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//            }
 
             System.out.println("Thông tin sản phẩm: " + product);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
@@ -285,34 +378,206 @@ public class ProductManagementController {
         }
     }
 
+    @GetMapping("/admin/products/{id}/addVariants")
+    public String showAddVariantsForm(@PathVariable("id") Long productId, Model model) {
+        try {
+            // Tìm sản phẩm theo ID
+            Optional<Product> productOpt = productService.findById(productId);
+            if (!productOpt.isPresent()) {
+                return "redirect:/admin/products"; // Redirect nếu sản phẩm không tồn tại
+            }
+
+            Product product = productOpt.get();
+
+            // Tạo một ProductVariantDto trống để truyền cho form
+            ProductVariantDto productVariantDto = new ProductVariantDto();
+            productVariantDto.setColor("default"); // Mặc định màu sắc là 'default'
+
+            model.addAttribute("product", product);
+            model.addAttribute("productVariantDto", productVariantDto);
+
+            return "product/add-variant-form"; // Tên trang HTML sẽ là "add-variant-form.html"
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/admin/products"; // Redirect về danh sách sản phẩm nếu có lỗi
+        }
+    }
+
+    @PostMapping("/admin/products/{id}/addVariants")
+    public String addVariants(@PathVariable("id") Long productId,
+                              @RequestBody ProductVariantDto productVariantDto,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            // Tìm sản phẩm theo ID
+            Optional<Product> productOpt = productService.findById(productId);
+            if (!productOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Sản phẩm không tồn tại!");
+                return "redirect:/admin/products";
+            }
+
+            Product product = productOpt.get();
+
+            // Tạo variants và sizes
+            List<ProductVariant> variants = new ArrayList<>();
+            for (SizeDto sizeDto : productVariantDto.getSizes()) {
+                String sizeName = sizeDto.getSizeName();
+                Integer quantity = sizeDto.getStockQuantity();
+                if (quantity == null || quantity <= 0) continue;
+
+                // Tạo size
+                Size size = new Size();
+                size.setSizeName(sizeName);
+                size.setStockQuantity(quantity);
+
+                // Tạo variant
+                ProductVariant variant = new ProductVariant();
+                variant.setColor(productVariantDto.getColor()); // Lấy màu sắc từ productVariantDto
+                variant.setProduct(product);
+
+                // Gán size vào variant
+                size.setProductVariant(variant);
+
+                // Thêm vào danh sách variants
+                variants.add(variant);
+            }
+
+            // Lưu các variants vào sản phẩm
+            product.setVariants(variants);
+            productService.save(product);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Thêm biến thể sản phẩm thành công!");
+            return "redirect:/admin/products";
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm biến thể sản phẩm thất bại!");
+            return "redirect:/admin/products";
+        }
+    }
+
     // Xem chi tiết sản phẩm theo ID
     @GetMapping("/user/product-detail/{id}")
-    public String viewProduct(@PathVariable Long id, Model model,Principal principal) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-        model.addAttribute("user", userDetails);
+    public String viewProduct(@PathVariable Long id, Model model, Principal principal) {
+        try {
+            // Lấy thông tin người dùng
+            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+            model.addAttribute("user", userDetails);
 
-        Product product = productService.getProductById(id)
-                .orElse(null);
-        if (product == null) {
-            return "redirect:/user"; // Fix đường dẫn redirect
-        }
-        BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+            // Lấy sản phẩm theo ID
+            Product product = productService.getProductById(id).orElse(null);
+            if (product == null) {
+                return "redirect:/user"; // Nếu không có sản phẩm, redirect
+            }
+
+            // Áp dụng discount nếu có
+            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
-        product.setEffectivePrice(effectivePrice);
+            product.setEffectivePrice(effectivePrice);
 
-        // Lấy danh sách ảnh và chỉ lấy đường dẫn ảnh (imageUrl)
-        List<Image> imageList = imageService.findImagesByProductId(product.getId());
-        List<String> productImages = imageList.stream()
-                .map(Image::getImageUri)
-                .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
-                .collect(Collectors.toList());
+            // Lấy các variant của sản phẩm
+            List<ProductVariant> productVariants = productVariantService.findAllByProductId(product.getId());
 
-        List<Size> sizes = product.getSizes(); // đã được ánh xạ bởi JPA
-        model.addAttribute("sizes", sizes);
-        model.addAttribute("product", product);
-        model.addAttribute("productImages", productImages);
-        return "product/product-detail"; // Đảm bảo có file product/product-detail.html
+            if (productVariants.isEmpty()) {
+                return "redirect:/user"; // Redirect nếu không có variants
+            }
+
+//            // Khởi tạo Map để gom ảnh theo màu sắc
+//            Map<String, List<String>> imagesByColor = new HashMap<>();
+//
+//            // Lấy ảnh của từng variant và gom theo màu
+//            for (ProductVariant productVariant : productVariants) {
+//                List<Image> imageList = imageService.findImagesByProductVariantId(productVariant.getId());
+//                if (imageList != null && !imageList.isEmpty()) {
+//                    List<String> imageUrls = imageList.stream()
+//                            .map(Image::getImageUri)
+//                            .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))
+//                            .toList();
+//
+//                    // Gom ảnh theo màu sắc
+//                    String color = productVariant.getColor();
+//                    if (color != null) {
+//                        imagesByColor.computeIfAbsent(color, k -> new ArrayList<>()).addAll(imageUrls);
+//                    }
+//                }
+//            }
+//
+//            // Truyền ảnh vào model
+//            model.addAttribute("imagesByColor", imagesByColor);
+            Map<String, List<String>> imagesByColor = new HashMap<>();
+            Map<String, Long> variantIdByColor = new HashMap<>();
+
+            for (ProductVariant productVariant : productVariants) {
+                List<Image> imageList = imageService.findImagesByProductVariantId(productVariant.getId());
+                if (imageList != null && !imageList.isEmpty()) {
+                    List<String> imageUrls = imageList.stream()
+                            .map(Image::getImageUri)
+                            .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))
+                            .toList();
+
+                    String color = productVariant.getColor();
+                    if (color != null) {
+                        imagesByColor.computeIfAbsent(color, k -> new ArrayList<>()).addAll(imageUrls);
+
+                        // Gán variantId đầu tiên cho mỗi màu (nếu chưa có)
+                        variantIdByColor.putIfAbsent(color, productVariant.getId());
+                    }
+                }
+            }
+
+            model.addAttribute("imagesByColor", imagesByColor);
+            model.addAttribute("variantIdByColor", variantIdByColor);
+
+            Map<String, List<SizeInfo>> sizesByColor = new HashMap<>();
+
+            for (ProductVariant variant : productVariants) {
+                List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                String color = variant.getColor();
+
+                // Kiểm tra nếu màu sắc đã có trong Map, nếu chưa thì thêm một danh sách mới
+                List<SizeInfo> sizeInfos = sizesByColor.getOrDefault(color, new ArrayList<>());
+
+                for (Size size : sizes) {
+                    // Tạo đối tượng SizeInfo và thêm vào danh sách
+                    SizeInfo sizeInfo = new SizeInfo(color, size.getSizeName(), size.getStockQuantity());
+                    sizeInfos.add(sizeInfo);
+                }
+
+                // Cập nhật lại Map với danh sách sizeInfos đã gom
+                sizesByColor.put(color, sizeInfos);
+            }
+
+            // Truyền sizesByColor vào model
+            model.addAttribute("sizesByColor", sizesByColor);
+
+
+
+
+            // Lấy feedbacks của sản phẩm
+            List<Feedback> feedbacks = feedBackService.findByProductIdOrderByCreateAtDesc(id);
+            model.addAttribute("feedbacks", feedbacks);
+
+            // Lấy màu sắc đầu tiên từ sizesByColor (màu mặc định)
+//            String selectedColor = sizesByColor.keySet().stream().findFirst().orElse(null);
+            String selectedColor = sizesByColor.keySet().stream().findFirst().orElse("Red"); // mặc định "Red"
+
+            System.out.println("sizesByColor keys:");
+            sizesByColor.keySet().forEach(System.out::println);
+
+            System.out.println("Selected color: " + selectedColor);
+            System.out.println("Sizes by color: " + sizesByColor);
+
+
+            // Thêm màu sắc đã chọn vào model
+            model.addAttribute("selectedColor", selectedColor);
+
+            // Thêm sản phẩm vào model
+            model.addAttribute("product", product);
+            return "product/product-detail"; // Đảm bảo có file product/product-detail.html
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "An error occurred while retrieving the product: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/user";
+        }
     }
     // Hàm chuẩn hóa tên sản phẩm thành slug
     public static String encodeForCloudinary(String input) {
@@ -350,17 +615,6 @@ public class ProductManagementController {
             return brandService.save(newBrand);
         });
 
-        // Kiểm tra và lưu ảnh
-        String encodedProductName = encodeForCloudinary(product.getName());
-
-        List<Image> imageList = imageService.findImagesByProductId(product.getId());
-
-        List<String> imageUrls = imageList.stream()
-                .map(Image::getImageUri)
-                .filter(uri -> uri.startsWith("https://res.cloudinary.com"))
-                .filter(uri -> uri.contains("/pics/uploads/" + encodedProductName + "/"))
-                .collect(Collectors.toList());
-
         // Chuyển đổi đối tượng Product thành ProductForm để dễ dàng xử lý trong form
         ProductForm productForm = new ProductForm();
         productForm.setProduct_id(product.getId());
@@ -369,29 +623,54 @@ public class ProductManagementController {
         productForm.setName(product.getName());
         productForm.setPrice(product.getPrice());
         productForm.setDescription(product.getDescription());
-//        productForm.setStock_quantity(product.getStockQuantity());
 
-        List<Size> sizes = sizeService.findAllByProductId(product.getId());
-        Map<String, Integer> sizeQuantities = new HashMap<>();
-        for (Size size : sizes) {
-            sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
+        // Lấy các variant của sản phẩm
+        List<ProductVariant> productVariants = productVariantService.findAllByProductId(product.getId());
+
+        // Dữ liệu về kích thước và số lượng cho các variant
+        Map<Long, Map<String, Integer>> variantSizeQuantities = new HashMap<>();
+        List<Image> imageList = new ArrayList<>();
+
+        for (ProductVariant variant : productVariants) {
+            List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId()); // Lấy kích thước cho mỗi variant
+            Map<String, Integer> sizeQuantities = new HashMap<>(); // Sử dụng sizeName thay vì sizeId
+            for (Size size : sizes) {
+                sizeQuantities.put(size.getSizeName(), size.getStockQuantity()); // Lưu sizeName thay vì sizeId
+            }
+            variantSizeQuantities.put(variant.getId(), sizeQuantities);
+
+            // Lấy ảnh theo ProductVariantId
+            List<Image> variantImages = imageService.findImagesByProductVariantId(variant.getId());
+            imageList.addAll(variantImages);
         }
-        productForm.setSizeQuantities(sizeQuantities);
 
+        // Lọc ảnh theo đường dẫn Cloudinary
+        String encodedProductName = encodeForCloudinary(product.getName());
+        List<String> imageUrls = imageList.stream()
+                .map(Image::getImageUri)
+                .filter(uri -> uri.startsWith("https://res.cloudinary.com"))
+                .filter(uri -> uri.contains("/pics/uploads/" + encodedProductName + "/"))
+                .collect(Collectors.toList());
+
+        // Thêm thông tin variants vào form
+//        productForm.setVariantSizes(variantSizeQuantities);
 
         productForm.setBrand_name(product.getBrand().getName());
         productForm.setCategory_name(product.getCategory().getName());
 
         model.addAttribute("categories", categoryService.getAllChildrenCategories()); // Lấy danh mục
-        model.addAttribute("brands", brandService.getAllBrands()); // Lấy danh mục
+        model.addAttribute("brands", brandService.getAllBrands()); // Lấy thương hiệu
         model.addAttribute("imageUrls", imageUrls);
-        model.addAttribute("sizes", sizes);
-        System.out.println(imageUrls);
+        model.addAttribute("productVariants", productVariants); // Các variants của sản phẩm
+        model.addAttribute("variantSizeQuantities", variantSizeQuantities); // Các kích thước và số lượng của variants
         model.addAttribute("productForm", productForm);
+
         return "product/update-products";
     }
-    // Hàm tách public_id từ URL của Cloudinary
 
+
+
+    // Hàm tách public_id từ URL của Cloudinary
     public String extractPublicId(String imageUrl) {
         try {
             int index = imageUrl.indexOf("/upload/");
@@ -422,11 +701,12 @@ public class ProductManagementController {
 
 
 
-    // Xử lý cập nhật ứng viên
+    // Xử lý cập nhật sản phẩm
     @PostMapping("/admin/products/edit/{id}")
     public String updateProduct(@PathVariable("id") Long id,
                                 @ModelAttribute("productForm") ProductForm productForm,
                                 @RequestParam(value = "deletedImages", required = false) List<String> deletedImages,
+                                @RequestParam MultiValueMap<String, MultipartFile> variantImages,
                                 RedirectAttributes redirectAttributes) {
         try {
             Product existingProduct = productService.getProductById(id)
@@ -455,91 +735,105 @@ public class ProductManagementController {
             existingProduct.setPrice(productForm.getPrice());
             existingProduct.setDescription(productForm.getDescription());
 //            existingProduct.setStockQuantity(productForm.getStock_quantity());
-            List<Size> sizes = new ArrayList<>();
 
-            for (Map.Entry<String, Integer> entry : productForm.getSizeQuantities().entrySet()) {
-                String sizeName = entry.getKey();
-                Integer quantity = entry.getValue();
 
-                // Bỏ qua nếu số lượng là null hoặc 0
-                if (quantity == null || quantity <= 0) continue;
 
-                Size size = new Size();
-                size.setSizeName(sizeName);
-                size.setStockQuantity(quantity);
-                size.setProduct(existingProduct);
+            Map<Long, Map<String, Integer>> variantSizesForm = Optional.ofNullable(productForm.getVariantSizes())
+                    .orElse(new HashMap<>());
 
-                sizes.add(size);
+            List<ProductVariant> dbVariants = Optional.ofNullable(productVariantRepository.findByProductId(existingProduct.getId()))
+                    .orElse(new ArrayList<>());
+
+            for (ProductVariant variant : dbVariants) {
+                String color = variant.getColor();
+                Long variantId = variant.getId();
+                List<Size> updatedSizes = new ArrayList<>();
+
+                for (Map.Entry<Long, Map<String, Integer>> sizeEntry : variantSizesForm.entrySet()) {
+                    Long sizeId = sizeEntry.getKey();
+                    Map<String, Integer> colorMap = sizeEntry.getValue(); // Map<SizeName, Quantity>
+
+                    // Get the list of sizes associated with the current variant
+                    List<Size> sizeList = sizeRepository.findByProductVariantId(variantId);
+
+                    for (Size sizeEntity : sizeList) {
+                        String sizeName = sizeEntity.getSizeName(); // Get sizeName from Size entity
+
+                        // Retrieve quantity from colorMap using sizeName as key
+                        Integer quantity = colorMap.get(sizeName);
+
+                        // Check if quantity is valid
+                        if (quantity == null || quantity <= 0) continue;
+
+                        // Create or update Size
+                        Size size = new Size();
+                        size.setSizeName(sizeName);
+                        size.setStockQuantity(quantity);
+                        size.setProductVariant(variant); // Set the association
+
+                        // Update Size in the database
+                        try {
+                            sizeService.updateSize(sizeEntity.getId(), size); // Update Size
+                            // Add size to the list of updated sizes
+                            updatedSizes.add(size);
+                        } catch (EntityNotFoundException e) {
+                            System.out.println("Size with ID not found: " + sizeEntity.getId());
+                        }
+                    }
+                }
+
+                // After updating sizes, update the variant
+                if (!updatedSizes.isEmpty()) {
+                    ProductVariant updatedVariant = new ProductVariant();
+                    updatedVariant.setId(variantId);
+                    updatedVariant.setColor(color);
+
+                    try {
+                        productVariantService.updateVariant(variantId, updatedVariant);
+                    } catch (EntityNotFoundException e) {
+                        System.out.println("Variant with ID not found: " + variantId);
+                    }
+                }
             }
 
-            sizeService.saveAll(sizes);
-            // Set category & brand cho product
-            existingProduct.setCategory(category);
-            existingProduct.setBrand(brand);
+
 
             // Lưu hình ảnh
-            if (productForm.getImageFile() != null) {
-                System.out.println("Số lượng file: " + productForm.getImageFile().toArray().length);
-                for (MultipartFile file : productForm.getImageFile()) {
-                    if (!file.isEmpty()) {
-                        try {
-                            // Ghi log để debug
-                            System.out.println("Đang xử lý file: " + file.getOriginalFilename());
-                            System.out.println("Kích thước file: " + file.getSize());
-                            System.out.println("Loại file: " + file.getContentType());
+            // Xử lý ảnh của từng biến thể
+            for (Map.Entry<String, List<MultipartFile>> entry : variantImages.entrySet()) {
+                String key = entry.getKey(); // "variantImages[123]"
+                Long variantId = Long.valueOf(key.replaceAll("[^0-9]", ""));
 
-                            String productName = existingProduct.getName();  // Tên sản phẩm
-                            String baseFileName = FilenameUtils.getBaseName(file.getOriginalFilename());  // không có đuôi
+                Optional<ProductVariant> variantOpt = productVariantRepository.findById(variantId);
+                if (variantOpt.isPresent()) {
+                    ProductVariant variant = variantOpt.get();
 
-
-                            // Tạo thư mục dựa trên tên sản phẩm
-                            String folderPath = "pics/uploads/" + productName;  // Tạo thư mục theo tên sản phẩm
-
-                            // Thay đoạn xử lý file bằng Cloudinary
+                    for (MultipartFile file : entry.getValue()) {
+                        if (!file.isEmpty()) {
                             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                                    "public_id", folderPath + "/" + baseFileName,  // Đặt public_id với đường dẫn thư mục sản phẩm
+                                    "public_id", "pics/uploads/" + existingProduct.getName() + "/" + file.getOriginalFilename(),
                                     "overwrite", true,
                                     "resource_type", "image"
                             ));
 
-                            // DEBUG kết quả trả về
-                            System.out.println("Kết quả upload từ Cloudinary:");
-                            for (Object key : uploadResult.keySet()) {
-                                System.out.println(key + " : " + uploadResult.get(key));
-                            }
                             String imageUrl = (String) uploadResult.get("secure_url");
 
                             Image image = new Image();
-                            image.setProduct(existingProduct);
+                            image.setProductVariant(variant);
                             image.setImageUri(imageUrl);
                             image.setImageName(file.getOriginalFilename());
                             image.setImageSize((int) file.getSize());
                             image.setImageType(file.getContentType());
 
-
-                            // Ghi log trước khi lưu
-                            System.out.println("=== ĐANG LƯU ẢNH VÀO DB ===");
-                            System.out.println("Thông tin ảnh: ");
-                            System.out.println("Tên: " + image.getImageName());
-                            System.out.println("URI: " + image.getImageUri());
-                            System.out.println("Size: " + image.getImageSize());
-                            System.out.println("Loại: " + image.getImageType());
-                            System.out.println("Product ID: " + (existingProduct.getId() != null ? existingProduct.getId() : "null"));
-
-
-
                             imageService.save(image);
-
-
-
-
-                        } catch (IOException e) {
-                            System.err.println("Lỗi khi lưu ảnh: " + file.getOriginalFilename());
-                            e.printStackTrace();
                         }
                     }
+                } else {
+                    System.err.println("Không tìm thấy variant với ID: " + variantId);
                 }
             }
+
+
 
 
             // Xoá ảnh được chọn
@@ -619,9 +913,32 @@ public class ProductManagementController {
         return productService.searchProducts(keyword, pageable);
     }
 
+    @PostMapping("user/product-detail/{id}/comments")
+    public String addComment(@PathVariable("id") Long productId,
+                             @RequestParam("comment") String content,
+                             @RequestParam("rating") int rating,
+                             Principal principal) {
 
+        User user = userService.findByEmail(principal.getName());
+        Product product = productService.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+//        // Tìm feedback của sản phẩm
+//        Feedback feedback = feedBackService.findByProductId(productId)
+//                .orElseThrow(() -> new IllegalArgumentException("Feedback not found"));
 
+        Feedback feedback = new Feedback();
+        feedback.setUser(user);
+//        feedback.setOrderItem(orderItem);
+//        comment.setFeedback(feedback);
+        feedback.setProduct(product); // Gắn comment với sản phẩm luôn
+        feedback.setComment(content);
+        feedback.setRating(rating);
+        feedback.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
+        feedBackService.save(feedback);
+
+        return "redirect:/user/product-detail/" + productId;
+    }
 
     @GetMapping("/user/shop")
     public String listProducts(
@@ -667,7 +984,7 @@ public class ProductManagementController {
         Map<Long, List<String>> productImages = new HashMap<>();
         for (Product product : products) {
             // Kiểm tra và lưu ảnh
-            List<Image> imageList = imageService.findImagesByProductId(product.getId());
+            List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
             List<String> imageUrls = imageList.stream()
                     .map(Image::getImageUri)
                     .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
@@ -684,25 +1001,54 @@ public class ProductManagementController {
     @GetMapping("/user/shop/search")
     @ResponseBody
     public List<ProductWithImagesDto> searchProducts(@RequestParam("keyword") String keyword) {
-        // Lấy danh sách sản phẩm từ service
+        // Retrieve the list of products from the service
         List<Product> products = productService.searchByKeyword(keyword);
 
-        // Xử lý ảnh cho từng sản phẩm
+        // Process images and variants for each product
         List<ProductWithImagesDto> productDtos = products.stream()
                 .map(product -> {
-                    // Lấy danh sách ảnh từ imageService
-                    List<Image> imageList = imageService.findImagesByProductId(product.getId());
+                    // Retrieve the list of images from imageService
+                    List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
+                    // Filter images from Cloudinary and only take valid URLs
                     List<String> imageUrls = imageList.stream()
                             .map(Image::getImageUri)
-                            .filter(url -> url.startsWith("https://res.cloudinary.com")) // Lọc ảnh từ Cloudinary
+                            .filter(url -> url.startsWith("https://res.cloudinary.com")) // Only take images from Cloudinary
                             .collect(Collectors.toList());
 
+                    // Create a map to hold size and quantity information for each product
                     Map<String, Integer> sizeQuantities = new HashMap<>();
-                    for (Size size : product.getSizes()) {
-                        sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
+
+                    // Use sizeService to find sizes by product variant ID
+                    for (ProductVariant variant : product.getVariants()) {
+                        List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                        for (Size size : sizes) {
+                            sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
+                        }
                     }
 
-                    // Sau đó gán vào DTO
+                    // Create a map to hold variant information (color -> size -> quantity)
+                    Map<String, Map<String, Integer>> variantSizes = new HashMap<>();
+                    for (ProductVariant variant : product.getVariants()) {
+                        Map<String, Integer> sizeStockMap = new HashMap<>();
+                        List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                        for (Size size : sizes) {
+                            sizeStockMap.put(size.getSizeName(), size.getStockQuantity());
+                        }
+                        variantSizes.put(variant.getColor(), sizeStockMap);
+                    }
+
+                    // Create a list of product variants
+                    List<ProductVariantDto> productVariants = product.getVariants().stream()
+                            .map(variant -> new ProductVariantDto(
+                                    variant.getId(),
+                                    variant.getColor(),
+                                    sizeService.findAllByProductVariantId(variant.getId()).stream()
+                                            .map(size -> new SizeDto(size.getSizeName(), size.getStockQuantity()))
+                                            .collect(Collectors.toList())
+                            ))
+                            .collect(Collectors.toList());
+
+                    // Assign to DTO
                     return new ProductWithImagesDto(
                             product.getId(),
                             product.getBrand().getId(),
@@ -710,14 +1056,14 @@ public class ProductManagementController {
                             product.getName(),
                             product.getPrice(),
                             product.getDescription(),
-                            sizeQuantities,
-                            imageUrls
+                            sizeQuantities,  // Add size and quantity information
+                            imageUrls,       // Add images to DTO
+                            productVariants   // Add variants to DTO
                     );
-
                 })
                 .collect(Collectors.toList());
 
-        // Trả về danh sách sản phẩm dưới dạng JSON
+        // Return the list of products as JSON
         return productDtos;
     }
 

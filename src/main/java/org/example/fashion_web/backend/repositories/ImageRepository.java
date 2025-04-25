@@ -10,12 +10,12 @@ import java.util.List;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Long> {
-    List<Image> findAllByProductId(Long productId);
+    List<Image> findAllByProductVariantId(Long productId);
 
     @Query("SELECT i.imageUri " +
             "FROM Image i " +
-            "JOIN i.product p " +
-            "WHERE p.name = :name")
+            "JOIN i.productVariant pV " +
+            "WHERE pV.product.name = :name")
     List<Image> findAllByProductName(String name);
 
 

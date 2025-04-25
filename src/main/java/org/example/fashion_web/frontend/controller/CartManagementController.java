@@ -61,7 +61,7 @@ public class CartManagementController {
         // Nhóm danh sách ảnh theo productId
         Map<Long, List<String>> productImages = new HashMap<>();
         for (CartItems item : cart) {
-            List<Image> images = imageService.findImagesByProductId(item.getProduct().getId());
+            List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
             List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
             productImages.put(item.getProduct().getId(), imageUrls);
 
@@ -81,45 +81,46 @@ public class CartManagementController {
             Principal principal) {
 
         Map<String, Object> response = new HashMap<>();
-
         try {
             // Kiểm tra dữ liệu đầu vào
-            if (!requestData.containsKey("productId") || !requestData.containsKey("quantity")) {
+            if (!requestData.containsKey("productId") || !requestData.containsKey("quantity") || !requestData.containsKey("variantId") || !requestData.containsKey("size")) {
                 response.put("success", false);
-                response.put("message", "Thiếu thông tin sản phẩm hoặc số lượng!");
+                response.put("message", "Thiếu thông tin sản phẩm, size hoặc variant!");
                 return ResponseEntity.badRequest().body(response);
             }
 
             Long productId = Long.parseLong(requestData.get("productId").toString());
             int quantity = Integer.parseInt(requestData.get("quantity").toString());
-
-//            if (quantity <= 0) {
-//                response.put("success", false);
-//                response.put("message", "Số lượng phải lớn hơn 0!");
-//                return ResponseEntity.badRequest().body(response);
-//            }
-
-            if (!requestData.containsKey("size")) {
-                response.put("success", false);
-                response.put("message", "Thiếu thông tin size!");
-                return ResponseEntity.badRequest().body(response);
-            }
-
+            Long variantId = Long.parseLong(requestData.get("variantId").toString());
             String sizeName = requestData.get("size").toString();
 
             // Kiểm tra sản phẩm có tồn tại không
             Product product = productService.getProductById(productId)
                     .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại!"));
 
-            Size size = sizeService.findByProductAndSizeName(product, sizeName)
-                    .orElseThrow(() -> new RuntimeException("Size không tồn tại cho sản phẩm này!"));
+            // Tìm variant tương ứng với sản phẩm
+            ProductVariant variant = product.getVariants().stream()
+                    .filter(v -> v.getId().equals(variantId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Variant không tồn tại cho sản phẩm này!"));
 
+            // Lấy danh sách size từ sizeService thay vì từ variant
+            List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+
+            // Tìm size tương ứng với sizeName
+            Size size = sizes.stream()
+                    .filter(s -> s.getSizeName().equals(sizeName))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Size không tồn tại cho variant này!"));
+
+            // Kiểm tra tồn kho size
             if (size.getStockQuantity() < quantity) {
                 response.put("success", false);
                 response.put("message", "Không đủ hàng trong kho cho size đã chọn!");
                 return ResponseEntity.badRequest().body(response);
             }
 
+            // Áp dụng giảm giá nếu có
             BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
@@ -140,9 +141,7 @@ public class CartManagementController {
                 cart = new Cart();
                 cart.setUser(user);
                 cart.setCreatedAt(LocalDateTime.now());
-                System.out.println("Cart ID trong Cart: " + cart.getCartId());
                 cart = cartService.save(cart); // Lưu vào DB
-                System.out.println("Cart ID sau khi flush: " + cart.getCartId());
                 session.setAttribute("cart", cart);
             }
 
@@ -155,32 +154,33 @@ public class CartManagementController {
             // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
             Optional<CartItems> existingItem = cartItems.stream()
                     .filter(item -> item.getProduct().getId().equals(productId) &&
-                            item.getSize().getSizeName().equals(sizeName)) // thêm điều kiện này
+                            item.getSize().getSizeName().equals(sizeName) &&
+                            item.getVariant().getId().equals(variantId)) // Thêm kiểm tra variantId
                     .findFirst();
-
 
             if (existingItem.isPresent()) {
                 CartItems item = existingItem.get();
                 item.setQuantity(item.getQuantity() + quantity);
                 cartItemService.save(item); // Cập nhật DB
-
             } else {
                 CartItems newItem = new CartItems();
                 newItem.setCart(cart);
                 newItem.setProduct(product);
+                newItem.setVariant(variant); // Gán variant vào CartItems
+                newItem.setSize(size); // Gán size vào CartItems
                 newItem.setQuantity(quantity);
-
                 newItem.setPricePerUnit(product.getEffectivePrice());
-                System.out.println("Cart ID trong CartItems: " + newItem.getCart());
+
                 cartItemService.save(newItem); // Lưu vào DB
                 cartItems.add(newItem);
             }
-            // Trừ tồn kho
+
+            // Trừ tồn kho size
             size.setStockQuantity(size.getStockQuantity() - quantity);
             sizeService.save(size);
+
             // Cập nhật session
             session.setAttribute("cartItems", cartItems);
-
 
             response.put("success", true);
             response.put("message", "Sản phẩm đã được thêm vào giỏ hàng!");
@@ -200,6 +200,7 @@ public class CartManagementController {
             response.put("message", "Đã xảy ra lỗi: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+
     }
 
 

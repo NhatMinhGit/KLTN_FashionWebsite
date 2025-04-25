@@ -44,15 +44,7 @@
                     <label for="brand" class="form-label">Nhãn hàng:</label>
                     <input type="text" class="form-control" id="brand" th:field="*{brand_name}" required />
                 </div>
-<!--                <div class="mb-3">-->
-<!--                    <label for="stock_quantity" class="form-label">Số lượng tồn:</label>-->
-<!--                    <input type="number" class="form-control" id="stock_quantity" th:field="*{stock_quantity}" required />-->
-<!--                </div>-->
-<!--                <div id="drop-area" class="border border-primary p-4 text-center">-->
-<!--                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>-->
-<!--                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />-->
-<!--                    <div id="preview" class="d-flex flex-wrap mt-3"></div>-->
-<!--                </div>-->
+
                 <div id="drop-area" class="border border-primary p-4 text-center">
                     <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
 
@@ -84,6 +76,20 @@
             </div>
             <div class="card-body">
                 <div class="row">
+                    <!-- Dropdown chọn màu -->
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label th:for="color" class="form-label">Màu sắc</label>
+                            <select th:name="color" th:id="color" class="form-control">
+                                <option value="Red">Đỏ</option>
+                                <option value="Blue">Xanh Dương</option>
+                                <option value="Green">Xanh Lục</option>
+                                <option value="Black">Đen</option>
+                                <option value="White">Trắng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Duyệt qua các kích cỡ như S, M, L, XL, XXL -->
                     <div class="col-md-2" th:each="size : ${T(java.util.List).of('S','M','L','XL','XXL')}">
                         <div class="mb-3">
                             <label th:for="${'size_' + size}" th:text="${size}" class="form-label"></label>
@@ -92,8 +98,6 @@
                                    th:name="${'sizeQuantities[' + size + ']'}"
                                    th:value="${productForm.sizeQuantities[size]}"
                                    min="0" placeholder="0">
-
-
                         </div>
                     </div>
                 </div>

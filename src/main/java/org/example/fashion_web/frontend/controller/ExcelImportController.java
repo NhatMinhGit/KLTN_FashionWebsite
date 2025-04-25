@@ -2,14 +2,8 @@ package org.example.fashion_web.frontend.controller;
 
 import com.cloudinary.Cloudinary;
 import org.example.fashion_web.backend.dto.*;
-import org.example.fashion_web.backend.models.Brand;
-import org.example.fashion_web.backend.models.Category;
-import org.example.fashion_web.backend.models.Product;
-import org.example.fashion_web.backend.models.Size;
-import org.example.fashion_web.backend.services.BrandService;
-import org.example.fashion_web.backend.services.CategoryService;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.ProductService;
+import org.example.fashion_web.backend.models.*;
+import org.example.fashion_web.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +31,8 @@ public class ExcelImportController {
     private CategoryService categoryService;
     @Autowired
     private ImageService imageService;
+    @Autowired
+    private SizeService sizeService;
 
     @GetMapping("/admin/datatree")
     public ModelAndView dataTree() {
@@ -144,39 +140,71 @@ public class ExcelImportController {
                 product.setCategory(category);
 
                 // In thông tin sản phẩm ra để kiểm tra
-                System.out.println("Product: " + product.getName() + ", Description: " + product.getDescription() + ", Price: " + product.getPrice() + ", Stock Quantity: " + product.getSizes());
+                System.out.println("Product: " + product.getName() + ", Description: " + product.getDescription() + ", Price: " + product.getPrice() + ", Stock Quantity: " + product.getVariants());
 
                 productService.save(product);
             }
             // Xử lý các kích cỡ cho sản phẩm
-            processSizesForProduct(dto.getSizes(), product);
+            processVariantsForProduct(dto.getProductVariants(), product);
         }
 
     }
-    private void processSizesForProduct(List<SizeDto> sizes, Product product) {
-        if (sizes != null) {
-            for (SizeDto sizeDto : sizes) {
-                // Kiểm tra xem kích cỡ đã tồn tại trong sản phẩm chưa
-                Size existingSize = product.getSizes().stream()
-                        .filter(s -> s.getSizeName().equalsIgnoreCase(sizeDto.getSizeName()))
+    private void processVariantsForProduct(List<ProductVariantDto> variants, Product product) {
+        if (variants != null) {
+            for (ProductVariantDto variantDto : variants) {
+                // Tìm variant theo màu
+                ProductVariant existingVariant = product.getVariants().stream()
+                        .filter(v -> v.getColor().equalsIgnoreCase(variantDto.getColor()))
                         .findFirst()
                         .orElse(null);
 
-                if (existingSize != null) {
-                    // Nếu kích cỡ đã có, cập nhật số lượng tồn kho
-                    int newQty = existingSize.getStockQuantity() + sizeDto.getStockQuantity();
-                    existingSize.setStockQuantity(newQty);
+                if (existingVariant != null) {
+                    // Nếu variant tồn tại, cập nhật size
+                    // Thay vì lấy từ existingVariant.getSizes(), ta sử dụng sizeService để lấy sizes
+                    List<Size> sizes = sizeService.findAllByProductVariantId(existingVariant.getId());
+
+                    for (SizeDto sizeDto : variantDto.getSizes()) {
+                        Size existingSize = sizes.stream()
+                                .filter(s -> s.getSizeName().equalsIgnoreCase(sizeDto.getSizeName()))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (existingSize != null) {
+                            // Cập nhật stockQuantity nếu size đã tồn tại
+                            existingSize.setStockQuantity(existingSize.getStockQuantity() + sizeDto.getStockQuantity());
+                        } else {
+                            // Nếu size chưa tồn tại, tạo mới size
+                            Size newSize = new Size();
+                            newSize.setSizeName(sizeDto.getSizeName());
+                            newSize.setStockQuantity(sizeDto.getStockQuantity());
+                            newSize.setProductVariant(existingVariant); // Mối quan hệ với variant
+                            sizeService.save(newSize); // Lưu vào cơ sở dữ liệu
+                        }
+                    }
                 } else {
-                    // Nếu kích cỡ chưa có, thêm kích cỡ mới vào sản phẩm
-                    Size newSize = new Size();
-                    newSize.setSizeName(sizeDto.getSizeName());
-                    newSize.setStockQuantity(sizeDto.getStockQuantity());
-                    newSize.setProduct(product);
-                    product.getSizes().add(newSize);
+                    // Nếu variant chưa tồn tại → tạo mới
+                    ProductVariant newVariant = new ProductVariant();
+                    newVariant.setColor(variantDto.getColor());
+                    newVariant.setProduct(product);
+
+                    // Tạo và lưu các kích thước mới mà không cần thêm vào newVariant
+                    for (SizeDto sizeDto : variantDto.getSizes()) {
+                        Size newSize = new Size();
+                        newSize.setSizeName(sizeDto.getSizeName());
+                        newSize.setStockQuantity(sizeDto.getStockQuantity());
+                        newSize.setProductVariant(newVariant); // Mối quan hệ với variant
+                        sizeService.save(newSize); // Lưu vào cơ sở dữ liệu
+                    }
+
+                    // Không cần gán sizes vào newVariant nữa
+                    product.getVariants().add(newVariant); // Thêm variant mới vào sản phẩm
                 }
             }
         }
     }
+
+
+
 
 
     private void handleBrandData(List<Map<String, Object>> rows) {
@@ -336,7 +364,7 @@ public class ExcelImportController {
 
     private ImageDto mapToImageDto(Map<String, Object> row) {
         ImageDto dto = new ImageDto();
-        dto.setProductId(Long.valueOf((String.valueOf(row.get("product_id")))));
+        dto.setProductVariantId(Long.valueOf((String.valueOf(row.get("product_variant_id")))));
         dto.setImageUrl(String.valueOf(row.get("imageUri")));
         dto.setImageName(String.valueOf(row.get("imageName")));
 

@@ -38,12 +38,9 @@ public class Product {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-//    @Column(name = "stock_quantity", nullable = false)
-//    private Integer stockQuantity;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Size> sizes = new ArrayList<>();
-
+    //    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<ProductVariant> variants = new ArrayList<>();
     @Getter
     @Setter
     @Transient

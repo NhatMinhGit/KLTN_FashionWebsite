@@ -118,7 +118,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
 
         // Lấy danh sách ảnh liên kết với sản phẩm
-        List<Image> images = imageRepository.findAllByProductId(productId);
+        List<Image> images = imageRepository.findAllByProductVariantId(productId);
 
         for (Image image : images) {
             String imageUrl = image.getImageUri();
@@ -164,9 +164,13 @@ public class ProductServiceImpl implements ProductService {
             product.setPrice(productDetails.getPrice());
             product.setDescription(productDetails.getDescription());
 //            product.setStockQuantity(productDetails.getStockQuantity());
-            // Cập nhật lại danh sách sizes (xóa cũ, thêm mới)
-            product.getSizes().clear(); // hoặc dùng cascade remove
-            product.getSizes().addAll(productDetails.getSizes());
+//            // Cập nhật lại danh sách sizes (xóa cũ, thêm mới)
+//            product.getSizes().clear(); // hoặc dùng cascade remove
+//            product.getSizes().addAll(productDetails.getSizes());
+
+            // Xóa hết variants cũ và thêm variants mới (bao gồm size bên trong)
+            product.getVariants().clear(); // nếu cascade = ALL + orphanRemoval = true
+            product.getVariants().addAll(productDetails.getVariants());
             return productRepository.save(product);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + id));
     }

@@ -18,6 +18,8 @@ body {
     margin-right: 5px;
 }
 
+
+
 .support-text {
     font-size: 0.8rem;
     color: #777;
@@ -293,6 +295,15 @@ body {
     border-color: #ddd;
     white-space: nowrap;
 }
+.quick-options .row {
+    overflow-x: auto; /* Cho phép thanh cuộn ngang */
+    white-space: nowrap; /* Ngăn cách các phần tử xuống dòng */
+}
+
+.quick-options .col {
+    display: flex;
+    flex-wrap: nowrap; /* Không cho phép các nút xuống dòng */
+}
 
 .quick-options .btn i {
     font-size: 0.7rem;
@@ -384,3 +395,4 @@ body {
         min-width: 80px;
     }
 }
+

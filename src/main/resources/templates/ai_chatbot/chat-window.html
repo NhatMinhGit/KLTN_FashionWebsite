@@ -23,7 +23,9 @@
         <div class="row align-items-center">
             <div class="col-6 col-md-4">
                 <div class="d-flex align-items-center">
-                    <h1 class="mb-0 fw-bold">MNT Fashion</h1>
+                    <a th:href="@{/user}" class="text-decoration-none text-dark">
+                        <h1 class="mb-0 fw-bold">MNT Fashion</h1>
+                    </a>
                     <span class="ms-2 support-text">SUPPORT</span>
                 </div>
             </div>
@@ -169,7 +171,7 @@
                             <button class="nav-link" id="processing-tab" data-bs-toggle="tab" data-bs-target="#processing" type="button" role="tab" aria-selected="false">Processing</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="presale-tab" data-bs-toggle="tab" data-bs-target="#presale" type="button" role="tab" aria-selected="false">Pre-sale</button>
+                            <button class="nav-link" id="presale-tab" data-bs-toggle="tab" data-bs-target="#presale" aria-controls="presale" type="button" role="tab" aria-selected="false">Pre-sale</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab" aria-selected="false">Payment & Account</button>
@@ -213,7 +215,40 @@
                         <!-- Processing questions would go here -->
                     </div>
                     <div class="tab-pane fade" id="presale" role="tabpanel" aria-labelledby="presale-tab">
-                        <!-- Pre-sale questions would go here -->
+                        <!-- Tab content -->
+                        <table class="table table-bordered text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Hình ảnh</th>
+                                <th>Tên</th>
+                                <th>Giá giảm</th>
+                                <th>Giá gốc</th>
+                                <th>Số lượng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="product : ${preSaleProducts}">
+                                <td>
+                                    <img th:src="${productImages[product.id][0]}" alt="Ảnh sản phẩm" width="50">
+                                </td>
+                                <td th:text="${product.name}">Tên sản phẩm</td>
+                                <td class="text-danger" th:text="${#numbers.formatDecimal(product.effectivePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</td>
+                                <td>
+                                    <del th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</del>
+                                </td>
+                                <!-- Hiển thị các kích cỡ -->
+                                <td class="productSizeQuantities">
+                                    <ul>
+                                        <div th:each="entry : ${productSizeQuantities[product.id].entrySet()}"
+                                             class="size-item">
+                                            <span th:text="'Size: ' + ${entry.key} + ' - Còn: ' + ${entry.value}"></span>
+                                        </div>
+                                    </ul>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        </div>
                     </div>
                     <div class="tab-pane fade" id="payment" role="tabpanel" aria-labelledby="payment-tab">
                         <!-- Payment & Account questions would go here -->

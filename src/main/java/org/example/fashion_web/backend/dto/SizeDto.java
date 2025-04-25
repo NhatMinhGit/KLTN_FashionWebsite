@@ -11,4 +11,9 @@ public class SizeDto {
     private String productName; // để liên kết với product
     private String sizeName;
     private int stockQuantity;
+
+    public SizeDto(String sizeName, int stockQuantity) {
+        this.sizeName = sizeName;
+        this.stockQuantity = stockQuantity;
+    }
 }

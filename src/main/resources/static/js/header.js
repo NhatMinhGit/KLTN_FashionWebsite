@@ -1,3 +1,11 @@
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelector("#search-form").onsubmit = function (event) {
+        event.preventDefault();
+        searchProducts(event);
+    };
+});
+
+
 function searchProducts(event) {
     event.preventDefault();  // Ngừng hành động mặc định (không reload trang)
 
@@ -46,5 +54,7 @@ function searchProducts(event) {
             console.error("Lỗi khi tìm kiếm:", error);
             // Có thể hiển thị thông báo lỗi cho người dùng
         });
+
+
 
 }

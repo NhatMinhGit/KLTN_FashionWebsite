@@ -12,3 +12,27 @@
 .container p, div{
     color: white;
 }
+
+.star-rating {
+    direction: rtl;
+    font-size: 1.5rem;
+    unicode-bidi: bidi-override;
+    display: inline-flex;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    color: #ddd;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #ffc107;
+}

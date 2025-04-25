@@ -2,12 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Cập Nhật Ứng Viên</title>
+    <title>Cập Nhật Sản Phẩm</title>
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-5">
-    <h1 class="mb-4 text-center">Cập Nhật Sản Phẩm </h1>
+    <h1 class="mb-4 text-center">Cập Nhật Sản Phẩm</h1>
 
     <!-- Hiển thị thông báo lỗi nếu có -->
     <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -16,7 +16,7 @@
     </div>
 
     <form th:action="@{/admin/products/edit/{id}(id=${productForm.product_id})}" th:object="${productForm}" method="post" enctype="multipart/form-data">
-        <!-- Trường ẩn chứa ID ứng viên -->
+        <!-- Trường ẩn chứa ID sản phẩm -->
         <input type="hidden" th:field="*{product_id}" />
 
         <div class="card mb-4">
@@ -43,10 +43,6 @@
                         <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
                     </select>
                 </div>
-<!--                <div class="mb-3">-->
-<!--                    <label for="brand" class="form-label">Nhãn hàng:</label>-->
-<!--                    <input type="text" class="form-control" id="brand" th:field="*{brand_name}" required />-->
-<!--                </div>-->
                 <div class="mb-3">
                     <label for="brand" class="form-label">Nhãn hàng:</label>
                     <select class="form-control" id="brand" th:field="*{brand_name}" required>
@@ -54,15 +50,11 @@
                         <option th:each="brand : ${brands}" th:value="${brand.name}" th:text="${brand.name}"></option>
                     </select>
                 </div>
-<!--                <div class="mb-3">-->
-<!--                    <label for="stock_quantity" class="form-label">Số lượng tồn:</label>-->
-<!--                    <input type="number" class="form-control" id="stock_quantity" th:value="*{stock_quantity}" th:field="*{stock_quantity}" required />-->
-<!--                </div>-->
                 <div id="drop-area" class="border border-primary p-4 text-center">
                     <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
 
                     <!-- Chọn ảnh mới -->
-                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />
+<!--                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />-->
 
                     <!-- Preview ảnh cũ & checkbox xóa -->
                     <div id="preview" class="d-flex flex-wrap mt-3 gap-2 justify-content-center">
@@ -83,34 +75,53 @@
 
             </div>
         </div>
-        <div class="card mb-4">
-            <div class="card-header">
-                Kích Cỡ & Số Lượng
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-2" th:each="size : ${T(java.util.List).of('S','M','L','XL','XXL')}">
-                        <div class="mb-3">
-                            <label th:for="${'size_' + size}" th:text="${size}" class="form-label"></label>
-                            <input type="number" class="form-control"
-                                   th:id="${'size_' + size}"
-                                   th:name="${'sizeQuantities[' + size + ']'}"
-                                   th:value="${productForm.sizeQuantities.get(size)}"
-                                   min="0" placeholder="0">
+
+        <div th:text="${variantSizeQuantities}"></div>
+
+        <div th:each="variant : ${productVariants}">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span th:text="'Màu sắc: ' + ${variant.color}"></span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Lặp qua các kích cỡ S, M, L, XL, XXL -->
+                        <div class="col-md-2" th:each="size : ${T(java.util.List).of('S','M','L','XL','XXL')}">
+                            <div class="mb-3">
+                                <!-- Nhãn cho size -->
+                                <label th:for="${'size_' + variant.id + '_' + size}" th:text="${size}" class="form-label"></label>
+                                <input type="number" class="form-control"
+                                       th:id="${'size_' + variant.id + '_' + size}"
+                                       th:name="${'variantSizes[' + variant.id + '][' + size + ']'}"
+                                       th:value="${variantSizeQuantities[variant.id] != null ? variantSizeQuantities[variant.id].get(size) : 0}"
+                                       min="0" placeholder="0">
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Thêm chọn ảnh cho variant -->
+                    <div class="mb-3">
+                        <label th:for="'variantImage__' + ${variant.id}" class="form-label">Thêm ảnh</label>
+                        <input type="file"
+                               class="form-control"
+                               th:id="'variantImage__' + ${variant.id}"
+                               th:name="'variantImages[' + ${variant.id} + ']'"
+                               multiple accept="image/*">
+                    </div>
+
                 </div>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary">Cập Nhật Ứng Viên</button>
-        <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
+
+
+
+        <button type="submit" class="btn btn-primary">Cập Nhật Sản Phẩm</button>
+        <a th:href="@{/admin/products}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
 </div>
-<!--Chat-->
-<!--<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
-<!-- Bootstrap JS -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+
 <!-- JS hiển thị preview ảnh mới -->
 <script>
     document.getElementById('imageFile').addEventListener('change', function (event) {
@@ -132,4 +143,5 @@
         });
     });
 </script>
+</body>
 </html>

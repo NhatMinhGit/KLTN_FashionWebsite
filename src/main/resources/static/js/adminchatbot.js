@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     removeLoadingIndicator(loadingId); // Xoá spinner
                     addMessage(data, 'ai');            // Hiển thị phản hồi từ AI
-                }, 700);
+                }, 400);
             })
             .catch(error => {
                 console.error('Error:', error);

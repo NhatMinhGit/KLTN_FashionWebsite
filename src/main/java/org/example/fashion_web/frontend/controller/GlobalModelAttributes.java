@@ -52,7 +52,7 @@ public class GlobalModelAttributes {
             // Nhóm danh sách ảnh theo productId
             Map<Long, List<String>> productImages = new HashMap<>();
             for (CartItems item : cart) {
-                List<Image> images = imageService.findImagesByProductId(item.getProduct().getId());
+                List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
                 List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
                 productImages.put(item.getProduct().getId(), imageUrls);
             }

@@ -1,15 +1,26 @@
+/* Ẩn cột */
+.hidden-col {
+    display: none !important;
+}
+
+/* Đặt các thẻ sản phẩm ban đầu ẩn đi */
+.product-card {
+    display: none; /* Mặc định ẩn toàn bộ sản phẩm */
+    transition: all 0.3s ease;
+}
+
+/* Chứa ảnh sản phẩm */
 .product-images {
     position: relative;
     width: 150px;
     height: 250px;
     display: flex;
-    left: 20%;
-    /*transform: translate(-50%, -50%); !* Căn giữa ảnh *!*/
-    justify-content: center;  /* Căn giữa ngang */
-    align-items: center;      /* Căn giữa dọc */
+    justify-content: center; /* Căn giữa ảnh theo chiều ngang */
+    align-items: center; /* Căn giữa ảnh theo chiều dọc */
     overflow: hidden;
 }
 
+/* Liên kết bao quanh ảnh */
 .product-images a {
     display: flex;
     justify-content: center;
@@ -18,23 +29,59 @@
     height: 100%;
 }
 
+/* Các ảnh sản phẩm */
 .product-image {
     max-width: 100%;
     max-height: 100%;
-    /*object-fit: contain;*/
-    object-fit: cover; /* Giúp ảnh phủ kín khung hình */
-    position: absolute; /* Đảm bảo ảnh nằm trong phần tử cha */
+    object-fit: cover; /* Đảm bảo ảnh phủ kín khung hình */
+    position: absolute;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
 }
 
+/* Ảnh đầu tiên luôn hiển thị */
 .product-image:first-child {
     opacity: 1;
 }
+
+/* Hiển thị hiệu ứng giá gốc */
 .original-price {
     font-size: 0.9rem;
     opacity: 0.6;
 }
+
+/* Hiển thị giá sau giảm */
 .discounted-price {
     font-size: 1.1rem;
+}
+
+/* Tiêu đề và mô tả sản phẩm */
+.product-title, .product-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* Chỉ hiển thị 1 dòng */
+    color: black;
+    max-width: 200px; /* Điều chỉnh chiều rộng nếu cần */
+}
+
+/* Hover để mở rộng mô tả */
+.product-title:hover, .product-description:hover {
+    white-space: normal; /* Hiển thị đầy đủ khi hover */
+    max-width: none; /* Tự động mở rộng khi hover */
+    padding: 5px; /* Tùy chỉnh khoảng cách khi hover */
+}
+
+/* Hiệu ứng chuyển ảnh khi hover */
+.product-images:hover .product-image {
+    opacity: 0;
+}
+
+/* Hiển thị ảnh tiếp theo khi hover */
+.product-images:hover .product-image:nth-child(2) {
+    opacity: 1;
+}
+
+/* Hiển thị ảnh cuối cùng khi hover */
+.product-images:hover .product-image:nth-child(3) {
+    opacity: 1;
 }

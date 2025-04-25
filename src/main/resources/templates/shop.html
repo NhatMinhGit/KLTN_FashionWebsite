@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quần áo nam</title>
+    <title>Shop</title>
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <link rel="stylesheet" th:href="@{/css/user.css}">
     <link rel="stylesheet" th:href="@{/css/shop.css}">
     <link rel="stylesheet" th:href="@{/css/card.css}">
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
-    <script th:src="@{/js/card-js.js}"></script>
     <script th:src="@{/js/header.js}"></script>
 </head>
 <body>
@@ -140,97 +139,50 @@
     </nav>
     <div class="container mt-3">
         <h2 th:text="'Sản phẩm ' + ${currentCategory}"></h2>
-            <div id="productCardContainer" class="row row-cols-4 g-3">
-                <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
-                <div class="col" th:each="product : ${products}">
-                    <div class="product-card">
-                        <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
-                        <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
-                            <a th:href="@{product-detail/{id}(id=${product.id})}">
-                                <img th:each="imageUri : ${productImages[product.id]}"
-                                     th:src="${imageUri}"
-                                     th:alt="${product.name}"
-                                     class="product-image">
-                            </a>
-                        </div>
-
-                        <h5 th:text="${product.name}"></h5>
-                        <p class="product-price">
-                            <span th:if="${product.effectivePrice != null and product.effectivePrice lt product.price}">
-                                <span class="original-price text-muted text-decoration-line-through"
-                                      th:text="${@currencyFormatter.formatVND(product.price)}">
-                                </span>
-                                <span class="discounted-price text-black fw-bold ms-2"
-                                      th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
-                                </span>
-                            </span>
-                            <span th:unless="${product.effectivePrice != null and product.effectivePrice lt product.price}"
-                                  th:text="${@currencyFormatter.formatVND(product.price)}">
-                            </span>
-                        </p>
-                        <p th:text="${product.description}"></p>
+        <div id="productCardContainer" class="row row-cols-4 g-3">
+            <div class="col" th:each="product : ${products}">
+                <div class="product-card">
+                    <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
+                    <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
+                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
+                            <img th:each="imageUri : ${productImages[product.id]}"
+                                 th:src="${imageUri}"
+                                 th:alt="${product.name}"
+                                 class="product-image">
+                        </a>
                     </div>
+
+                    <h5 th:text="${product.name}" class="product-title"></h5>
+                    <p class="product-price">
+                        <span th:if="${product.effectivePrice != null and product.effectivePrice lt product.price}">
+                        <span class="original-price text-muted text-decoration-line-through"
+                              th:text="${@currencyFormatter.formatVND(product.price)}">
+                        </span>
+                        <span class="discounted-price text-black fw-bold ms-2"
+                              th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
+                        </span>
+                        </span>
+                        <span th:unless="${product.effectivePrice != null and product.effectivePrice lt product.price}"
+                              th:text="${@currencyFormatter.formatVND(product.price)}">
+                        </span>
+
+                    </p>
+                    <p th:text="${product.description}" class="product-description"></p>
                 </div>
             </div>
+        </div>
+        <!-- Nút xem thêm -->
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-primary" onclick="loadMore()">Xem thêm</button>
+        </div>
     </div>
     <!--Chat-->
-    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
-</div>
+<!--    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
+
 
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
-
-
-
 </body>
-<script>
-    function searchProducts() {
-        let keyword = document.getElementById("search-input").value; // Kiểm tra phần id của input có chính xác không
-        if (!keyword) {
-            alert("Vui lòng nhập từ khóa tìm kiếm.");
-            return;
-        }
-        fetch(`/user/shop/search?keyword=${encodeURIComponent(keyword)}`)
-            .then(response => {
-                if (!response.ok) throw new Error("Lỗi kết nối server");
-                return response.json(); // hoặc dùng response.text().then(console.log)
-            })
-            .then(products => {
-                let container = document.getElementById("productCardContainer");
-                container.innerHTML = "";
+<script th:src="@{/js/card-js.js}"></script>
 
-                // Kiểm tra nếu có sản phẩm
-                if (products && products.length > 0) {
-                    products.forEach(product => {
-                        const productCard = `
-                    <div class="col">
-                        <div class="product-card">
-                            <div class="product-images">
-                                <a href="/product-detail/${product.id}">
-                                    <img src="${(product.imageUrls && product.imageUrls.length > 0)
-                            ? product.imageUrls[0]
-                            : 'https://res.cloudinary.com/dgtfqxgvx/image/upload/v1744854407/default.png'}"
-                                         alt="${product.name}" class="product-image"/>
-                                </a>
-                            </div>
-                            <h5>${product.name}</h5>
-                            <p class="product-price">${product.price}</p>
-                            <p>${product.description || ""}</p>
-                        </div>
-                    </div>`;
-                        container.innerHTML += productCard;
-                    });
-
-                } else {
-                    // Nếu không có sản phẩm, có thể hiển thị thông báo
-                    container.innerHTML = "<p>Không tìm thấy sản phẩm nào.</p>";
-                }
-            })
-            .catch(error => {
-                console.error("Lỗi khi tìm kiếm:", error);
-                // Có thể hiển thị thông báo lỗi cho người dùng
-            });
-    }
-
-</script>
 </html>

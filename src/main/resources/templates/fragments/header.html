@@ -8,10 +8,16 @@
         <!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
         <!--                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>-->
         <!--            </a>-->
-        <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" id="search-form">
-          <input type="text" id="search-input" placeholder="Tìm kiếm sản phẩm...">
-          <button type="button" onclick="searchProducts(event)">Tìm kiếm</button>
+        <form id="search-form" class="d-flex justify-content-center">
+          <div class="search-bar position-relative">
+            <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm sản phẩm...">
+<!--            <button type="submit" class="search-btn" onclick="searchProducts(event)">-->
+              <button type="submit" class="search-btn">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
         </form>
+
 
 
         <h1 class="text-white">
@@ -91,7 +97,7 @@
     <div class="nav-container">
       <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-between mb-md-0">
         <li><a th:href="@{/user}" class="nav-link px-2 link-body-emphasis">Home</a></li>
-        <li><a href="#" class="nav-link px-2 link-body-emphasis">Shop</a></li>
+        <li><a th:href="@{/user/shop}" class="nav-link px-2 link-body-emphasis">Shop</a></li>
         <li><a href="#" class="nav-link px-2 link-body-emphasis">Blog</a></li>
         <li><a href="#" class="nav-link px-2 link-body-emphasis">About</a></li>
         <li><a href="#" class="nav-link px-2 link-body-emphasis">Contact</a></li>

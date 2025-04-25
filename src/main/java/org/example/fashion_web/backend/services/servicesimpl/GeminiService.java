@@ -149,7 +149,7 @@ public class GeminiService {
         // Kiểm tra sản phẩm trong database
         Optional<Image> relatedProductImage = imageRepository.findAll()
                 .stream()
-                .filter(i -> normalizedMessage.toLowerCase().contains(i.getProduct().getName().toLowerCase()))
+                .filter(i -> normalizedMessage.toLowerCase().contains(i.getProductVariant().getProduct().getName().toLowerCase()))
                 .findFirst();
 
         // Định dạng giá tiền
@@ -395,67 +395,6 @@ public class GeminiService {
     }
 
 
-//    public String checkPrice(String message) {
-//        // Bước 1: Tách giá
-//        Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu)?");
-//        Matcher matcher = pattern.matcher(message.toLowerCase());
-//
-//        List<Long> priceList = new ArrayList<>();
-//
-//        while (matcher.find()) {
-//            String numberPart = matcher.group(1).replace(",", "").replace(".", "");
-//            String unit = matcher.group(2);
-//
-//            long value = Long.parseLong(numberPart);
-//
-//            if (unit != null) {
-//                switch (unit) {
-//                    case "k":
-//                    case "nghìn":
-//                        value *= 1_000;
-//                        break;
-//                    case "tr":
-//                    case "triệu":
-//                        value *= 1_000_000;
-//                        break;
-//                }
-//            }
-//
-//            priceList.add(value);
-//        }
-//
-//        // Bước 2: Xác định khoảng giá
-//        long minPrice = 0;
-//        long maxPrice = Long.MAX_VALUE;
-//
-//        if (priceList.size() == 1) {
-//            long basePrice = priceList.get(0);
-//            minPrice = Math.max(0, basePrice - 50_000);  // tránh âm giá
-//            maxPrice = basePrice + 50_000;
-//        } else if (priceList.size() >= 2) {
-//            minPrice = Math.min(priceList.get(0), priceList.get(1));
-//            maxPrice = Math.max(priceList.get(0), priceList.get(1));
-//        }
-//
-//        // Bước 3: Truy vấn cơ sở dữ liệu
-//        List<Product> products = productRepository.findByPriceBetween(minPrice, maxPrice);
-//        // Bước 4: Xây dựng chuỗi kết quả
-//        if (products.isEmpty()) {
-//            return "Không tìm thấy sản phẩm nào trong khoảng giá yêu cầu.";
-//        }
-//
-//        StringBuilder result = new StringBuilder("<b>Các sản phẩm phù hợp:</b>");
-//        for (Product product : products) {
-//            result.append("<br> - ")
-//                    .append(product.getName())
-//                    .append(" (")
-//                    .append(product.getPrice())
-//                    .append(" VND)\n");
-//        }
-//
-//        return result.toString().trim();
-//    }
-
     public String checkPriceAndCategory(String message) {
         String lowerCaseMessage = message.toLowerCase();
 
@@ -531,6 +470,67 @@ public class GeminiService {
 
         return result.toString().trim();
     }
+
+    public String faqShow() {
+        return """
+        <div style="max-width: 700px; margin: auto;">
+        <h2>CÂU HỎI THƯỜNG GẶP (FAQ)</h2>
+        <p><strong>1. Tôi có thể đổi trả sản phẩm trong bao lâu?</strong><br>
+        Bạn có thể đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng, với điều kiện sản phẩm chưa qua sử dụng và còn nguyên tem, nhãn, bao bì.</p>
+
+        <p><strong>2. Tôi có thể theo dõi đơn hàng của mình ở đâu?</strong><br>
+        Bạn có thể theo dõi đơn hàng bằng cách đăng nhập vào tài khoản và truy cập mục <strong>“Đơn hàng của tôi”</strong>.</p>
+
+        <p><strong>3. Phí vận chuyển được tính như thế nào?</strong><br>
+        Phí vận chuyển sẽ được tính dựa trên vị trí giao hàng. <strong>Miễn phí vận chuyển</strong> cho đơn hàng từ <strong>500.000 VNĐ</strong> trở lên.</p>
+
+        <p><strong>4. Tôi có thể thanh toán bằng hình thức nào?</strong><br>
+        Chúng tôi hỗ trợ nhiều hình thức thanh toán như:<br>
+        – Thanh toán khi nhận hàng (<strong>COD</strong>)<br>
+        – Chuyển khoản ngân hàng<br>
+        – Thanh toán trực tuyến qua <strong>VNPay</strong> hoặc <strong>Momo</strong></p>
+
+        <p><strong>5. Làm sao để sử dụng mã giảm giá?</strong><br>
+        Bạn có thể nhập <strong>mã giảm giá</strong> tại bước thanh toán trong ô “Mã khuyến mãi”. Mỗi mã sẽ có điều kiện và thời hạn sử dụng riêng.</p>
+
+        <p><strong>6. Tôi có thể liên hệ bộ phận chăm sóc khách hàng bằng cách nào?</strong><br>
+        Bạn có thể liên hệ qua hotline <strong>1900 1234</strong>, email <strong>support@thoitrangweb.vn</strong>, hoặc nhắn tin qua fanpage Facebook của chúng tôi.</p>
+        </div>
+    """;
+    }
+    public String refundPolicyForStaff() {
+        return """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM</h2>
+        <p><strong>1. Thời hạn đổi/trả:</strong><br>
+        Khách hàng được đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng. Thời gian tính theo ngày giao hàng thành công được cập nhật trên hệ thống.</p>
+
+        <p><strong>2. Điều kiện đổi/trả:</strong><br>
+        – Sản phẩm chưa qua sử dụng, còn nguyên tem, nhãn mác, bao bì gốc.<br>
+        – Không có dấu hiệu bị giặt, bẩn, rách, hỏng do tác động bên ngoài.<br>
+        – Có đầy đủ hóa đơn mua hàng hoặc mã đơn hàng.<br>
+        – Sản phẩm nằm trong danh mục <strong>được áp dụng đổi/trả</strong>.</p>
+
+        <p><strong>3. Trường hợp không áp dụng đổi/trả:</strong><br>
+        – Sản phẩm trong chương trình giảm giá trên 50% (trừ khi có lỗi từ nhà sản xuất).<br>
+        – Sản phẩm thuộc nhóm phụ kiện, đồ lót, tất vớ, đồ mặc trong.<br>
+        – Sản phẩm bị hư hỏng do khách hàng bảo quản sai cách.</p>
+
+        <p><strong>4. Quy trình đổi/trả:</strong><br>
+        – Bước 1: Khách hàng liên hệ bộ phận CSKH qua hotline hoặc fanpage.<br>
+        – Bước 2: Cung cấp mã đơn hàng, lý do đổi/trả và hình ảnh sản phẩm.<br>
+        – Bước 3: Chờ xác nhận từ nhân viên và tiến hành gửi hàng về kho.<br>
+        – Bước 4: Nhận sản phẩm mới hoặc hoàn tiền sau khi kiểm tra hàng.</p>
+
+        <p><strong>5. Phí đổi/trả:</strong><br>
+        – Đổi hàng do lỗi của nhà cung cấp: <strong>Miễn phí</strong>.<br>
+        – Đổi hàng do nhu cầu cá nhân: Khách hàng chịu phí vận chuyển 2 chiều.</p>
+
+        <p><strong>Lưu ý:</strong> Toàn bộ quy trình xử lý đổi/trả thường mất từ <strong>3–5 ngày làm việc</strong> kể từ khi chúng tôi nhận được sản phẩm gửi về.</p>
+    </div>
+    """;
+    }
+
 
 
 
