@@ -22,8 +22,10 @@
 
 <body>
 <div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
     <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
 
+    <!-- Content -->
     <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Quản lý Voucher</h1>
@@ -105,7 +107,7 @@
         </div>
     </div>
     <!--Chat-->
-    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
+<!--    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
 </div>
 
 <script th:src="@{/js/bootstrap-5.3.3.js}"></script>

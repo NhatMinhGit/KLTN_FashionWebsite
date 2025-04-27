@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Thêm Biến Thể Sản Phẩm</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h2>Thêm Biến Thể cho Sản Phẩm: <span th:text="${product.name}"></span></h2>
+
+    <form th:action="@{/admin/products/{id}/addVariants(productId=${product.id})}"
+          th:object="${productVariantDto}" method="post">
+        <!-- Màu sắc -->
+        <div class="form-group">
+            <label for="color">Màu sắc:</label>
+            <input type="text" class="form-control" id="color" th:field="*{color}" placeholder="Nhập màu sắc">
+        </div>
+
+        <!-- Kích thước và số lượng -->
+        <div class="form-group">
+            <label for="sizes">Kích thước và Số lượng:</label>
+            <div id="sizes">
+                <div class="form-row">
+                    <div class="col">
+                        <input type="text" class="form-control" name="sizes[0].sizeName" placeholder="Kích thước" required>
+                    </div>
+                    <div class="col">
+                        <input type="number" class="form-control" name="sizes[0].stockQuantity" placeholder="Số lượng" required>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary mt-2" id="addSizeRow">Thêm Kích Thước</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu Biến Thể</button>
+    </form>
+</div>
+
+<script>
+    // JavaScript để thêm dòng kích thước và số lượng
+    let sizeCount = 1;
+    document.getElementById("addSizeRow").addEventListener("click", function() {
+        let sizeRow = document.createElement("div");
+        sizeRow.classList.add("form-row", "mt-2");
+        sizeRow.innerHTML = `
+                <div class="col">
+                    <input type="text" class="form-control" name="sizes[${sizeCount}].sizeName" placeholder="Kích thước" required>
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control" name="sizes[${sizeCount}].stockQuantity" placeholder="Số lượng" required>
+                </div>
+            `;
+        document.getElementById("sizes").appendChild(sizeRow);
+        sizeCount++;
+    });
+</script>
+</body>
+</html>

@@ -46,3 +46,57 @@
         display: flex;
         align-items: center;
     }
+
+    .search-bar {
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+    }
+
+    .search-bar input {
+        width: 100%;
+        padding: 10px 40px 10px 20px;
+        border: 2px solid #ccc;
+        border-radius: 999px;
+        outline: none;
+        font-size: 16px;
+    }
+
+    .search-btn {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        border: none;
+        background: none;
+        font-size: 18px;
+        color: #555;
+        cursor: pointer;
+    }
+
+    /*#search-form .btn-primary {*/
+    /*    background-color: #007bff; !* Màu xanh dương đậm hơn *!*/
+    /*    border-color: #007bff;*/
+    /*    color: white;*/
+    /*    padding: 0.7rem 1.5rem; !* Tăng padding *!*/
+    /*    font-weight: bold; !* Chữ đậm *!*/
+    /*    transition: background-color 0.3s ease; !* Hiệu ứng chuyển màu khi hover *!*/
+    /*}*/
+
+    /*#search-form .btn-primary:hover {*/
+    /*    background-color: #0056b3; !* Màu xanh dương đậm hơn khi hover *!*/
+    /*    border-color: #0056b3;*/
+    /*    cursor: pointer; !* Hiển thị con trỏ chuột khi hover *!*/
+    /*    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); !* Thêm bóng đổ nhẹ khi hover *!*/
+    /*}*/
+
+    /*!* Thử nghiệm với góc bo tròn khác *!*/
+    /*#search-form .btn-primary.rounded-end {*/
+    /*    border-top-right-radius: 0.5rem;*/
+    /*    border-bottom-right-radius: 0.5rem;*/
+    /*}*/
+
+    /*!* Thêm một chút khoảng cách với input *!*/
+    /*#search-form .input-group > .btn {*/
+    /*    margin-left: 2px;*/
+    /*}*/

@@ -16,7 +16,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Tìm sản phẩm theo ID (mặc định JpaRepository đã có findById)
     Optional<Product> findById(Long id);
+    Optional<Product> findProductByName(String categoryName);
 
+    List<Product> findByName(String productName);
     // Kiểm tra xem sản phẩm có tồn tại không
     boolean existsById(Long id);
 
@@ -24,6 +26,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Lọc sản phẩm theo khoảng giá
     List<Product> findByPriceBetween(Double min, Double max);
     List<Product> findProductsByCategoryName(String category);
+    List<Product> findProductsByName (String product);
 
     @Query("SELECT p FROM Product p WHERE p.category.id IN :categoryIds")
     List<Product> findByCategoryIds(@Param("categoryIds") List<Long> categoryIds);
@@ -32,7 +35,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Tìm kiếm sản phẩm theo tên (có thể áp dụng khi muốn tìm sản phẩm theo từ khóa)
     List<Product> findByNameContaining(String name);
     // Tìm kiếm sản phẩm theo tên
-    List<Product> findByName(String productName);
+
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    List<Product> findByPriceBetween(long priceMin,long priceMax);
+
+    List<Product>findByPriceBetweenAndCategoryName(long priceMin,long priceMax,String name);
 
 }

@@ -7,10 +7,13 @@ import org.example.fashion_web.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -58,12 +61,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
     @Override
     public User findByUsername(String username) {
         return userRepository.findByName(username);
+    }
+
+    @Override
+    public List<User> getAllUsersExceptCurrent() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findAll()
+                .stream()
+                .filter(user -> !user.getEmail().equals(currentUsername))
+                .collect(Collectors.toList());
     }
 
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Thêm Ứng Viên</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-5">
@@ -44,15 +44,7 @@
                     <label for="brand" class="form-label">Nhãn hàng:</label>
                     <input type="text" class="form-control" id="brand" th:field="*{brand_name}" required />
                 </div>
-                <div class="mb-3">
-                    <label for="stock_quantity" class="form-label">Số lượng tồn:</label>
-                    <input type="number" class="form-control" id="stock_quantity" th:field="*{stock_quantity}" required />
-                </div>
-<!--                <div id="drop-area" class="border border-primary p-4 text-center">-->
-<!--                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>-->
-<!--                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />-->
-<!--                    <div id="preview" class="d-flex flex-wrap mt-3"></div>-->
-<!--                </div>-->
+
                 <div id="drop-area" class="border border-primary p-4 text-center">
                     <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
 
@@ -78,13 +70,47 @@
 
             </div>
         </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                Kích Cỡ & Số Lượng
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Dropdown chọn màu -->
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label th:for="color" class="form-label">Màu sắc</label>
+                            <select th:name="color" th:id="color" class="form-control">
+                                <option value="Red">Đỏ</option>
+                                <option value="Blue">Xanh Dương</option>
+                                <option value="Green">Xanh Lục</option>
+                                <option value="Black">Đen</option>
+                                <option value="White">Trắng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Duyệt qua các kích cỡ như S, M, L, XL, XXL -->
+                    <div class="col-md-2" th:each="size : ${T(java.util.List).of('S','M','L','XL','XXL')}">
+                        <div class="mb-3">
+                            <label th:for="${'size_' + size}" th:text="${size}" class="form-label"></label>
+                            <input type="number" class="form-control"
+                                   th:id="${'size_' + size}"
+                                   th:name="${'sizeQuantities[' + size + ']'}"
+                                   th:value="${productForm.sizeQuantities[size]}"
+                                   min="0" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
 
         <button type="submit" class="btn btn-primary">Thêm Sản Phẩm</button>
         <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
     <!--Chat-->
-    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
+<!--    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
 </div>
 <script>
     const dropArea = document.getElementById("drop-area");
@@ -113,24 +139,68 @@
         fileInput.files = files; // Gán lại vào input để submit được
         previewNewImages(files);
     });
+    document.getElementById('imageFile').addEventListener('change', function (event) {
+        const preview = document.getElementById('new-image-preview');
+        preview.innerHTML = ""; // Xoá preview cũ
 
-    function previewNewImages(files) {
-        newImagePreview.innerHTML = "";
-        Array.from(files).forEach(file => {
-            if (!file.type.startsWith("image/")) return;
-
+        Array.from(event.target.files).forEach(file => {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.createElement("img");
+            reader.onload = function (e) {
+                const img = document.createElement('img');
                 img.src = e.target.result;
-                img.style.width = "150px";
-                img.style.border = "1px solid #ccc";
-                img.style.borderRadius = "5px";
-                img.style.margin = "5px";
-                newImagePreview.appendChild(img);
+                img.style.width = '150px';
+                img.style.margin = '5px';
+                img.style.border = '1px solid #ccc';
+                img.style.borderRadius = '5px';
+                preview.appendChild(img);
             };
             reader.readAsDataURL(file);
         });
+    });
+    async function previewNewImages(files) {
+        newImagePreview.innerHTML = "";
+
+        for (const file of files) {
+            if (!file.type.startsWith("image/")) continue;
+
+            const imgElement = document.createElement("img");
+            imgElement.style.width = "150px";
+            imgElement.style.border = "1px solid #ccc";
+            imgElement.style.borderRadius = "5px";
+            imgElement.style.margin = "5px";
+
+            newImagePreview.appendChild(imgElement);
+
+            // Upload lên Cloudinary
+            const imageUrl = await uploadToCloudinary(file);
+            imgElement.src = imageUrl;
+
+            // Thêm input ẩn để gửi URL về backend
+            const hiddenInput = document.createElement("input");
+            hiddenInput.type = "hidden";
+            hiddenInput.name = "imageUrls";
+            hiddenInput.value = imageUrl;
+            newImagePreview.appendChild(hiddenInput);
+        }
+    }
+
+
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dgtfqxgvx/upload';
+    const CLOUDINARY_UPLOAD_PRESET = 'ml_default'; // dùng unsigned preset
+
+    async function uploadToCloudinary(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+
+        const res = await fetch(CLOUDINARY_URL, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await res.json();
+        return data.secure_url; // URL ảnh
     }
 </script>
 

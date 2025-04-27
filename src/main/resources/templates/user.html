@@ -9,8 +9,9 @@
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <link rel="stylesheet" th:href="@{/css/user.css}">
     <link rel="stylesheet" th:href="@{/css/card.css}">
+<!--    <link rel="stylesheet" th:href="@{/css/carousel.css}">-->
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
-    <script th:src="@{/js/card-js.js}"></script>
+    <script th:src="@{/js/header.js}"></script>
 </head>
 
 <body>
@@ -19,22 +20,19 @@
 <main class="container">
     <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active"
-                    aria-label="Slide 1" aria-current="true"></button>
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2"
-                    class=""></button>
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3"
-                    class=""></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
         </div>
         <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="/pics/tet-de-dang-theme.webp" class="d-block w-100" alt="Banner 1">
+                <img src="/pics/tet-de-dang-theme.webp" class="d-block w-100 carousel-image" alt="Banner 1">
             </div>
             <div class="carousel-item">
-                <img src="/pics/easy-tet-tet-theme02.webp" class="d-block w-100" alt="Banner 1">
+                <img src="/pics/easy-tet-tet-theme02.webp" class="d-block w-100 carousel-image" alt="Banner 2">
             </div>
             <div class="carousel-item">
-                <img src="/pics/frame-theme03.webp" class="d-block w-100" alt="Banner 1">
+                <img src="/pics/frame-theme03.webp" class="d-block w-100 carousel-image" alt="Banner 3">
             </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
@@ -50,33 +48,58 @@
 <div class="container">
     <div class="nav custom-nav-container">
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center text-center w-100">
-            <li><a th:href="@{/user/shop(category='nam')}" class="nav-link px-3 link-danger text-white">Nam</a></li>
-            <li><a th:href="@{user/shop(category='nu')}" class="nav-link px-3 link-danger text-white">Nữ</a></li>
+            <li><a th:href="@{/user/shop(category='Nam')}" class="nav-link px-3 link-danger text-white">Nam</a></li>
+            <li><a th:href="@{/user/shop(category='Nữ')}" class="nav-link px-3 link-danger text-white">Nữ</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Trẻ em</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Unisex</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Phụ kiện</a></li>
         </ul>
     </div>
     <div class="container mt-3">
-        <h2 th:text="${currentCategory == 'nam' ? 'Sản phẩm Nam' : 'Sản phẩm Nữ'}"></h2>
-        <div class="row row-cols-4 g-3">
+        <div id="productCardContainer" class="row row-cols-4 g-3">
             <div class="col" th:each="product : ${products}">
                 <div class="product-card">
                     <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
                     <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
                         <a th:href="@{user/product-detail/{id}(id=${product.id})}">
-                            <img th:each="imageUri : ${productImages[product.id]}"
-                                 th:src="@{{filename}(filename=${imageUri})}"
-                                 th:alt="${product.name}"
-                                 class="product-image">
+                            <!-- Lặp qua các variants để hiển thị ảnh -->
+                            <div th:each="variant, iterStat : ${product.variants}">
+                                <div th:each="imageUri : ${productVariantImages[product.id][variant.id]}" th:if="${iterStat.index < 3}">
+                                    <img th:src="${imageUri}" th:alt="${variant.color}" class="product-image" />
+                                </div>
+                            </div>
                         </a>
                     </div>
 
-                    <h5 th:text="${product.name}"></h5>
-                    <p class="product-price" th:text="${@currencyFormatter.formatVND(product.price)}"></p>
-                    <p th:text="${product.description}"></p>
+
+                    <!-- Tiêu đề sản phẩm -->
+                    <h5 th:text="${product.name}" class="product-title"></h5>
+
+                    <!-- Giá sản phẩm -->
+                    <p class="product-price">
+                    <span th:if="${product.effectivePrice != null and product.effectivePrice lt product.price}">
+                        <span class="original-price text-muted text-decoration-line-through"
+                              th:text="${@currencyFormatter.formatVND(product.price)}">
+                        </span>
+                        <span class="discounted-price text-black fw-bold ms-2"
+                              th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
+                        </span>
+                    </span>
+                        <span th:unless="${product.effectivePrice != null and product.effectivePrice lt product.price}"
+                              th:text="${@currencyFormatter.formatVND(product.price)}">
+                    </span>
+                    </p>
+
+                    <!-- Mô tả sản phẩm -->
+                    <p th:text="${product.description}" class="product-description"></p>
+
                 </div>
             </div>
+        </div>
+
+        <!-- Nút xem thêm -->
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-primary" onclick="loadMore()">Xem thêm</button>
         </div>
     </div>
 
@@ -86,32 +109,7 @@
         <h3>Introducing</h3>
         <h1>Fashion website shop</h1>
         <p>Nơi bạn có thể tìm được những mặt hàng thời trang ưng ý.</p>
-        <a href="#" class="btn">Mua ngay</a>
-    </div>
-</div>
-<div class="container">
-    <div class="container mt-3">
-        <h1>Trending products</h1>
-        <div class="row row-cols-4 g-3">
-            <!-- Lặp qua danh sách sản phẩm bằng Thymeleaf -->
-            <div class="col" th:each="product : ${products}">
-                <div class="product-card">
-                    <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
-                    <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
-                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
-                            <img th:each="imageUri : ${productImages[product.id]}"
-                                 th:src="@{{filename}(filename=${imageUri})}"
-                                 th:alt="${product.name}"
-                                 class="product-image">
-                        </a>
-                    </div>
-
-                    <h5 th:text="${product.name}"></h5>
-                    <p class="product-price" th:text="${@currencyFormatter.formatVND(product.price)}"></p>
-                    <p th:text="${product.description}"></p>
-                </div>
-            </div>
-        </div>
+        <a th:href="@{/user/shop}" class="btn">Mua ngay</a>
     </div>
 </div>
 <!-- Dịch vụ -->
@@ -148,8 +146,9 @@
         </div>
     </div>
 <!--Chat-->
-<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
+<!--<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
+<script th:src="@{/js/card-js.js}"></script>
 </html>
