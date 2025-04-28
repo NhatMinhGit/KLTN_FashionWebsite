@@ -83,6 +83,7 @@ public class OrderController {
     @Autowired
     private VNPAYService vnPayService;
 
+    @Autowired
     private SizeRepository sizeRepository;
 
     @Autowired
@@ -302,7 +303,6 @@ public class OrderController {
                         item.getPricePerUnit()
                 );
 
-                orderItemRepository.save(orderItem);
 
                 Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
 
@@ -337,7 +337,7 @@ public class OrderController {
                 }, () -> {
                     throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
                 });
-
+                orderItemRepository.save(orderItem);
             }
 
             // lưu voucher user vào database
