@@ -302,6 +302,8 @@ public class OrderController {
                         item.getPricePerUnit()
                 );
 
+                orderItemRepository.save(orderItem);
+
                 Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
 
                 productOpt.ifPresentOrElse(product -> {
@@ -336,7 +338,6 @@ public class OrderController {
                     throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
                 });
 
-                orderItemRepository.save(orderItem);
             }
 
             // lưu voucher user vào database
