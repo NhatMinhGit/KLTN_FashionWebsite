@@ -3,6 +3,9 @@ package org.example.fashion_web.backend.configurations;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.dto.OrderDto;
+import org.example.fashion_web.backend.models.Order;
+import org.example.fashion_web.backend.repositories.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -10,10 +13,15 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
 public class VNPAYService {
+    @Autowired
+    private OrderRepository orderRepository;
+
     public String createOrder(HttpSession session, HttpServletRequest request, Long orderId, String urlReturn){
         //Các bạn có thể tham khảo tài liệu hướng dẫn và điều chỉnh các tham số
         String vnp_Version = "2.1.0";
@@ -29,6 +37,7 @@ public class VNPAYService {
             throw new IllegalStateException("Payment information is missing or invalid");
         }
 
+        Order o = orderRepository.findById(orderId).get();
 
         // Tính toán vnp_Amount: Nhân với 100 để chuyển sang đơn vị nhỏ nhất
         BigDecimal vnpAmount = paymentInfo.getTotalPrice().multiply(BigDecimal.valueOf(100)); // Nhân với 100
@@ -60,6 +69,13 @@ public class VNPAYService {
         cld.add(Calendar.MINUTE, 15);
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
+
+
+        //lưu thời gian hết hạn vào database
+        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        LocalDateTime vnpExpireDate = LocalDateTime.parse(vnp_ExpireDate, formatter1);
+        o.setExpireDate(vnpExpireDate);
+        orderRepository.save(o);
 
         List fieldNames = new ArrayList(vnp_Params.keySet());
         Collections.sort(fieldNames);

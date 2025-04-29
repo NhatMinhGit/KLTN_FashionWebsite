@@ -44,6 +44,9 @@ public class Order {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "expire_date")
+    private LocalDateTime expireDate;
+
     @Column(name="vnpay_id")
     private String vnpId;
 

@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class PaymentController {
     private VoucherRepository voucherRepository;
 
     @Autowired
-    private  UserVoucherRepository userVoucherRepository;
+    private UserVoucherRepository userVoucherRepository;
 
     @Autowired
     private ImageService imageService;
@@ -59,6 +60,7 @@ public class PaymentController {
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         return vnPayService.createOrder(session, request, orderId, baseUrl);
     }
+
     // Sau khi hoàn tất thanh toán, VNPAY sẽ chuyển hướng trình duyệt về URL này
     @GetMapping("/user/order/vnpay-payment-return")
     public String paymentCompleted(HttpSession session, HttpServletRequest request, Model model) {
@@ -73,30 +75,21 @@ public class PaymentController {
         String paymentTime = request.getParameter("vnp_PayDate");
         String transactionId = request.getParameter("vnp_TransactionNo");
         String totalPrice = request.getParameter("vnp_Amount");
-        String vnpId= request.getParameter("vnp_TxnRef");
-
+        String vnpId = request.getParameter("vnp_TxnRef");
+        // Nhóm danh sách ảnh theo productId
+        Map<Long, List<String>> productImages = new HashMap<>();
+        for (CartItems item : cartItems) {
+            List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
+            List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+            productImages.put(item.getProduct().getId(), imageUrls);
+        }
         if (paymentStatus == 1 && order.isPresent()) {
             // Cập nhật trạng thái đơn hàng
             Order o = order.get();
-            o.setStatus(Order.OrderStatusType.SHIPPED);
-            o.setCreatedAt(LocalDateTime.now());
+            o.setStatus(Order.OrderStatusType.PAID);
             o.setVnpId(vnpId);
             orderRepository.save(o);
-            // Nhóm danh sách ảnh theo productId
-            Map<Long, List<String>> productImages = new HashMap<>();
-            for (CartItems item : cartItems) {
-                List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
-                List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
-                productImages.put(item.getProduct().getId(), imageUrls);
-            }
-            // Lưu các mục trong giỏ hàng thành OrderItem
-//            for (CartItems item : cartItems) {
-//                Product product = productRepository.findById(item.getProduct().getId()).orElse(null);
-//                if (product != null) {
-//                    product.setStock_quantity(product.getStock_quantity() - item.getQuantity());
-//                    productRepository.save(product);
-//                }
-//            }
+
             for (CartItems item : cartItems) {
                 Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
 
@@ -115,7 +108,7 @@ public class PaymentController {
 
                         sizeOpt.ifPresentOrElse(size -> {
                             if (size.getStockQuantity() >= item.getQuantity()) {
-                                size.setStockQuantity(size.getStockQuantity() - item.getQuantity()); // Giảm tồn kho size
+                                size.setStockQuantity(size.getStockQuantity()); // Giảm tồn kho size
                                 sizeRepository.save(size); // Lưu lại size đã cập nhật
                             } else {
                                 throw new RuntimeException("Not enough stock for size: " + size.getSizeName());
@@ -139,6 +132,7 @@ public class PaymentController {
             payment.setPaymentMethod(Payment.PaymentMethodType.valueOf(paymentInfo.getPaymentMethod()));
             payment.setPaymentDate(LocalDateTime.now());
             payment.setPaymentStatus(String.valueOf(1));
+
             paymentRepository.save(payment);
 
             // Lưu voucher (nếu có)
@@ -167,10 +161,71 @@ public class PaymentController {
             session.removeAttribute("cartItems");
             session.removeAttribute("paymentInfo");
             session.removeAttribute("paymentOrderId");
+            return "/order/ordersuccess";
+        } else  {
+            // Cập nhật trạng thái đơn hàng
+            Order o = order.get();
+            o.setStatus(Order.OrderStatusType.PAYING);
+            o.setVnpId(vnpId);
 
+            orderRepository.save(o); 
+            return "redirect:/user/order/payment-timer";
         }
 
-        return paymentStatus == 1 ? "/order/ordersuccess" : "/user";
     }
+
+    @GetMapping("/user/order/payment-timer")
+    public String paymentTimerPage(HttpSession session, Model model) {
+        Long orderId = (Long) session.getAttribute("paymentOrderId");
+        if (orderId == null) {
+            return "redirect:/user/order"; // Không có orderId -> về lại trang đặt hàng
+        }
+
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        if (optionalOrder.isEmpty()) {
+            return "redirect:/user/order";
+        }
+
+        Order order = optionalOrder.get();
+
+        // Tính số giây còn lại
+        LocalDateTime now = LocalDateTime.now();
+        long remainingSeconds = java.time.Duration.between(now, order.getExpireDate()).getSeconds();
+
+        if (remainingSeconds <= 0) {
+            return "redirect:/user/order"; // Hết hạn -> về lại
+        }
+
+        model.addAttribute("remainingSeconds", remainingSeconds);
+        return "order/order-payment-timer"; // trỏ tới file payment-timer.html
+    }
+
+    @GetMapping("/user/order/continue-payment")
+    public String continuePayment(HttpSession session, HttpServletRequest request) {
+        Long orderId = (Long) session.getAttribute("paymentOrderId");
+        if (orderId == null) {
+            return "redirect:/user/order";
+        }
+        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        return "redirect:" + vnPayService.createOrder(session, request, orderId, baseUrl);
+    }
+
+    @GetMapping("/user/order/cancel-payment")
+    public String cancelPayment(HttpSession session) {
+        Long orderId = (Long) session.getAttribute("paymentOrderId");
+        if (orderId != null) {
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if (optionalOrder.isPresent()) {
+                Order order = optionalOrder.get();
+                order.setStatus(Order.OrderStatusType.CANCELLED);
+                orderRepository.save(order); // thêm dòng này để lưu vào DB
+            }
+            session.removeAttribute("paymentOrderId");
+            session.removeAttribute("cartItems");
+            session.removeAttribute("paymentInfo");
+        }
+        return "redirect:/user";
+    }
+
 
 }

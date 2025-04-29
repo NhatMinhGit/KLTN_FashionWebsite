@@ -67,6 +67,8 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-core:6.4.4'
 	//Tích hợp cloudinary
 	implementation 'com.cloudinary:cloudinary-http44:1.39.0'
+	//tích hợp sendgrid
+	implementation 'com.sendgrid:sendgrid-java:4.9.3'
 }
 
 dependencyManagement {
