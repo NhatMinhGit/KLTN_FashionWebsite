@@ -20,8 +20,4 @@ public class ProductVariant {
     @Column(name = "color", nullable = false)
     private String color;
 
-//    @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    private List<Size> sizes = new ArrayList<>();
-//
-
 }

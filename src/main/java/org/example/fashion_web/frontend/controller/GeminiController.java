@@ -153,27 +153,33 @@ public class GeminiController {
             product.setEffectivePrice(effectivePrice);
         }
 
-        Map<Long, List<String>> productImages = new HashMap<>();
-        // Nhóm danh sách ảnh theo productId
+        // Map ảnh theo variantId thay vì productId
+        Map<Long, List<String>> imagesByVariant = new HashMap<>();
+
         for (Product product : products) {
-            List<Image> images = imageService.findImagesByProductVariantId(product.getId());
-            if (images != null && !images.isEmpty()) {
-                List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
-                productImages.put(product.getId(), imageUrls);
+            List<ProductVariant> variants = product.getVariants();
+            if (variants != null) {
+                for (ProductVariant variant : variants) {
+                    List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+                    if (images != null && !images.isEmpty()) {
+                        List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+                        imagesByVariant.put(variant.getId(), imageUrls);
+                    }
+                }
             }
         }
-        model.addAttribute("productImages", productImages);
+        model.addAttribute("imagesByVariant", imagesByVariant);
 
+        // Map size - số lượng tồn kho theo variant
         Map<Long, Map<String, Integer>> productSizeQuantities = new HashMap<>();
         Map<Long, List<ProductVariant>> productVariants = new HashMap<>();
 
         for (Product product : products) {
-            List<ProductVariant> variants = product.getVariants(); // Lấy tất cả các variants của sản phẩm
+            List<ProductVariant> variants = product.getVariants();
             productVariants.put(product.getId(), variants);
 
             Map<String, Integer> sizeQuantities = new HashMap<>();
             for (ProductVariant variant : variants) {
-                // Lấy danh sách kích thước từ sizeService thay vì từ variant.getSizes()
                 List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
                 if (sizes != null) {
                     for (Size size : sizes) {
@@ -184,11 +190,10 @@ public class GeminiController {
             productSizeQuantities.put(product.getId(), sizeQuantities);
         }
 
-
         model.addAttribute("productVariants", productVariants);
         model.addAttribute("productSizeQuantities", productSizeQuantities);
 
-        // Lọc các sản phẩm khuyến mãi (Pre-sale)
+        // Lọc các sản phẩm khuyến mãi
         List<Product> preSaleProducts = products.stream()
                 .filter(p -> p.getEffectivePrice().compareTo(p.getPrice()) < 0)
                 .sorted(Comparator.comparing(Product::getEffectivePrice))
@@ -196,23 +201,16 @@ public class GeminiController {
                 .collect(Collectors.toList());
         model.addAttribute("preSaleProducts", preSaleProducts);
 
-        // Xử lý principal và user
+        // Xử lý principal
         if (principal != null) {
-            System.out.println("Principal Name: " + principal.getName());
-
             User user = userService.findByEmail(principal.getName());
             if (user != null) {
                 userId = user.getId();
                 model.addAttribute("user", user);
-            } else {
-                System.out.println("User not found for: " + principal.getName());
             }
-        } else {
-            System.out.println("Principal is NULL!");
         }
-
-        System.out.println("UserID in chatbotPage: " + userId);
 
         return new ModelAndView("ai_chatbot/chat-window");
     }
+
 }

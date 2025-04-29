@@ -229,23 +229,30 @@
                             <tbody>
                             <tr th:each="product : ${preSaleProducts}">
                                 <td>
-                                    <img th:src="${productImages[product.id][0]}" alt="Ảnh sản phẩm" width="50">
+                                    <!-- Lấy variant đầu tiên -->
+                                    <div th:if="${productVariants[product.id] != null and !productVariants[product.id].isEmpty()}">
+                                        <img th:src="@{${imagesByVariant[productVariants[product.id][0].id][0]}}"
+                                             alt="Ảnh sản phẩm" width="50">
+                                    </div>
+                                    <div th:unless="${productVariants[product.id] != null and !productVariants[product.id].isEmpty()}">
+                                        <span>Không có ảnh</span>
+                                    </div>
                                 </td>
                                 <td th:text="${product.name}">Tên sản phẩm</td>
                                 <td class="text-danger" th:text="${#numbers.formatDecimal(product.effectivePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</td>
                                 <td>
                                     <del th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</del>
                                 </td>
-                                <!-- Hiển thị các kích cỡ -->
+                                <!-- Size và số lượng -->
                                 <td class="productSizeQuantities">
                                     <ul>
-                                        <div th:each="entry : ${productSizeQuantities[product.id].entrySet()}"
-                                             class="size-item">
+                                        <div th:each="entry : ${productSizeQuantities[product.id].entrySet()}" class="size-item">
                                             <span th:text="'Size: ' + ${entry.key} + ' - Còn: ' + ${entry.value}"></span>
                                         </div>
                                     </ul>
                                 </td>
                             </tr>
+
                             </tbody>
                         </table>
                         </div>

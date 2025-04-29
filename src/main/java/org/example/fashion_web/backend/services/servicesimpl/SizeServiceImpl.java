@@ -44,6 +44,11 @@ public class SizeServiceImpl implements SizeService {
         return sizeRepository.findByProductVariantId(id);
     }
 
+    @Override
+    public Optional<Size> findByProductVariantIdAndSizeName(Long id, String name) {
+        return sizeRepository.findByProductVariantIdAndSizeName(id,name);
+    }
+
 //    @Override
 //    public Optional<Size> findByProductAndSizeName(Product product, String sizeName) {
 //        return sizeRepository.findByProductAndSizeName(product, sizeName);

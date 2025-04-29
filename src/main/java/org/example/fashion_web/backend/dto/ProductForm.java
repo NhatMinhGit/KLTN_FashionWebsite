@@ -33,16 +33,17 @@ public class ProductForm {
     // Thông tin danh sách ảnh
     private List<MultipartFile> imageFile;
 
+    private Map<Long, String> variantColors = new HashMap<>();
+
     private List<String> imageColors = new ArrayList<>();
 
     // Thêm danh sách size và quantity
     private Map<String, Integer> sizeQuantities = new HashMap<>();
 
-
-    // Thêm thông tin về variant (bao gồm màu sắc và danh sách size với số lượng)
-//    private Map<String, Map<String, Integer>> variantSizes = new HashMap<>(); // Key là màu sắc, value là Map của size -> quantity
     private Map<Long, Map<String, Integer>> variantSizes = new HashMap<>(); // Key là màu sắc, value là Map của size ID -> quantity
 
     private List<String> color;
+
+    private List<Long> deletedVariantsColor; // Thêm vào trường deletedVariantsColor
 
 }
