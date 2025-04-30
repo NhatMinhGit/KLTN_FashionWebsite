@@ -2,12 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Cập Nhật Ứng Viên</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Cập Nhật Sản Phẩm</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 <div class="container mt-5">
-    <h1 class="mb-4 text-center">Cập Nhật Ứng Viên</h1>
+    <h1 class="mb-4 text-center">Cập Nhật Sản Phẩm</h1>
 
     <!-- Hiển thị thông báo lỗi nếu có -->
     <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -16,7 +20,7 @@
     </div>
 
     <form th:action="@{/admin/products/edit/{id}(id=${productForm.product_id})}" th:object="${productForm}" method="post" enctype="multipart/form-data">
-        <!-- Trường ẩn chứa ID ứng viên -->
+        <!-- Trường ẩn chứa ID sản phẩm -->
         <input type="hidden" th:field="*{product_id}" />
 
         <div class="card mb-4">
@@ -43,10 +47,6 @@
                         <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
                     </select>
                 </div>
-<!--                <div class="mb-3">-->
-<!--                    <label for="brand" class="form-label">Nhãn hàng:</label>-->
-<!--                    <input type="text" class="form-control" id="brand" th:field="*{brand_name}" required />-->
-<!--                </div>-->
                 <div class="mb-3">
                     <label for="brand" class="form-label">Nhãn hàng:</label>
                     <select class="form-control" id="brand" th:field="*{brand_name}" required>
@@ -54,64 +54,191 @@
                         <option th:each="brand : ${brands}" th:value="${brand.name}" th:text="${brand.name}"></option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label for="stock_quantity" class="form-label">Số lượng tồn:</label>
-                    <input type="number" class="form-control" id="stock_quantity" th:value="*{stock_quantity}" th:field="*{stock_quantity}" required />
+            </div>
+        </div>
+
+<!--        <div th:text="${variantSizeQuantities}"></div>-->
+        <div th:each="variant, stat : ${productVariants}">
+            <div class="card mb-4 position-relative" th:id="'variantCard_' + ${variant.id}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span th:text="'Màu sắc: ' + ${variant.color}"></span>
+                    <!-- Checkbox để xóa ảnh, không phải variant -->
+                    <input type="checkbox" th:field="*{deletedVariantsColor}" th:value="${variant.id}" title="Xoá màu này"
+                           style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px;" />
+
                 </div>
-                <div id="drop-area" class="border border-primary p-4 text-center">
-                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
 
-                    <!-- Chọn ảnh mới -->
-                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />
-
-                    <!-- Preview ảnh cũ & checkbox xóa -->
-                    <div id="preview" class="d-flex flex-wrap mt-3 gap-2 justify-content-center">
-                        <th:block th:each="imgUrl : ${imageUrls}">
-                            <div class="position-relative m-1" style="display: inline-block;">
-                                <img th:src="@{${imgUrl}}" alt="Ảnh sản phẩm"
-                                     style="width: 150px; height: auto; border: 1px solid #ccc; border-radius: 5px;" />
-                                <input type="checkbox" th:name="'deletedImages'" th:value="${imgUrl}"
-                                       title="Xoá ảnh này"
-                                       style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px;" />
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Size S, M, L, XL, XXL -->
+                        <div class="col-md-2" th:each="size : ${T(java.util.List).of('S','M','L','XL','XXL')}">
+                            <div class="mb-3">
+                                <label th:for="${'size_' + variant.id + '_' + size}" th:text="${size}" class="form-label"></label>
+                                <input type="number" class="form-control"
+                                       th:id="${'size_' + variant.id + '_' + size}"
+                                       th:name="${'variantSizes[' + variant.id + '][' + size + ']'}"
+                                       th:value="${variantSizeQuantities[variant.id] != null ? variantSizeQuantities[variant.id].get(size) : 0}"
+                                       min="0" placeholder="0">
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Thêm ảnh -->
+                    <div class="mb-3">
+                        <label th:for="'variantImage__' + ${variant.id}" class="form-label">Thêm ảnh</label>
+                        <input type="file"
+                               class="form-control"
+                               th:id="'variantImage__' + ${variant.id}"
+                               th:name="'variantImages[' + ${variant.id} + ']'"
+                               multiple accept="image/*">
+                    </div>
+
+                    <!-- Preview ảnh cũ -->
+                    <div class="d-flex flex-wrap mt-3 gap-2 justify-content-center">
+                        <th:block th:if="${variantImagesMap[variant.id] != null}">
+                            <th:block th:each="img : ${variantImagesMap[variant.id]}">
+                                <div class="position-relative m-1" style="display: inline-block;">
+                                    <img th:src="@{${img.imageUri}}" alt="Ảnh sản phẩm"
+                                         style="width: 150px; height: auto; border: 1px solid #ccc; border-radius: 5px;" />
+                                    <input type="checkbox" th:name="deletedImages" th:value="${img.imageUri}"
+                                           title="Xoá ảnh này"
+                                           style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px;" />
+                                </div>
+                            </th:block>
                         </th:block>
                     </div>
 
                     <!-- Preview ảnh mới -->
                     <div id="new-image-preview" class="d-flex flex-wrap mt-3 gap-2 justify-content-center"></div>
                 </div>
-
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Cập Nhật Ứng Viên</button>
-        <a th:href="@{/admin/products}" class="btn btn-secondary ms-2">Hủy</a>
+
+        <!-- Thêm kích cỡ & số lượng -->
+        <div id="variantContainer"></div>
+
+        <button type="button" id="addSizeButton" class="btn btn-primary">Thêm Kích Cỡ & Số Lượng</button>
+
+
+        <button type="submit" class="btn btn-primary">Cập Nhật Sản Phẩm</button>
+        <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
 </div>
-<!--Chat-->
-<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+
+
 <!-- JS hiển thị preview ảnh mới -->
 <script>
-    document.getElementById('imageFile').addEventListener('change', function (event) {
-        const preview = document.getElementById('new-image-preview');
-        preview.innerHTML = ""; // Xoá preview cũ
+    function previewNewImages(event) {
+        const previewContainer = document.getElementById('new-image-preview');
+        previewContainer.innerHTML = ""; // Clear preview cũ nếu có
 
-        Array.from(event.target.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.width = '150px';
-                img.style.margin = '5px';
-                img.style.border = '1px solid #ccc';
-                img.style.borderRadius = '5px';
-                preview.appendChild(img);
-            };
-            reader.readAsDataURL(file);
+        const files = event.target.files;
+        if (files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.style.width = "150px";
+                    img.style.height = "auto";
+                    img.style.border = "1px solid #ccc";
+                    img.style.borderRadius = "5px";
+                    img.style.margin = "5px";
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+    document.getElementById("addSizeButton").addEventListener("click", function () {
+        var variantContainer = document.getElementById("variantContainer");
+
+        var variantDiv = document.createElement("div");
+        variantDiv.classList.add("card", "mb-4");
+
+        var variantHeader = document.createElement("div");
+        variantHeader.classList.add("card-header");
+        variantHeader.innerText = "Kích Cỡ & Số Lượng - Variant " + (variantContainer.children.length + 1);
+
+        var variantBody = document.createElement("div");
+        variantBody.classList.add("card-body");
+
+        var rowDiv = document.createElement("div");
+        rowDiv.classList.add("row");
+
+        // Thêm màu sắc cho variant
+        var colorColDiv = document.createElement("div");
+        colorColDiv.classList.add("col-md-2");
+
+        var colorDiv = document.createElement("div");
+        colorDiv.classList.add("mb-3");
+
+        var colorLabel = document.createElement("label");
+        colorLabel.classList.add("form-label");
+        colorLabel.setAttribute("for", "color_" + variantContainer.children.length);
+        colorLabel.innerText = "Màu sắc";
+
+        var colorSelect = document.createElement("select");
+        colorSelect.classList.add("form-control");
+        colorSelect.name = "variantColors[" + variantContainer.children.length + "]";
+        colorSelect.id = "color_" + variantContainer.children.length;
+
+        [
+            "Đỏ", "Xanh Dương", "Xanh Lá", "Đen", "Trắng",
+            "Vàng", "Tím", "Cam", "Hồng", "Nâu",
+            "Xám", "Xanh Lơ", "Hồng Đậm", "Xanh Chuối", "Nâu Đỏ",
+            "Xanh Hải Quân", "Xanh Olive", "Xanh Ngọc", "Bạc", "Vàng Kim",
+            "Be", "Kem", "Rêu", "Xanh Denim", "Ghi", "Xanh Mint", "Tím Pastel", "Cam Đất", "Hồng Phấn", "Trắng Ngà"
+        ].forEach(function (color) {
+            var option = document.createElement("option");
+            option.value = color;
+            option.innerText = color;
+            colorSelect.appendChild(option);
         });
+
+        colorDiv.appendChild(colorLabel);
+        colorDiv.appendChild(colorSelect);
+        colorColDiv.appendChild(colorDiv);
+        rowDiv.appendChild(colorColDiv);
+
+        // Thêm các kích cỡ và số lượng
+        var sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+        sizes.forEach(function (size) {
+            var colDiv = document.createElement("div");
+            colDiv.classList.add("col-md-2");
+
+            var mb3Div = document.createElement("div");
+            mb3Div.classList.add("mb-3");
+
+            var label = document.createElement("label");
+            label.setAttribute("for", "size_" + size + "_" + variantContainer.children.length);
+            label.classList.add("form-label");
+            label.innerText = size;
+
+            var input = document.createElement("input");
+            input.type = "number";
+            input.classList.add("form-control");
+            input.id = "size_" + size + "_" + variantContainer.children.length;
+            input.name = "variantSizes[" + variantContainer.children.length + "][" + size + "]";
+            input.min = "0";
+            input.placeholder = "0";
+
+            mb3Div.appendChild(label);
+            mb3Div.appendChild(input);
+            colDiv.appendChild(mb3Div);
+            rowDiv.appendChild(colDiv);
+        });
+
+        // Ghép các thành phần lại
+        variantBody.appendChild(rowDiv);
+        variantDiv.appendChild(variantHeader);
+        variantDiv.appendChild(variantBody);
+        variantContainer.appendChild(variantDiv);
     });
+
+
+
 </script>
+</body>
 </html>

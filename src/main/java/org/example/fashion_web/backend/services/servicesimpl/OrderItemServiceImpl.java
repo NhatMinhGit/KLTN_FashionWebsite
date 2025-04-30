@@ -2,21 +2,31 @@ package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.CategoryRevenueDto;
 import org.example.fashion_web.backend.dto.ProductRevenueDto;
-import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.OrderItem;
+import org.example.fashion_web.backend.repositories.CategoryRepository;
+import org.example.fashion_web.backend.repositories.DiscountRepository;
 import org.example.fashion_web.backend.repositories.OrderItemRepository;
+import org.example.fashion_web.backend.repositories.ProductRepository;
 import org.example.fashion_web.backend.services.OrderItemService;
+import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class OrderItemServiceImpl implements OrderItemService {
     @Autowired
     private OrderItemRepository orderItemRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private DiscountRepository discountRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private ProductService productService;
     @Override
     public OrderItem save(OrderItem orderItem) {
         return orderItemRepository.save(orderItem);
@@ -36,4 +46,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         // Giới hạn kết quả chỉ lấy 10 danh mục có doanh thu cao nhất
         return result.size() > 10 ? result.subList(0, 10) : result;
     }
+
+
+
 }

@@ -23,4 +23,5 @@ public class OrderDto {
     private String shippingAddress;
     private String paymentMethod;
     private String voucherCode;
+    private String vnpId;
 }

@@ -1,17 +1,15 @@
 package org.example.fashion_web.frontend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
+import org.example.fashion_web.backend.configurations.VNPAYService;
 import org.example.fashion_web.backend.dto.DistrictDto;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.dto.UserProfileDto;
 import org.example.fashion_web.backend.dto.WardDto;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
-import org.example.fashion_web.backend.services.CartItemService;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.UserProfileService;
-import org.example.fashion_web.backend.services.VoucherService;
+import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,6 +80,18 @@ public class OrderController {
     @Autowired
     private UserVoucherRepository userVoucherRepository;
 
+    @Autowired
+    private VNPAYService vnPayService;
+
+    @Autowired
+    private SizeRepository sizeRepository;
+
+    @Autowired
+    private SizeService sizeService;
+
+    @Autowired
+    private ProductVariantRepository productVariantRepository;
+
     private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
     private  String address;
@@ -124,7 +135,7 @@ public class OrderController {
         // Nhóm danh sách ảnh theo productId
         Map<Long, List<String>> productImages = new HashMap<>();
         for (CartItems item : cart) {
-            List<Image> images = imageService.findImagesByProductId(item.getProduct().getId());
+            List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
             List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
             productImages.put(item.getProduct().getId(), imageUrls);
         }
@@ -137,7 +148,8 @@ public class OrderController {
         userProfile.getWard().getDistrict().getCity().getCityName()
         : "Chưa cập nhật!";
 
-        List<Voucher> vouchers = voucherService.getAllVouchers(); // Lấy danh sách voucher từ service
+        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(user.getId()); // Lấy danh sách voucher từ service
+
         model.addAttribute("detailaddress", address);
         model.addAttribute("vouchers", vouchers);
         model.addAttribute("totalOrderPrice", totalOrderPrice);
@@ -146,6 +158,7 @@ public class OrderController {
         System.out.println("Items cart sau khi load trang cart: " + cart);
 
         model.addAttribute("cities", cities);
+
         return "order/order";
     }
 
@@ -170,6 +183,8 @@ public class OrderController {
         BigDecimal priceWithVoucher = totalOrderPrice;
         BigDecimal discountAmount = BigDecimal.valueOf(0);
         Voucher voucher = voucherRepository.findByVoucherCode(voucherCode);
+        voucher.setUsageLimit(voucher.getUsageLimit()-1);
+        voucherRepository.save(voucher);
         if (voucher.getDiscountType().equals("percentage")) {
             BigDecimal discountRate = voucher.getDiscountValue().divide(BigDecimal.valueOf(100));
             discountAmount = priceWithVoucher.multiply(discountRate);
@@ -202,21 +217,21 @@ public class OrderController {
         }
         return ResponseEntity.ok(paymentInfo);
     }
-
     @PostMapping("/user/order/checkout")
-    public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail) {
+    public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail, HttpServletRequest request) {
         try {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
             List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
+
             for (CartItems item : cartItems) {
                 System.out.println(item.toString()); // in ra toString()
             }
+
             // Add validation
             if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
                 model.addAttribute("errorMessage", "Invalid order information");
                 return "redirect:/user/order";
             }
-
 
             // Validate order total
             if (paymentInfo.getTotalPrice().compareTo(BigDecimal.ZERO) <= 0) {
@@ -233,6 +248,7 @@ public class OrderController {
             newOrder.setTotalPrice(paymentInfo.getTotalPrice());
             newOrder.setShippingAddress(paymentInfo.getShippingAddress());
             newOrder.setPaymentMethod(paymentInfo.getPaymentMethod());
+            newOrder.setCreatedAt(LocalDateTime.now());
             if (paymentInfo.getPaymentMethod().equals("CASH")) {
                 newOrder.setStatus(Order.OrderStatusType.PENDING);
                 orderRepository.save(newOrder);
@@ -246,18 +262,77 @@ public class OrderController {
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
                 orderRepository.save(newOrder);
+
+                // lưu orderitem vào database
+                for (CartItems item : cartItems) {
+                    OrderItem orderItem = new OrderItem(
+                            newOrder,
+                            item.getProduct(),
+                            item.getSize(),
+                            item.getVariant(),
+                            item.getQuantity(),
+                            item.getPricePerUnit()
+                    );
+
+                    orderItemRepository.save(orderItem);
+                }
+
+                // Tạo URL thanh toán VNPAY
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                String vnpayUrl = vnPayService.createOrder(session, request, newOrder.getId(), baseUrl);
+                session.setAttribute("paymentOrderId", newOrder.getId()); // Lưu orderId
+                return "redirect:" + vnpayUrl;
             }
+
 
             // lưu orderitem vào database
             for (CartItems item : cartItems) {
-                OrderItem orderItem = new OrderItem(newOrder, item.getProduct(), item.getQuantity(), item.getPricePerUnit());
-                Optional<Product> product = productRepository.findById(item.getProduct().getId());
-                product.get().setStock_quantity(product.get().getStock_quantity()-item.getQuantity());
-                productRepository.save(product.get());
+                OrderItem orderItem = new OrderItem(
+                        newOrder,
+                        item.getProduct(),
+                        item.getSize(),
+                        item.getVariant(),
+                        item.getQuantity(),
+                        item.getPricePerUnit()
+                );
+
+                Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
+
+                productOpt.ifPresentOrElse(product -> {
+                    // Tìm variant tương ứng với sản phẩm
+                    Optional<ProductVariant> variantOpt = product.getVariants().stream()
+                            .filter(variant -> variant.getId() == item.getVariant().getId()) // so sánh theo ID variant
+                            .findFirst();
+
+                    variantOpt.ifPresentOrElse(variant -> {
+                        // Thay vì lấy từ variant.getSizes(), gọi sizeService
+                        List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                        Optional<Size> sizeOpt = sizes.stream()
+                                .filter(size -> size.getId() == item.getSize().getId()) // So sánh theo ID size
+                                .findFirst();
+
+                        sizeOpt.ifPresentOrElse(size -> {
+                            if (size.getStockQuantity() >= item.getQuantity()) {
+                                size.setStockQuantity(size.getStockQuantity() - item.getQuantity()); // Giảm tồn kho size
+                                sizeRepository.save(size); // Lưu lại size đã cập nhật
+                            } else {
+                                throw new RuntimeException("Not enough stock for size: " + size.getSizeName());
+                            }
+                        }, () -> {
+                            throw new RuntimeException("Size not found for variant: " + variant.getColor());
+                        });
+
+                    }, () -> {
+                        throw new RuntimeException("Variant not found for product: " + product.getName());
+                    });
+
+                }, () -> {
+                    throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
+                });
                 orderItemRepository.save(orderItem);
             }
 
-            //lưu voucher user vào database
+            // lưu voucher user vào database
             if (!paymentInfo.getVoucherCode().isEmpty()) {
                 UserVoucher userVoucher = new UserVoucher();
                 userVoucher.setUser(user);
@@ -269,14 +344,10 @@ public class OrderController {
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
             }
+            session.removeAttribute("cartItems");
+            session.removeAttribute("paymentInfo");
+            return "order/order-confirmination";
 
-            if (paymentInfo.getPaymentMethod().equals("CASH")) {
-                session.removeAttribute("cartItems");
-                session.removeAttribute("paymentInfo");
-                return "order/order-confirmination";
-            } else {
-                return "/order/order-payment";
-            }
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Order processing failed: " + e.getMessage());
             System.out.println(e.getMessage());

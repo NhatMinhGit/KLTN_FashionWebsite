@@ -1,14 +1,15 @@
 package org.example.fashion_web.backend.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "Payment")
 public class Payment {
 
@@ -31,6 +32,8 @@ public class Payment {
     @Column(name = "payment_status", nullable = false, length = 50)
     private String paymentStatus;
 
+    @Column(name = "bank_code", length = 50)
+    private String bankCode;
     public enum PaymentMethodType {
         CASH, CREDIT_CARD, BANK_TRANSFER, E_WALLET
     }

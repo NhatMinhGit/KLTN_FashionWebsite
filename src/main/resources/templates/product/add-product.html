@@ -2,20 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Thêm Ứng Viên</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Thêm Sản Phẩm</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-5">
     <h1 class="mb-4 text-center">Thêm Sản Phẩm Mới</h1>
-<!--    Làm tới đây rồi-->
+
+    <!-- Hiển thị thông báo lỗi nếu có -->
     <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
         <span th:text="${errorMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
+    <!-- Form thêm sản phẩm -->
     <form th:action="@{/admin/products/add}" th:object="${productForm}" method="post" enctype="multipart/form-data">
-        <!-- Thông tin ứng viên -->
+        <!-- Thông tin sản phẩm -->
         <div class="card mb-4">
             <div class="card-header">
                 Thông Tin Sản Phẩm (Vui lòng nhập không dấu)
@@ -44,97 +46,175 @@
                     <label for="brand" class="form-label">Nhãn hàng:</label>
                     <input type="text" class="form-control" id="brand" th:field="*{brand_name}" required />
                 </div>
-                <div class="mb-3">
-                    <label for="stock_quantity" class="form-label">Số lượng tồn:</label>
-                    <input type="number" class="form-control" id="stock_quantity" th:field="*{stock_quantity}" required />
-                </div>
-<!--                <div id="drop-area" class="border border-primary p-4 text-center">-->
-<!--                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>-->
-<!--                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />-->
-<!--                    <div id="preview" class="d-flex flex-wrap mt-3"></div>-->
-<!--                </div>-->
-                <div id="drop-area" class="border border-primary p-4 text-center">
-                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn ảnh</p>
-
-                    <!-- Chọn ảnh mới -->
-                    <input type="file" class="form-control" id="imageFile" name="imageFile" multiple accept="image/*" />
-
-                    <!-- Preview ảnh cũ & checkbox xóa -->
-                    <div id="preview" class="d-flex flex-wrap mt-3 gap-2 justify-content-center">
-                        <th:block th:each="imgUrl : ${imageUrls}">
-                            <div class="position-relative m-1" style="display: inline-block;">
-                                <img th:src="@{${imgUrl}}" alt="Ảnh sản phẩm"
-                                     style="width: 150px; height: auto; border: 1px solid #ccc; border-radius: 5px;" />
-                                <input type="checkbox" th:name="'deletedImages'" th:value="${imgUrl}"
-                                       title="Xoá ảnh này"
-                                       style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px;" />
-                            </div>
-                        </th:block>
-                    </div>
-
-                    <!-- Preview ảnh mới -->
-                    <div id="new-image-preview" class="d-flex flex-wrap mt-3 gap-2 justify-content-center"></div>
-                </div>
-
             </div>
         </div>
 
+        <!-- Thêm kích cỡ & số lượng -->
+        <div id="variantContainer"></div>
 
+        <button type="button" id="addSizeButton" class="btn btn-primary">Thêm Kích Cỡ & Số Lượng</button>
+
+        <!-- Button submit và hủy -->
         <button type="submit" class="btn btn-primary">Thêm Sản Phẩm</button>
         <a th:href="@{/admin/product}" class="btn btn-secondary ms-2">Hủy</a>
     </form>
-    <!--Chat-->
-    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>
 </div>
+
 <script>
-    const dropArea = document.getElementById("drop-area");
-    const fileInput = document.getElementById("imageFile"); // Đúng ID
-    const newImagePreview = document.getElementById("new-image-preview"); // Đúng ID
+    document.getElementById("addSizeButton").addEventListener("click", function() {
+        // Lấy phần tử container nơi bạn muốn thêm các bảng mới
+        var variantContainer = document.getElementById("variantContainer");
 
-    dropArea.addEventListener("click", () => fileInput.click());
+        // Tạo một div mới để chứa bảng variant
+        var variantDiv = document.createElement("div");
+        variantDiv.classList.add("card", "mb-4");
 
-    fileInput.addEventListener("change", () => {
-        previewNewImages(fileInput.files);
+        // Tạo header cho bảng variant
+        var variantHeader = document.createElement("div");
+        variantHeader.classList.add("card-header");
+        variantHeader.innerText = "Kích Cỡ & Số Lượng - Variant " + (variantContainer.children.length + 1);
+
+        // Tạo body cho bảng variant
+        var variantBody = document.createElement("div");
+        variantBody.classList.add("card-body");
+
+        // Tạo một hàng (row) để chứa các cột size và số lượng
+        var rowDiv = document.createElement("div");
+        rowDiv.classList.add("row");
+
+        // Tạo dropdown chọn màu
+        var colorColDiv = document.createElement("div");
+        colorColDiv.classList.add("col-md-2");
+        var colorDiv = document.createElement("div");
+        colorDiv.classList.add("mb-3");
+        var colorLabel = document.createElement("label");
+        colorLabel.classList.add("form-label");
+        colorLabel.setAttribute("for", "color");
+        colorLabel.innerText = "Màu sắc";
+        var colorSelect = document.createElement("select");
+        colorSelect.classList.add("form-control");
+        colorSelect.name = "color";
+        colorSelect.id = "color";
+        ["Red", "Blue", "Green", "Black", "White"].forEach(function(color) {
+            var option = document.createElement("option");
+            option.value = color;
+            option.innerText = color;
+            colorSelect.appendChild(option);
+        });
+        colorDiv.appendChild(colorLabel);
+        colorDiv.appendChild(colorSelect);
+        colorColDiv.appendChild(colorDiv);
+        rowDiv.appendChild(colorColDiv);
+
+        // Các kích cỡ như S, M, L, XL, XXL
+        var sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+
+        sizes.forEach(function(size) {
+            var colDiv = document.createElement("div");
+            colDiv.classList.add("col-md-2");
+
+            var mb3Div = document.createElement("div");
+            mb3Div.classList.add("mb-3");
+
+            var label = document.createElement("label");
+            label.setAttribute("for", "size_" + size);
+            label.classList.add("form-label");
+            label.innerText = size;
+
+            var input = document.createElement("input");
+            input.type = "number";
+            input.classList.add("form-control");
+            input.id = "size_" + size;
+            input.name = "sizeQuantities[" + size + "]";
+            input.min = "0";
+            input.placeholder = "0";
+
+            mb3Div.appendChild(label);
+            mb3Div.appendChild(input);
+            colDiv.appendChild(mb3Div);
+            rowDiv.appendChild(colDiv);
+        });
+
+        // Thêm phần chọn ảnh cho variant
+        var imageDiv = document.createElement("div");
+        imageDiv.classList.add("mb-3");
+        var imageLabel = document.createElement("label");
+        imageLabel.classList.add("form-label");
+        imageLabel.setAttribute("for", "variantImage");
+        imageLabel.innerText = "Thêm ảnh";
+
+        // Tạo vùng kéo thả ảnh cho từng variant
+        var dropArea = document.createElement("div");
+        dropArea.classList.add("drop-area");
+        dropArea.innerText = "Kéo thả ảnh hoặc nhấp để chọn";
+        var fileInput = document.createElement("input");
+        fileInput.name = "variantImages";
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.multiple = true;
+        fileInput.style.display = "none";
+
+        var newImagePreview = document.createElement("div");
+        newImagePreview.classList.add("image-preview");
+
+        // Thêm sự kiện cho vùng kéo thả
+        dropArea.addEventListener("click", function() {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener("change", function() {
+            previewNewImages(fileInput.files, newImagePreview);
+        });
+
+        dropArea.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            dropArea.classList.add("dragover");
+        });
+
+        dropArea.addEventListener("dragleave", function() {
+            dropArea.classList.remove("dragover");
+        });
+
+        dropArea.addEventListener("drop", function(e) {
+            e.preventDefault();
+            dropArea.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            fileInput.files = files; // Gán lại vào input để submit được
+            previewNewImages(files, newImagePreview);
+        });
+
+        imageDiv.appendChild(imageLabel);
+        imageDiv.appendChild(dropArea);
+        imageDiv.appendChild(fileInput);
+        imageDiv.appendChild(newImagePreview);
+        rowDiv.appendChild(imageDiv);
+
+        variantBody.appendChild(rowDiv);
+        variantDiv.appendChild(variantHeader);
+        variantDiv.appendChild(variantBody);
+
+        // Thêm bảng mới vào container
+        variantContainer.appendChild(variantDiv);
     });
 
-    dropArea.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropArea.classList.add("dragover");
-    });
+    function previewNewImages(files, previewContainer) {
+        previewContainer.innerHTML = ""; // Xoá preview cũ
 
-    dropArea.addEventListener("dragleave", () => {
-        dropArea.classList.remove("dragover");
-    });
-
-    dropArea.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropArea.classList.remove("dragover");
-        const files = e.dataTransfer.files;
-        fileInput.files = files; // Gán lại vào input để submit được
-        previewNewImages(files);
-    });
-
-    function previewNewImages(files) {
-        newImagePreview.innerHTML = "";
         Array.from(files).forEach(file => {
-            if (!file.type.startsWith("image/")) return;
-
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.createElement("img");
+            reader.onload = function (e) {
+                const img = document.createElement('img');
                 img.src = e.target.result;
-                img.style.width = "150px";
-                img.style.border = "1px solid #ccc";
-                img.style.borderRadius = "5px";
-                img.style.margin = "5px";
-                newImagePreview.appendChild(img);
+                img.style.width = '150px';
+                img.style.margin = '5px';
+                img.style.border = '1px solid #ccc';
+                img.style.borderRadius = '5px';
+                previewContainer.appendChild(img);
             };
             reader.readAsDataURL(file);
         });
     }
+
 </script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

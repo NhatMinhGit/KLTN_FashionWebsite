@@ -7,7 +7,6 @@ import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +43,14 @@ public class GeminiAdminController {
         if (isStockQuery(message)) {
             response = geminiService.checkStock(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        }
+        else if (isRefundPolicy(message)){
+            response = geminiService.refundPolicyForStaff();
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        }
+        else if (isFAQS(message)){
+            response = geminiService.faqShow();
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         } else if (isMonthlyRenvenue(message)) {
             response = geminiService.checkMonthlyRenvenue(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
@@ -78,6 +85,28 @@ public class GeminiAdminController {
                 lowerCaseMessage.contains("được yêu thích") ||
                 lowerCaseMessage.contains("trending");
     }
+    private boolean isRefundPolicy(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("refund policy") ||
+                lowerCaseMessage.contains("hoàn phí") ||
+                lowerCaseMessage.contains("chính sách hoàn phí") ||
+                lowerCaseMessage.contains("refund");
+    }
+    private boolean isFAQS(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return  lowerCaseMessage.contains("faqs") ||
+                lowerCaseMessage.contains("thắc mắc") ||
+                lowerCaseMessage.contains("sử dụng") ||
+                lowerCaseMessage.contains("hướng dẫn") ||
+                lowerCaseMessage.contains("hướng dẫn sử dụng");
+    }
+
 
     private boolean isStockQuery(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
@@ -146,6 +175,6 @@ public class GeminiAdminController {
 
         System.out.println("UserID in chatbotPage: " + userId); // Debug userId
 
-        return new ModelAndView("admin-chat-window");
+        return new ModelAndView("ai_chatbot/admin-chat-window");
     }
 }

@@ -7,71 +7,8 @@
   <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
   <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
-  <style>
-    body {
-        background-color: #f8f9fa;
-    }
-
-    .container {
-        max-width: 900px;
-    }
-
-    .order-summary,
-    .order-details,
-    .payment-method,
-    .order-voucher {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-    }
-
-    .order-summary h5,
-    .order-details h5,
-    .payment-method h5,
-    .order-voucher h5 {
-        font-weight: bold;
-    }
-
-    .btn-continue {
-        background-color: #ff5722;
-        color: white;
-        font-weight: bold;
-    }
-
-    .btn-continue:hover {
-        background-color: #e64a19;
-    }
-
-    .order-card img {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-    }
-
-    .order-card {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .order-info {
-        flex-grow: 1;
-        margin-left: 10px;
-    }
-
-    .quantity-control {
-        display: flex;
-        align-items: center;
-    }
-
-    .quantity-control button {
-        border: 1px solid #ddd;
-        background: none;
-        padding: 5px 10px;
-    }
-  </style>
+  <link th:href="@{/css/order.css}" rel="stylesheet">
+  <script th:src="@{/js/order.js}"></script>
 </head>
 
 <body>
@@ -265,245 +202,246 @@
 
 
 </div>
+<!--Footer-->
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-      console.log("DOM fully loaded and parsed");
-        var citySelect = document.getElementById("city");
-        var districtSelect = document.getElementById("district");
-        var wardSelect = document.getElementById("ward");
+    console.log("DOM fully loaded and parsed");
+    var citySelect = document.getElementById("city");
+    var districtSelect = document.getElementById("district");
+    var wardSelect = document.getElementById("ward");
 
-        var editProfileForm = document.getElementById("editProfileForm");
-        var updateButton = document.getElementById("btnUpdate");
+    var editProfileForm = document.getElementById("editProfileForm");
+    var updateButton = document.getElementById("btnUpdate");
 
-        updateButton.addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn form gửi ngay lập tức
+    updateButton.addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn form gửi ngay lập tức
 
-            // Lấy giá trị các trường input
-            var name = document.getElementById("name").value.trim();
-            var phoneNumber = document.getElementById("phoneNumber").value.trim();
-            var address = document.getElementById("address").value.trim();
-            var city = document.getElementById("city").value;
-            var district = document.getElementById("district").value;
-            var ward = document.getElementById("ward").value;
+      // Lấy giá trị các trường input
+      var name = document.getElementById("name").value.trim();
+      var phoneNumber = document.getElementById("phoneNumber").value.trim();
+      var address = document.getElementById("address").value.trim();
+      var city = document.getElementById("city").value;
+      var district = document.getElementById("district").value;
+      var ward = document.getElementById("ward").value;
 
-            // Kiểm tra trường trống
-            if (!name) {
-                alert("Vui lòng nhập họ và tên!");
-                return;
-            }
-            if (!phoneNumber || phoneNumber == "Chưa cập nhật!") {
-                alert("Vui lòng nhập số điện thoại!");
-                return;
-            }
-            if (!address || address == "Chưa cập nhật!") {
-                alert("Vui lòng nhập địa chỉ!");
-                return;
-            }
-            if (!city) {
-                alert("Vui lòng chọn Thành phố!");
-                return;
-            }
-            if (!district) {
-                alert("Vui lòng chọn Quận/Huyện!");
-                return;
-            }
-            if (!ward) {
-                alert("Vui lòng chọn Phường/Xã!");
-                return;
-            }
+      // Kiểm tra trường trống
+      if (!name) {
+        alert("Vui lòng nhập họ và tên!");
+        return;
+      }
+      if (!phoneNumber || phoneNumber == "Chưa cập nhật!") {
+        alert("Vui lòng nhập số điện thoại!");
+        return;
+      }
+      if (!address || address == "Chưa cập nhật!") {
+        alert("Vui lòng nhập địa chỉ!");
+        return;
+      }
+      if (!city) {
+        alert("Vui lòng chọn Thành phố!");
+        return;
+      }
+      if (!district) {
+        alert("Vui lòng chọn Quận/Huyện!");
+        return;
+      }
+      if (!ward) {
+        alert("Vui lòng chọn Phường/Xã!");
+        return;
+      }
 
-            // Hiển thị xác nhận trước khi gửi form
-            if (confirm("Bạn có chắc chắn muốn cập nhật thông tin không?")) {
-                editProfileForm.submit();
-            }
-        });
+      // Hiển thị xác nhận trước khi gửi form
+      if (confirm("Bạn có chắc chắn muốn cập nhật thông tin không?")) {
+        editProfileForm.submit();
+      }
+    });
 
-        // Gán giá trị dropdown vào input hidden khi thay đổi
-        citySelect.addEventListener("change", function () {
-            document.getElementById("selectedCity").value = this.value;
-            console.log("Selected City:", this.value);
-        });
+    // Gán giá trị dropdown vào input hidden khi thay đổi
+    citySelect.addEventListener("change", function () {
+      document.getElementById("selectedCity").value = this.value;
+      console.log("Selected City:", this.value);
+    });
 
-        districtSelect.addEventListener("change", function () {
-            document.getElementById("selectedDistrict").value = this.value;
-            console.log("Selected District:", this.value);
-        });
+    districtSelect.addEventListener("change", function () {
+      document.getElementById("selectedDistrict").value = this.value;
+      console.log("Selected District:", this.value);
+    });
 
-        wardSelect.addEventListener("change", function () {
-            document.getElementById("selectedWard").value = this.value;
-            console.log("Selected Ward:", this.value);
-        });
+    wardSelect.addEventListener("change", function () {
+      document.getElementById("selectedWard").value = this.value;
+      console.log("Selected Ward:", this.value);
+    });
 
-        // Lấy dữ liệu từ Thymeleaf
-        var selectedCityId = citySelect.value;
-        var selectedDistrictId = `[[${userProfileDto.ward?.district?.id ?: ''}]]`.trim();
-        var selectedWardId = `[[${userProfileDto.ward?.id ?: ''}]]`.trim();
+    // Lấy dữ liệu từ Thymeleaf
+    var selectedCityId = citySelect.value;
+    var selectedDistrictId = `[[${userProfileDto.ward?.district?.id ?: ''}]]`.trim();
+    var selectedWardId = `[[${userProfileDto.ward?.id ?: ''}]]`.trim();
 
-        selectedDistrictId = selectedDistrictId ? selectedDistrictId : null;
-        selectedWardId = selectedWardId ? selectedWardId : null;
+    selectedDistrictId = selectedDistrictId ? selectedDistrictId : null;
+    selectedWardId = selectedWardId ? selectedWardId : null;
 
-        function loadDistricts(selectedDistrictId, callback) {
-            var cityId = citySelect.value;
-            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-            wardSelect.disabled = true;
+    function loadDistricts(selectedDistrictId, callback) {
+      var cityId = citySelect.value;
+      districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+      wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+      wardSelect.disabled = true;
 
-            if (!cityId) {
-                districtSelect.disabled = true;
-                return;
-            }
+      if (!cityId) {
+        districtSelect.disabled = true;
+        return;
+      }
 
-            fetch(`/districts?cityId=${cityId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Districts loaded: ", data);
-                    data.forEach(district => {
-                        let option = new Option(district.districtName, district.id);
-                        districtSelect.add(option);
-                        if (selectedDistrictId && district.id == selectedDistrictId) {
-                            option.selected = true;
-                        }
-                    });
-                    districtSelect.disabled = false;
-                    if (callback) callback();
-                })
-                .catch(error => console.error("Lỗi khi tải Quận/Huyện:", error));
+      fetch(`/districts?cityId=${cityId}`)
+              .then(response => response.json())
+              .then(data => {
+                console.log("Districts loaded: ", data);
+                data.forEach(district => {
+                  let option = new Option(district.districtName, district.id);
+                  districtSelect.add(option);
+                  if (selectedDistrictId && district.id == selectedDistrictId) {
+                    option.selected = true;
+                  }
+                });
+                districtSelect.disabled = false;
+                if (callback) callback();
+              })
+              .catch(error => console.error("Lỗi khi tải Quận/Huyện:", error));
+    }
+
+    function loadWards(selectedDistrictId, selectedWardId) {
+      var districtId = selectedDistrictId || districtSelect.value;
+      wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+      if (!districtId) {
+        wardSelect.disabled = true;
+        return;
+      }
+
+      fetch(`/wards?districtId=${districtId}`)
+              .then(response => response.json())
+              .then(data => {
+                console.log("Wards loaded: ", data);
+                data.forEach(ward => {
+                  let option = new Option(ward.wardName, ward.id);
+                  wardSelect.add(option);
+                  if (selectedWardId && ward.id == selectedWardId) {
+                    option.selected = true;
+                  }
+                });
+                wardSelect.disabled = false;
+              })
+              .catch(error => console.error("Lỗi khi tải Phường/Xã:", error));
+    }
+
+    // Load districts khi city thay đổi
+    citySelect.addEventListener("change", function () {
+      loadDistricts(null, null);
+    });
+
+    // Load wards khi district thay đổi
+    districtSelect.addEventListener("change", function () {
+      loadWards(null, null);
+    });
+
+    // Load dữ liệu khi trang vừa tải
+    if (selectedCityId) {
+      loadDistricts(selectedDistrictId, function () {
+        if (selectedDistrictId) {
+          loadWards(selectedDistrictId, selectedWardId);
         }
-
-        function loadWards(selectedDistrictId, selectedWardId) {
-            var districtId = selectedDistrictId || districtSelect.value;
-            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-
-            if (!districtId) {
-                wardSelect.disabled = true;
-                return;
-            }
-
-            fetch(`/wards?districtId=${districtId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Wards loaded: ", data);
-                    data.forEach(ward => {
-                        let option = new Option(ward.wardName, ward.id);
-                        wardSelect.add(option);
-                        if (selectedWardId && ward.id == selectedWardId) {
-                            option.selected = true;
-                        }
-                    });
-                    wardSelect.disabled = false;
-                })
-                .catch(error => console.error("Lỗi khi tải Phường/Xã:", error));
-        }
-
-        // Load districts khi city thay đổi
-        citySelect.addEventListener("change", function () {
-            loadDistricts(null, null);
-        });
-
-        // Load wards khi district thay đổi
-        districtSelect.addEventListener("change", function () {
-            loadWards(null, null);
-        });
-
-        // Load dữ liệu khi trang vừa tải
-        if (selectedCityId) {
-            loadDistricts(selectedDistrictId, function () {
-                if (selectedDistrictId) {
-                    loadWards(selectedDistrictId, selectedWardId);
-                }
-            });
-        }
-
-      // áp mã voucher
-      let voucherModal = document.getElementById("voucherModal");
-
-      voucherModal.addEventListener("shown.bs.modal", function () {
-          document.querySelectorAll(".apply-voucher").forEach(button => {
-              button.addEventListener("click", function () {
-                  let voucherCode = this.getAttribute("data-code");
-                  let voucherName = this.getAttribute("data-name");
-
-                  // Điền mã voucher vào ô nhập
-                  document.getElementById("selectedVoucher").value = voucherCode;
-
-                  // Đóng modal
-                  let modalInstance = bootstrap.Modal.getInstance(voucherModal);
-                  modalInstance.hide();
-              });
-          });
       });
+    }
 
-      document.getElementById("checkoutBtn").addEventListener("click", function(event) {
-        event.preventDefault();
-        savePaymentInfo();
+    // áp mã voucher
+    let voucherModal = document.getElementById("voucherModal");
 
-        if (!confirm("Bạn chắc chắn muốn đặt hàng chứ ?")) {
-            return;
-        }
+    voucherModal.addEventListener("shown.bs.modal", function () {
+      document.querySelectorAll(".apply-voucher").forEach(button => {
+        button.addEventListener("click", function () {
+          let voucherCode = this.getAttribute("data-code");
+          let voucherName = this.getAttribute("data-name");
 
-        // Tạo một form ẩn và gửi POST request
-        let form = document.createElement("form");
-        form.method = "POST";
-        form.action = "/user/order/checkout";
+          // Điền mã voucher vào ô nhập
+          document.getElementById("selectedVoucher").value = voucherCode;
 
-        document.body.appendChild(form);
-        form.submit();
+          // Đóng modal
+          let modalInstance = bootstrap.Modal.getInstance(voucherModal);
+          modalInstance.hide();
+        });
+      });
+    });
+
+    document.getElementById("checkoutBtn").addEventListener("click", function(event) {
+      event.preventDefault();
+      savePaymentInfo();
+
+      if (!confirm("Bạn chắc chắn muốn đặt hàng chứ ?")) {
+        return;
+      }
+
+      // Tạo một form ẩn và gửi POST request
+      let form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/user/order/checkout";
+
+      document.body.appendChild(form);
+      form.submit();
 
     });
   });
 
   // cập nhật giá khi áp voucher
- function applyVoucher() {
+  function applyVoucher() {
     let voucherCode = document.getElementById("selectedVoucher").value;
     let totalPriceElement = document.getElementById("totalPrice");
     let discountElement = document.getElementById("discount");
 
     if (!voucherCode) {
-        return;
+      return;
     }
 
     fetch("/apply-order-voucher?voucherCode=" + voucherCode, {
-        method: "POST"
+      method: "POST"
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Lưu giá trị gốc vào data-value
-            totalPriceElement.setAttribute("data-value", data.newTotal);
-            discountElement.setAttribute("data-value", data.discountAmount);
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Lưu giá trị gốc vào data-value
+                totalPriceElement.setAttribute("data-value", data.newTotal);
+                discountElement.setAttribute("data-value", data.discountAmount);
 
-            // Cập nhật hiển thị đã format
-            totalPriceElement.innerHTML = data.newTotal.toLocaleString("vi-VN") + " đ";
-            discountElement.innerHTML = "- " + data.discountAmount.toLocaleString("vi-VN") + " đ";
-        } else {
-            alert("Mã giảm giá không hợp lệ!");
-        }
-    })
-    .catch(error => console.error("Lỗi:", error));
-}
+                // Cập nhật hiển thị đã format
+                totalPriceElement.innerHTML = data.newTotal.toLocaleString("vi-VN") + " đ";
+                discountElement.innerHTML = "- " + data.discountAmount.toLocaleString("vi-VN") + " đ";
+              } else {
+                alert("Mã giảm giá không hợp lệ!");
+              }
+            })
+            .catch(error => console.error("Lỗi:", error));
+  }
 
   ////
   function savePaymentInfo() {
-      let addresss = document.getElementById("detailAddress").value || "Chưa có địa chỉ";
-      let paymentData = {
-          userId: document.getElementById("userId").value,
-          paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
-          shippingAddress: addresss,
-          totalPrice: [[${totalOrderPrice}]],
-          voucherCode: document.getElementById("selectedVoucher").value.trim()
-      };
-      console.log("🔹 Dữ liệu thanh toán sẽ được gửi:", paymentData); // In dữ liệu ra console
-      fetch('/payment/save-info', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(paymentData)
-      })
-      .catch(error => console.error("Lỗi:", error));
+    let addresss = document.getElementById("detailAddress").value || "Chưa có địa chỉ";
+    let paymentData = {
+      userId: document.getElementById("userId").value,
+      paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+      shippingAddress: addresss,
+      totalPrice: [[${totalOrderPrice}]],
+      voucherCode: document.getElementById("selectedVoucher").value.trim()
+    };
+    console.log("Dữ liệu thanh toán sẽ được gửi:", paymentData); // In dữ liệu ra console
+    fetch('/payment/save-info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(paymentData)
+    })
+            .catch(error => console.error("Lỗi:", error));
   }
-
 </script>
-
 </html>

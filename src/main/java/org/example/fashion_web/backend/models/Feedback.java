@@ -3,6 +3,7 @@ package org.example.fashion_web.backend.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 
@@ -22,7 +23,7 @@ public class Feedback {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "order_item_id", referencedColumnName = "order_item_id", nullable = false)
+    @JoinColumn(name = "order_item_id", referencedColumnName = "order_item_id", nullable = true)
     private OrderItem orderItem;
 
     @ManyToOne
@@ -36,5 +37,6 @@ public class Feedback {
     private String comment;
 
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @CreationTimestamp
     private Timestamp createdAt;
 }

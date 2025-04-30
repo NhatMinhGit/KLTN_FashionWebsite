@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 public class ImageDto {
     private Long imageId;
-    private Long productId;
+    private Long productVariantId;
     private String imageUrl;
     private String imageName;
     private Integer imageSize;

@@ -1,5 +1,6 @@
 package org.example.fashion_web.backend.repositories;
 
+import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +14,7 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Order save(Order order);
-
+    List<Order> findByUser_Id(Long userId);
     // 1. Doanh thu từng tháng của một năm
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE YEAR(o.orderDate) = :year AND MONTH(o.orderDate) = :month")
     BigDecimal getMonthlyRevenue(@Param("year") int year, @Param("month") int month);

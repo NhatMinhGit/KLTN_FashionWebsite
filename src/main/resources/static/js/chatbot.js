@@ -149,6 +149,30 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingElement.remove();
         }
     }
+    function showPresaleProducts() {
+        const saleProducts = allProducts.filter(p => p.sale);
+        const cheapest10 = saleProducts.sort((a, b) => a.price - b.price).slice(0, 10);
+
+        const container = document.getElementById("presale-products");
+        container.innerHTML = ""; // Clear previous content
+
+        cheapest10.forEach(product => {
+            const item = document.createElement("div");
+            item.className = "col-md-3 mb-3";
+            item.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">${product.name}</h5>
+          <p class="card-text text-danger">Giá: ${product.price.toLocaleString()}đ</p>
+        </div>
+      </div>
+    `;
+            container.appendChild(item);
+        });
+    }
+
+    // Kích hoạt khi tab được nhấn
+    document.getElementById("presale-tab").addEventListener("click", showPresaleProducts);
 
     // Function to handle the "back to the latest" button
     document.querySelector('.back-to-latest .btn').addEventListener('click', function(e) {

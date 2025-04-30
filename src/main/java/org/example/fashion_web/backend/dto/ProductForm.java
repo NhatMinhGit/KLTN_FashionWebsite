@@ -4,7 +4,10 @@ import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Getter
@@ -19,7 +22,7 @@ public class ProductForm {
     private String name;
     private BigDecimal price;
     private String description;
-    private int stock_quantity;
+
 
     //Thông tin thương hiệu
     private String brand_name;
@@ -29,5 +32,18 @@ public class ProductForm {
 
     // Thông tin danh sách ảnh
     private List<MultipartFile> imageFile;
+
+    private Map<Long, String> variantColors = new HashMap<>();
+
+    private List<String> imageColors = new ArrayList<>();
+
+    // Thêm danh sách size và quantity
+    private Map<String, Integer> sizeQuantities = new HashMap<>();
+
+    private Map<Long, Map<String, Integer>> variantSizes = new HashMap<>(); // Key là màu sắc, value là Map của size ID -> quantity
+
+    private List<String> color;
+
+    private List<Long> deletedVariantsColor; // Thêm vào trường deletedVariantsColor
 
 }

@@ -1,0 +1,26 @@
+<div th:fragment="adminchat_fragment" xmlns:th="http://www.thymeleaf.org">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link th:href="@{/css/chat_window.css}" rel="stylesheet" />
+    <script th:src="@{/js/adminchat_window.js}"></script>
+
+    <!-- Hidden inputs -->
+    <input type="hidden" id="sender" th:value="${#authentication != null ? #authentication.name : 'anonymous'}" />
+    <input type="hidden" id="recipient" />
+    <input type="hidden" id="roomId" />
+
+    <div id="chatContainer">
+        <select id="recipientSelect" onchange="updateRecipient()">
+            <option disabled selected>-- Chọn người dùng --</option>
+        </select>
+        <div id="chatHeader" onclick="toggleChat()">Admin Chat</div>
+        <div id="chatBody" style="display: block;">
+            <div class="chat-messages" id="messages"></div>
+        </div>
+        <div id="chatWindows" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        <div id="chatFooter">
+            <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." />
+            <button id="sendButton">Gửi</button>
+        </div>
+    </div>
+</div>

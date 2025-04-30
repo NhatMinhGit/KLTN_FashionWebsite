@@ -5,7 +5,9 @@ import org.example.fashion_web.backend.models.UserVoucher;
 import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
 import org.example.fashion_web.backend.services.VoucherService;
+import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -27,19 +29,11 @@ public class UserVocherController {
     private VoucherRepository voucherRepository;
 
     @RequestMapping("user/voucher")
-    public String voucherIndex(Model model, Principal principal) {
-
-        List<Voucher> vouchers = voucherRepository.findAll();
+    public String voucherIndex(Model model, Principal principal,@AuthenticationPrincipal CustomUserDetails userDetail) {
+        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(userDetail.getUser().getId());
         model.addAttribute("currentPage", "voucher");
         model.addAttribute("vouchers", vouchers);
-        if (principal != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            if (userDetails != null) {
-                model.addAttribute("user", userDetails);
-            } else {
-                model.addAttribute("user", new User()); // Tránh lỗi NullPointerException
-            }
-        }
+
         return "user-voucher/user-voucher";
     }
 }

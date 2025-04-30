@@ -1,8 +1,11 @@
 package org.example.fashion_web.backend.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,5 +16,6 @@ public class ProductDto {
     private String name;
     private BigDecimal price;
     private String description;
-    private int stock_quantity;
+    private List<SizeDto> sizes; // Thêm danh sách các kích cỡ vào ProductDto
+    private List<ProductVariantDto> productVariants;
 }
