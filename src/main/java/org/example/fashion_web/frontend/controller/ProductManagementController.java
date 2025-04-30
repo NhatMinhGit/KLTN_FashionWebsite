@@ -297,7 +297,6 @@ public class ProductManagementController {
             // Lấy thông tin người dùng
             UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
             model.addAttribute("user", userDetails);
-
             // Lấy sản phẩm theo ID
             Product product = productService.getProductById(id).orElse(null);
             if (product == null) {
@@ -366,52 +365,54 @@ public class ProductManagementController {
             Map<String, List<SizeInfo>> sizesByColor = new HashMap<>();
 
             for (ProductVariant variant : productVariants) {
+                if (variant == null || variant.getColor() == null) {
+                    System.out.println("Skipping null variant or color for variant ID: " + (variant != null ? variant.getId() : "unknown"));
+                    continue;
+                }
                 List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                if (sizes == null) {
+                    System.out.println("Sizes are null for variant ID: " + variant.getId());
+                    continue;
+                }
                 String color = variant.getColor();
-
-                // Kiểm tra nếu màu sắc đã có trong Map, nếu chưa thì thêm một danh sách mới
                 List<SizeInfo> sizeInfos = sizesByColor.getOrDefault(color, new ArrayList<>());
 
                 for (Size size : sizes) {
-                    // Tạo đối tượng SizeInfo và thêm vào danh sách
+                    if (size == null || size.getSizeName() == null) {
+                        System.out.println("Skipping null size or size name for variant ID: " + variant.getId());
+                        continue;
+                    }
                     SizeInfo sizeInfo = new SizeInfo(color, size.getSizeName(), size.getStockQuantity());
                     sizeInfos.add(sizeInfo);
                 }
 
-                // Cập nhật lại Map với danh sách sizeInfos đã gom
                 sizesByColor.put(color, sizeInfos);
             }
 
-            // Truyền sizesByColor vào model
+// Tiếp tục với các đoạn mã bên dưới
             model.addAttribute("sizesByColor", sizesByColor);
 
-
-
-
-            // Lấy feedbacks của sản phẩm
+// Lấy feedbacks của sản phẩm
             List<Feedback> feedbacks = feedBackService.findByProductIdOrderByCreateAtDesc(id);
             model.addAttribute("feedbacks", feedbacks);
 
-            // Lấy màu sắc đầu tiên từ sizesByColor (màu mặc định)
-//            String selectedColor = sizesByColor.keySet().stream().findFirst().orElse(null);
+// Lấy màu sắc đầu tiên từ sizesByColor (màu mặc định)
             String selectedColor = sizesByColor.keySet().stream().findFirst().orElse("Red"); // mặc định "Red"
-
             System.out.println("sizesByColor keys:");
             sizesByColor.keySet().forEach(System.out::println);
-
             System.out.println("Selected color: " + selectedColor);
             System.out.println("Sizes by color: " + sizesByColor);
 
-
-            // Thêm màu sắc đã chọn vào model
+// Thêm màu sắc đã chọn vào model
             model.addAttribute("selectedColor", selectedColor);
 
-            // Thêm sản phẩm vào model
+// Thêm sản phẩm vào model
             model.addAttribute("product", product);
-            return "product/product-detail"; // Đảm bảo có file product/product-detail.html
+            return "product/product-detail";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "An error occurred while retrieving the product: " + e.getMessage());
             e.printStackTrace();
+            System.out.println("========================================" + e.getMessage());
             return "redirect:/user";
         }
     }
@@ -807,6 +808,7 @@ public class ProductManagementController {
                              Principal principal) {
 
         User user = userService.findByEmail(principal.getName());
+        System.out.println(user.toString());
         Product product = productService.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 //        // Tìm feedback của sản phẩm

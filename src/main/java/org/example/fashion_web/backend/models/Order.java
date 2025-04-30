@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,7 +28,7 @@ public class Order {
     @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
-    @Column(name = "status")
+    @Column(name = "order_status")
     private OrderStatusType status;
 
     @Column(name = "shipping_address", columnDefinition = "TEXT")
@@ -39,5 +40,15 @@ public class Order {
     public enum OrderStatusType {
         PAYING,PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
     }
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "expire_date")
+    private LocalDateTime expireDate;
+
+    @Column(name="vnpay_id")
+    private String vnpId;
+
 }
 

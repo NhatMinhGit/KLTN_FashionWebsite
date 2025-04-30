@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "OrderItems")
+@Table(name = "order_items")
 public class OrderItem {
 
     @Id
@@ -51,4 +51,5 @@ public class OrderItem {
         this.quantity = quantity;
         this.pricePerUnit = pricePerUnit;
     }
+
 }

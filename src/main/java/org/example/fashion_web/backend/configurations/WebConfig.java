@@ -13,3 +13,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:pics/uploads/");
     }
 }
+

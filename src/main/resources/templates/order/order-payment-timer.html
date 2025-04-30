@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh Toán Đơn Hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .countdown-timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .btn-custom {
+            width: 200px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container text-center mt-5">
+    <h1 class="mb-4">Thanh Toán Đơn Hàng</h1>
+    <p>Vui lòng hoàn tất thanh toán trước khi thời gian kết thúc:</p>
+    <div id="countdown" class="countdown-timer mb-4">00:00:00</div>
+
+    <div>
+        <a th:href="@{/user/order/continue-payment}" class="btn btn-success btn-custom">Tiếp tục thanh toán</a>
+        <a th:href="@{/user/order/cancel-payment}" class="btn btn-danger btn-custom">Hủy thanh toán</a>
+    </div>
+</div>
+
+<script>
+    // Thời gian đếm ngược từ server truyền xuống
+    const totalSeconds = [[${remainingSeconds}]]; // Thymeleaf sẽ gán vào đây
+
+    let countdown = totalSeconds;
+
+    function updateCountdown() {
+        const hours = Math.floor(countdown / 3600);
+        const minutes = Math.floor((countdown % 3600) / 60);
+        const seconds = countdown % 60;
+
+        document.getElementById('countdown').innerText =
+            String(hours).padStart(2, '0') + ":" +
+            String(minutes).padStart(2, '0') + ":" +
+            String(seconds).padStart(2, '0');
+
+        if (countdown <= 0) {
+            clearInterval(timer);
+            alert("Thời gian thanh toán đã hết!");
+            window.location.href = "/user/order/cancel-payment";
+        }
+
+        countdown--;
+    }
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>

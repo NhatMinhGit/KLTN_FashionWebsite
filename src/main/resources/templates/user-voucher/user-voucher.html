@@ -90,7 +90,6 @@
           <tr>
             <th>Mã Voucher</th>
             <th>Tên Voucher</th>
-            <th>Loại Giảm Giá</th>
             <th>Giá Trị Giảm</th>
             <th>Giá Trị Đơn Hàng Tối Thiểu</th>
             <th>Ngày Bắt Đầu</th>
@@ -101,10 +100,17 @@
           <tr th:each="voucher : ${vouchers}">
             <td data-label="Mã Voucher" th:text="${voucher.voucherCode}"></td>
             <td data-label="Tên Voucher" th:text="${voucher.voucherName}"></td>
-            <td data-label="Loại Giảm Giá" th:text="${voucher.discountType}"></td>
             <td data-label="Giá Trị Giảm"
-                th:text="${#numbers.formatDecimal(voucher.discountValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
+                th:switch="${voucher.discountType}">
+                <span th:case="'fixed'"
+                      th:text="${#numbers.formatDecimal(voucher.discountValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
+                </span>
+                      <span th:case="'percentage'"
+                      th:text="${voucher.discountValue + ' %'}">
+                </span>
             </td>
+
+
             <td data-label="Đơn Hàng Tối Thiểu"
                 th:text="${#numbers.formatDecimal(voucher.minOrderValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
             </td>
