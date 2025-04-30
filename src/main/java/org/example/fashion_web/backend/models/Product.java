@@ -3,7 +3,6 @@ package org.example.fashion_web.backend.models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Unique
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
@@ -39,8 +37,9 @@ public class Product {
     private String description;
 
     //    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductVariant> variants = new ArrayList<>();
+
     @Getter
     @Setter
     @Transient

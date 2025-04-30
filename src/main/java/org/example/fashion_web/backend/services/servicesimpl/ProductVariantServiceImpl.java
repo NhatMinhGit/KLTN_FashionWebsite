@@ -6,6 +6,7 @@ import org.example.fashion_web.backend.repositories.ProductVariantRepository;
 import org.example.fashion_web.backend.services.ProductVariantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,5 +42,23 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     public void save(ProductVariant productVariant) {
         productVariantRepository.save(productVariant);
     }
+
+    @Override
+    public Optional<ProductVariant> findById(Long id) {
+        return productVariantRepository.findById(id);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteVariantById(Long variantId) {
+        Optional<ProductVariant> variantOpt = productVariantRepository.findById(variantId);
+        if (variantOpt.isPresent()) {
+            ProductVariant variant = variantOpt.get();
+            productVariantRepository.delete(variant); // This will cascade delete associated Images
+            return true;
+        }
+        return false;
+    }
+
 
 }

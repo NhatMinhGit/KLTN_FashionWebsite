@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +35,8 @@ public class ExcelImportController {
     private ImageService imageService;
     @Autowired
     private SizeService sizeService;
+    @Autowired
+    private ProductVariantService productVariantService;
 
     @GetMapping("/admin/datatree")
     public ModelAndView dataTree() {
@@ -42,18 +46,18 @@ public class ExcelImportController {
     @PostMapping("/admin/datatree/import")
     public ResponseEntity<String> importExcel(@RequestBody Map<String, List<Map<String, Object>>> data) {
         try {
-            if (data.containsKey("Category")) {
-                handleCategoryData(data.get("Category"));
-            }
-            if (data.containsKey("Brand")) {
-                handleBrandData(data.get("Brand"));
-            }
-            if (data.containsKey("Product")) {
-                handleProductData(data.get("Product"));
-            }
-//            if (data.containsKey("Image")) {
-//                handleImageData(data.get("Image"));
+//            if (data.containsKey("Category")) {
+//                handleCategoryData(data.get("Category"));
 //            }
+//            if (data.containsKey("Brand")) {
+//                handleBrandData(data.get("Brand"));
+//            }
+//            if (data.containsKey("Product")) {
+//                handleProductData(data.get("Product"));
+//            }
+            if (data.containsKey("Image")) {
+                handleImageData(data.get("Image"));
+            }
             // Có thể thêm sheet khác theo thứ tự mong muốn
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -227,78 +231,31 @@ public class ExcelImportController {
         }
     }
 
-//    private void handleImageData(List<Map<String, Object>> rows) {
-//        // Tương tự như handleProductData, bạn xử lý dữ liệu image ở đây
-//        for (Map<String, Object> row : rows) {
-//            ImageDto dto = mapToImageDto(row); // Chuyển đổi row thành ImageDto
-//            Image image = new Image();
-//            image.setImageUri(dto.getImageUrl());
-//            image.setImageName(dto.getImageName());
-//
-//            // Lấy parent category từ DB
-//            Product product = productService.findById(dto.getProductId())
-//                    .orElseThrow(() -> new RuntimeException("Product not found"));
-//
-//            image.setProduct(product);
-//            image.setImageSize(dto.getImageSize());
-//            image.setImageType(dto.getImageType());
-//            System.out.println("Image url: " + image.getImageUri() + ", Name: " + image.getImageName());
-//
-//            imageService.save(image); // Lưu ảnh vào DB
-//
-//        }
-//    }
-//    private void handleImageData(List<Map<String, Object>> rows) {
-//        for (Map<String, Object> row : rows) {
-//            ImageDto dto = mapToImageDto(row);  // Chuyển đổi row thành ImageDto
-//
-//            // Lấy sản phẩm từ DB
-//            Product productForm = productService.findById(dto.getProductId())
-//                    .orElseThrow(() -> new RuntimeException("Product not found"));
-//
-//            String productName = productForm.getName(); // Tên sản phẩm dùng để tạo folder
-//
-//            String imageName = dto.getImageName();  // Tên file ảnh từ DTO
-//            String baseName = FilenameUtils.getBaseName(imageName);  // Tên cơ bản (không bao gồm phần mở rộng)
-//            String folderPath = "pics/uploads/" + productName;
-//
-//            try {
-//                // Giả sử bạn có đường dẫn URL hoặc file ảnh (dựa trên DTO chứa thông tin về ảnh)
-//                String imageUrl = dto.getImageUrl();  // Đường dẫn URL của ảnh (hoặc đường dẫn tới file ảnh)
-//                if(imageUrl == null){
-//                    imageUrl = "/default.png";
-//                }
-//                String imageCloudinaryUrl = "https://res.cloudinary.com/dgtfqxgvx/image/upload/v1744871959"+ imageUrl;
-//                if (imageUrl != null && !imageUrl.isEmpty()) {
-//                    // Upload ảnh lên Cloudinary từ URL
-//                    Map uploadResult = cloudinary.uploader().upload(imageCloudinaryUrl, ObjectUtils.asMap(
-//                            "public_id", folderPath + "/" + baseName,
-//                            "overwrite", true,
-//                            "resource_type", "image"
-//                    ));
-//
-//                    String cloudinaryUrl = (String) uploadResult.get("secure_url"); // Lấy URL ảnh đã upload
-//
-//                    // Tạo và lưu đối tượng Image
-//                    Image image = new Image();
-//                    image.setImageUri(cloudinaryUrl);
-//                    image.setImageName(imageName);
-//                    image.setProduct(productForm); // Gán đúng product
-//                    image.setImageType(dto.getImageType());  // Lấy type từ DTO
-//                    image.setImageSize(dto.getImageSize());  // Lấy size từ DTO
-//
-//                    imageService.save(image);  // Lưu ảnh vào DB
-//
-//                } else {
-//                    System.err.println("Ảnh không hợp lệ hoặc không có URL.");
-//                }
-//
-//            } catch (IOException e) {
-//                System.err.println("Lỗi khi upload ảnh: " + imageName);
-//                e.printStackTrace();
-//            }
-//        }
-//    }
+    private void handleImageData(List<Map<String, Object>> rows) {
+        String baseUrl = "https://res.cloudinary.com/dgtfqxgvx/image/upload/v1745988704";
+
+        for (Map<String, Object> row : rows) {
+            ImageDto dto = mapToImageDto(row); // Chuyển đổi row thành ImageDto
+            Image image = new Image();
+            image.setImageUri(baseUrl + encodeForCloudinary(dto.getImageUrl())); // Cộng thêm đường dẫn Cloudinary
+            image.setImageName(dto.getImageName());
+
+            // Lấy parent category từ DB
+            ProductVariant productVariant = productVariantService.findById(dto.getProductVariantId()).orElse(null);
+            if (productVariant == null) {
+                System.out.println("Không tìm thấy Product Variant với ID: " + dto.getProductVariantId());
+                continue; // Bỏ qua bản ghi lỗi
+            }
+
+            image.setProductVariant(productVariant);
+            image.setImageSize(dto.getImageSize());
+            image.setImageType(dto.getImageType());
+            System.out.println("Image url: " + image.getImageUri() + ", Name: " + image.getImageName());
+
+            imageService.save(image); // Lưu ảnh vào DB
+        }
+    }
+
 
 
     private void handleCategoryData(List<Map<String, Object>> rows) {
@@ -313,19 +270,19 @@ public class ExcelImportController {
                 category.setName(dto.getCategoryName());
                 category.setDescription(dto.getDescription());
 
-                // KHÔNG dùng orElseThrow nếu parentId là null
-                if (dto.getParentCategoryId() != null) {
-                    Optional<Category> parentCategory = categoryService.findById(dto.getParentCategoryId());
-                    if (parentCategory.isPresent()) {
-                        category.setParentCategory(parentCategory.get());
-                    } else {
-                        System.out.println("Không tìm thấy parent category id = " + dto.getParentCategoryId()
-                                + " cho category: " + dto.getCategoryName());
-                        category.setParentCategory(null); // fallback về null
-                    }
-                } else {
-                    category.setParentCategory(null); // category gốc
-                }
+//                // KHÔNG dùng orElseThrow nếu parentId là null
+//                if (dto.getParentCategoryId() != null) {
+//                    Optional<Category> parentCategory = categoryService.findById(dto.getParentCategoryId());
+//                    if (parentCategory.isPresent()) {
+//                        category.setParentCategory(parentCategory.get());
+//                    } else {
+//                        System.out.println("Không tìm thấy parent category id = " + dto.getParentCategoryId()
+//                                + " cho category: " + dto.getCategoryName());
+//                        category.setParentCategory(null); // fallback về null
+//                    }
+//                } else {
+//                    category.setParentCategory(null); // category gốc
+//                }
 
                 System.out.println("→ Category: " + category.getName()
                         + ", Parent: " + (category.getParentCategory() != null ? category.getParentCategory().getName() : "null"));
@@ -336,10 +293,15 @@ public class ExcelImportController {
     }
 
 
+
+
     private CategoryDto mapToCategoryDto(Map<String, Object> row) {
         CategoryDto dto = new CategoryDto();
-        dto.setCategoryName(String.valueOf(row.get("category_name")));
-        dto.setDescription(String.valueOf(row.get("description")));
+//        dto.setCategoryName(String.valueOf(row.get("category_name")));
+//        dto.setDescription(String.valueOf(row.get("description")));
+        dto.setCategoryName(getSafeString(row, "category_name"));
+        dto.setDescription(getSafeString(row, "description"));
+
 
         Object parentIdObj = row.get("parent_category_id");
         if (parentIdObj != null && !String.valueOf(parentIdObj).isBlank()) {
@@ -357,17 +319,23 @@ public class ExcelImportController {
 
     private BrandDto mapToBrandDto(Map<String, Object> row) {
         BrandDto dto = new BrandDto();
-        dto.setBrandName(String.valueOf(row.get("brand_name")));
-        dto.setDescription(String.valueOf(row.get("description")));
+//        dto.setBrandName(String.valueOf(row.get("brand_name")));
+//        dto.setDescription(String.valueOf(row.get("description")));
+        dto.setBrandName(getSafeString(row, "brand_name"));
+        dto.setDescription(getSafeString(row, "description"));
+
         return dto;
     }
 
     private ImageDto mapToImageDto(Map<String, Object> row) {
         ImageDto dto = new ImageDto();
-        dto.setProductVariantId(Long.valueOf((String.valueOf(row.get("product_variant_id")))));
-        dto.setImageUrl(String.valueOf(row.get("imageUri")));
-        dto.setImageName(String.valueOf(row.get("imageName")));
+//        dto.setProductVariantId(Long.valueOf((String.valueOf(row.get("product_variant_id")))));
+//        dto.setImageUrl(String.valueOf(row.get("imageUri")));
+//        dto.setImageName(String.valueOf(row.get("imageName")));
 
+        dto.setImageUrl(getSafeString(row, "imageUri"));
+        dto.setImageName(getSafeString(row, "imageName"));
+        dto.setProductVariantId(parseLong(row.get("product_variant_id")));
         return dto;
     }
     private ProductDto mapToProductDto(Map<String, Object> row) {
@@ -375,7 +343,8 @@ public class ExcelImportController {
         dto.setBrand_id(Long.valueOf(String.valueOf(row.get("brand_id"))));
         dto.setCategory_id(Long.valueOf(String.valueOf(row.get("category_id"))));
         dto.setName(String.valueOf(row.get("name")));
-        dto.setPrice(BigDecimal.valueOf((Integer) row.get("price")));
+//        dto.setPrice(BigDecimal.valueOf((Integer) row.get("price")));
+        dto.setPrice(parseBigDecimal(row.get("price")));
         dto.setDescription(String.valueOf(row.get("description")));
 //        dto.setStock_quantity((Integer) row.get("stock_quantity"));
 
@@ -391,9 +360,48 @@ public class ExcelImportController {
         SizeDto sizeDto = new SizeDto();
         sizeDto.setProductName(String.valueOf(row.get("product_name"))); // Tên sản phẩm (nếu cần)
         sizeDto.setSizeName(String.valueOf(row.get("size_name"))); // Lấy kích cỡ từ row
-        sizeDto.setStockQuantity((Integer) row.get("stock_quantity")); // Lấy số lượng từ row
-
+        sizeDto.setStockQuantity(parseInt(row.get("stock_quantity")));
         return sizeDto;
     }
+    private String getSafeString(Map<String, Object> row, String key) {
+        Object value = row.get(key);
+        return value != null ? value.toString() : "";
+    }
+    // Hàm chuẩn hóa tên sản phẩm thành slug
+    public static String encodeForCloudinary(String input) {
+        try {
+            return URLEncoder.encode(input, StandardCharsets.UTF_8.toString())
+                    .replace("+", "%20")
+                    .replace("%21", "!")
+                    .replace("%27", "'")
+                    .replace("%28", "(")
+                    .replace("%29", ")")
+                    .replace("%7E", "~");
+        } catch (Exception e) {
+            return input;
+        }
+    }
+    private Long parseLong(Object value) {
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    private BigDecimal parseBigDecimal(Object obj) {
+        try {
+            if (obj == null) return BigDecimal.ZERO;
+            return new BigDecimal(String.valueOf(obj));
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
 
+    private Integer parseInt(Object value) {
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }
