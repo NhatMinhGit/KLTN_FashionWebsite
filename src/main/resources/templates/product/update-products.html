@@ -184,7 +184,13 @@
         colorSelect.name = "variantColors[" + variantContainer.children.length + "]";
         colorSelect.id = "color_" + variantContainer.children.length;
 
-        ["Red", "Blue", "Green", "Black", "White"].forEach(function (color) {
+        [
+            "Đỏ", "Xanh Dương", "Xanh Lá", "Đen", "Trắng",
+            "Vàng", "Tím", "Cam", "Hồng", "Nâu",
+            "Xám", "Xanh Lơ", "Hồng Đậm", "Xanh Chuối", "Nâu Đỏ",
+            "Xanh Hải Quân", "Xanh Olive", "Xanh Ngọc", "Bạc", "Vàng Kim",
+            "Be", "Kem", "Rêu", "Xanh Denim", "Ghi", "Xanh Mint", "Tím Pastel", "Cam Đất", "Hồng Phấn", "Trắng Ngà"
+        ].forEach(function (color) {
             var option = document.createElement("option");
             option.value = color;
             option.innerText = color;
