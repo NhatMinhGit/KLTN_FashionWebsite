@@ -1,12 +1,10 @@
 package org.example.fashion_web.frontend.controller;
 
+import com.sendgrid.Response;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.example.fashion_web.backend.configurations.VNPAYService;
-import org.example.fashion_web.backend.dto.DistrictDto;
-import org.example.fashion_web.backend.dto.OrderDto;
-import org.example.fashion_web.backend.dto.UserProfileDto;
-import org.example.fashion_web.backend.dto.WardDto;
+import org.example.fashion_web.backend.dto.*;
+import org.example.fashion_web.backend.services.VNPAYService;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
 import org.example.fashion_web.backend.services.*;
@@ -24,7 +22,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -91,6 +88,9 @@ public class OrderController {
 
     @Autowired
     private ProductVariantRepository productVariantRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
@@ -223,10 +223,6 @@ public class OrderController {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
             List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
 
-            for (CartItems item : cartItems) {
-                System.out.println(item.toString()); // in ra toString()
-            }
-
             // Add validation
             if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
                 model.addAttribute("errorMessage", "Invalid order information");
@@ -249,9 +245,13 @@ public class OrderController {
             newOrder.setShippingAddress(paymentInfo.getShippingAddress());
             newOrder.setPaymentMethod(paymentInfo.getPaymentMethod());
             newOrder.setCreatedAt(LocalDateTime.now());
+            //lưu thông tin vào dto (gửi email)
+            paymentInfo.setCreated_at(newOrder.getCreatedAt());
+
             if (paymentInfo.getPaymentMethod().equals("CASH")) {
                 newOrder.setStatus(Order.OrderStatusType.PENDING);
                 orderRepository.save(newOrder);
+                paymentInfo.setId(newOrder.getId());
                 //lưu payment vào database
                 Payment payment = new Payment();
                 payment.setOrder(newOrder);
@@ -280,10 +280,10 @@ public class OrderController {
                 // Tạo URL thanh toán VNPAY
                 String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
                 String vnpayUrl = vnPayService.createOrder(session, request, newOrder.getId(), baseUrl);
+                //Lưu orderid để xử lý vnpay
                 session.setAttribute("paymentOrderId", newOrder.getId()); // Lưu orderId
                 return "redirect:" + vnpayUrl;
             }
-
 
             // lưu orderitem vào database
             for (CartItems item : cartItems) {
@@ -344,8 +344,24 @@ public class OrderController {
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
             }
-            session.removeAttribute("cartItems");
-            session.removeAttribute("paymentInfo");
+
+
+            // Gửi email
+            try {
+                String htmlContent = emailService.buildOrderConfirmationEmail(user, paymentInfo, cartItems);
+                EmailRequest emailRequest = new EmailRequest(user.getEmail(), "Xác nhận đơn hàng #" + newOrder.getId(), htmlContent);
+                Response response = emailService.sendEmail(emailRequest, user.getEmail());
+
+                if (response.getStatusCode() != 200 && response.getStatusCode() != 202) {
+                    System.out.println("❌ Gửi email thất bại: " + response.getStatusCode());
+                }
+                session.removeAttribute("paymentOrderId");
+                session.removeAttribute("cartItems");
+                session.removeAttribute("paymentInfo");
+            } catch (Exception e) {
+                System.out.println("❌ Lỗi khi gửi email: " + e.getMessage());
+            }
+
             return "order/order-confirmination";
 
         } catch (Exception e) {
