@@ -38,7 +38,7 @@
                 <!-- Modal Filter -->
                 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
-                        <div class="modal-content bg-dark text-white">
+                        <div class="modal-content text-white" style="background-color: #0e2433;">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="filterModalLabel">Bộ lọc sản phẩm</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
@@ -162,9 +162,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Icon sort -->
-                <div class="cursor-pointer" title="Sắp xếp theo giá"><i class="fas fa-sort-amount-up"></i></div>
 
                 <!-- Giữ icon list view -->
                 <div class="cursor-pointer" title="List view"><i class="fas fa-list"></i></div>
@@ -339,145 +336,62 @@
         // Chuyển hướng đến URL lọc (hoặc bạn có thể sử dụng Ajax để gửi yêu cầu)
         window.location.href = url;
     });
-    // // Function to create and update breadcrumb dynamically
-    // function updateBreadcrumb() {
-    //     const urlParams = new URLSearchParams(window.location.search);
-    //     const categoryParam = urlParams.get('category') || '';
-    //
-    //     let breadcrumbItems = [{name: "Trang chủ", link: "/user/shop"}];
-    //     if (categoryParam) {
-    //         const categories = categoryParam.split(' > ');
-    //         let accumulatedCategory = "";
-    //         categories.forEach((cat, index) => {
-    //             accumulatedCategory += (index > 0 ? " > " : "") + cat;
-    //             breadcrumbItems.push({
-    //                 name: cat,
-    //                 link: index < categories.length - 1
-    //                     ? `/user/shop?category=${encodeURIComponent(accumulatedCategory)}`
-    //                     : "" // cuối không link
-    //             });
-    //         });
-    //     }
-    //
-    //     let breadcrumbHTML = '<nav class="d-inline-block"><ol class="breadcrumb mb-0">';
-    //     breadcrumbItems.forEach(item => {
-    //         if (item.link) {
-    //             breadcrumbHTML += `<li class="breadcrumb-item"><a href="${item.link}" class="text-white text-decoration-none">${item.name}</a></li>`;
-    //         } else {
-    //             breadcrumbHTML += `<li class="breadcrumb-item active text-white fw-bold" aria-current="page">${item.name}</li>`;
-    //         }
-    //     });
-    //     breadcrumbHTML += '</ol></nav>';
-    //
-    //     const breadcrumbContainer = document.getElementById('breadcrumb-container');
-    //     if (breadcrumbContainer) {
-    //         breadcrumbContainer.innerHTML = breadcrumbHTML;
-    //     }
-    // }
-    //
-    // function updateProductCount() {
-    //     const productList = document.querySelectorAll('.product-card');
-    //     const productCount = productList.length;
-    //     const productCountElem = document.getElementById('product-count');
-    //     if (productCountElem) {
-    //         productCountElem.textContent = productCount;
-    //     }
-    // }
-    //
-    // // Hàm lấy các giá trị bộ lọc
-    // function getFilterValues() {
-    //     const color = document.querySelector('input[name="color"]:checked')?.value || '';  // Lấy màu đã chọn
-    //     const size = document.getElementById('filterSize').value;  // Lấy kích thước đã chọn
-    //     const maxPrice = document.getElementById('filterPrice').value;  // Lấy giá tối đa đã chọn
-    //
-    //     return { color, size, maxPrice: parseInt(maxPrice) || 0 }; // Đảm bảo giá trị maxPrice là số
-    // }
-    //
-    // // Hàm lọc sản phẩm
-    // function filterProducts(event) {
-    //     event.preventDefault();  // Ngừng hành động mặc định (không reload trang)
-    //
-    //     // Lấy các giá trị bộ lọc
-    //     const filterValues = getFilterValues();
-    //
-    //     // Kiểm tra nếu không có giá trị bộ lọc hợp lệ
-    //     if (!filterValues.color && !filterValues.size && !filterValues.maxPrice) {
-    //         alert("Vui lòng chọn ít nhất một bộ lọc.");
-    //         return;
-    //     }
-    //
-    //     // Gửi yêu cầu API với các bộ lọc
-    //     fetch(`/user/shop/filter?color=${encodeURIComponent(filterValues.color)}&size=${encodeURIComponent(filterValues.size)}&maxPrice=${filterValues.maxPrice}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         }
-    //     })
-    //         .then(response => {
-    //             console.log(response); // In ra phản hồi
-    //
-    //             // Kiểm tra trạng thái phản hồi từ server
-    //             if (!response.ok) {
-    //                 console.error(`Lỗi kết nối server: ${response.status} - ${response.statusText}`);
-    //                 return response.text().then(text => {
-    //                     throw new Error(`Lỗi 500: ${text}`); // Trả về lỗi chi tiết nếu có
-    //                 });
-    //             }
-    //             return response.json();  // Chuyển phản hồi thành JSON
-    //         })
-    //         .then(products => {
-    //             let container = document.getElementById("productCardContainer");
-    //             container.innerHTML = "";  // Xóa danh sách sản phẩm cũ
-    //
-    //             // Kiểm tra xem có sản phẩm nào không
-    //             if (products && products.length > 0) {
-    //                 products.forEach(product => {
-    //                     const productCard = `
-    //                 <div class="col">
-    //                     <div class="product-card">
-    //                         <div class="product-images">
-    //                             <a href="/product-detail/${product.id}">
-    //                                 <img src="${(product.imageUrls && product.imageUrls.length > 0)
-    //                         ? product.imageUrls[0]
-    //                         : 'https://res.cloudinary.com/dgtfqxgvx/image/upload/v1744854407/default.png'}"
-    //                                      alt="${product.name}" class="product-image"/>
-    //                             </a>
-    //                         </div>
-    //                         <h5>${product.name}</h5>
-    //                         <p class="product-price">${product.price} VNĐ</p>
-    //                         <p>${product.description || ""}</p>
-    //                     </div>
-    //                 </div>`;
-    //                     container.innerHTML += productCard;  // Thêm sản phẩm vào container
-    //                 });
-    //             } else {
-    //                 container.innerHTML = "<p>Không tìm thấy sản phẩm nào phù hợp với bộ lọc của bạn.</p>";
-    //             }
-    //         })
-    //         .catch(error => {
-    //             console.error("Lỗi khi lọc sản phẩm:", error);
-    //             let container = document.getElementById("productCardContainer");
-    //             container.innerHTML = "<p>Đã xảy ra lỗi máy chủ khi xử lý yêu cầu. Vui lòng thử lại sau.</p>";
-    //         });
-    // }
-    //
-    //
-    //
-    // // Đăng ký sự kiện khi nhấn nút lọc
-    // document.getElementById('applyFilterBtn').addEventListener('click', filterProducts);
-    //
-    // // Cập nhật các phần tử cần thiết khi trang được tải
-    // window.addEventListener('load', () => {
-    //     updateBreadcrumb();
-    //     updateProductCount();
-    //     getFilterValues();
-    // });
-    //
-    // // Xử lý sự kiện popstate cho việc duy trì trạng thái của bộ lọc khi quay lại trang
-    // window.addEventListener('popstate', () => {
-    //     updateBreadcrumb();
-    //     updateProductCount();
-    // });
+
+    // Function to create and update breadcrumb dynamically
+    function updateBreadcrumb() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('category') || '';
+
+        let breadcrumbItems = [{name: "Trang chủ", link: "/user/shop"}];
+        if (categoryParam) {
+            const categories = categoryParam.split(' > ');
+            let accumulatedCategory = "";
+            categories.forEach((cat, index) => {
+                accumulatedCategory += (index > 0 ? " > " : "") + cat;
+                breadcrumbItems.push({
+                    name: cat,
+                    link: index < categories.length - 1
+                        ? `/user/shop?category=${encodeURIComponent(accumulatedCategory)}`
+                        : "" // cuối không link
+                });
+            });
+        }
+
+        let breadcrumbHTML = '<nav class="d-inline-block"><ol class="breadcrumb mb-0">';
+        breadcrumbItems.forEach(item => {
+            if (item.link) {
+                breadcrumbHTML += `<li class="breadcrumb-item"><a href="${item.link}" class="text-white text-decoration-none">${item.name}</a></li>`;
+            } else {
+                breadcrumbHTML += `<li class="breadcrumb-item active text-white fw-bold" aria-current="page">${item.name}</li>`;
+            }
+        });
+        breadcrumbHTML += '</ol></nav>';
+
+        const breadcrumbContainer = document.getElementById('breadcrumb-container');
+        if (breadcrumbContainer) {
+            breadcrumbContainer.innerHTML = breadcrumbHTML;
+        }
+    }
+
+    function updateProductCount() {
+        const productList = document.querySelectorAll('.product-card');
+        const productCount = productList.length;
+        const productCountElem = document.getElementById('product-count');
+        if (productCountElem) {
+            productCountElem.textContent = productCount;
+        }
+    }
+    // Cập nhật các phần tử cần thiết khi trang được tải
+    window.addEventListener('load', () => {
+        updateBreadcrumb();
+        updateProductCount();
+    });
+
+    // Xử lý sự kiện popstate cho việc duy trì trạng thái của bộ lọc khi quay lại trang
+    window.addEventListener('popstate', () => {
+        updateBreadcrumb();
+        updateProductCount();
+    });
 </script>
 
 

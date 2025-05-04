@@ -15,6 +15,7 @@ import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -225,7 +226,6 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> filterProducts(String color, String size, BigDecimal maxPrice, String category) {
         return productRepository.filterProducts(color,size,maxPrice, category);
     }
-
 
 
 }

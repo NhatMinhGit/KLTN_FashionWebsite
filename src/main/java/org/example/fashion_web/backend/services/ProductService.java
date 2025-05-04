@@ -47,7 +47,8 @@ public interface ProductService {
 
     List<Product> searchByKeyword(String keyword);
 
-    List<Product> findCategoryIdsByParentCategoryName(String color, String size, BigDecimal maxPrice,List<Long> categories);
+    List<Product> findCategoryIdsByParentCategoryName(String color, String size, BigDecimal maxPrice, List<Long> categories);
 
     List<Product> filterProducts(String color, String size, BigDecimal maxPrice, String category);
+
 }

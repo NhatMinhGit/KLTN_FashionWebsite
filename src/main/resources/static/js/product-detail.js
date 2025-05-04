@@ -208,3 +208,40 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+var myModal = new bootstrap.Modal(document.getElementById('sizeGuideModal'));
+myModal.hide();
+
+// Function to select body type when an image is clicked
+function selectBodyType(bodyType) {
+    const bodyTypeRadios = document.getElementsByName('bodyType');
+    bodyTypeRadios.forEach(radio => {
+        if (radio.value === bodyType) {
+            radio.checked = true;
+        }
+    });
+}
+
+// Function to select fit preference when an image is clicked
+function selectFitPreference(fitPreference) {
+    const fitPreferenceRadios = document.getElementsByName('fitPreference');
+    fitPreferenceRadios.forEach(radio => {
+        if (radio.value === fitPreference) {
+            radio.checked = true;
+        }
+    });
+}
+
+// Function to calculate and display size (you can define this function as needed)
+function calculateAndDisplaySize() {
+    const weight = document.getElementById('weight').value;
+    const height = document.getElementById('height').value;
+    const gender = document.getElementById('gender').value;
+    const age = document.getElementById('age').value;
+    const bodyType = document.querySelector('input[name="bodyType"]:checked').value;
+    const fitPreference = document.querySelector('input[name="fitPreference"]:checked').value;
+
+    // Perform size calculation logic here and display the result
+    const sizeRecommendation = `Size Recommendation: Weight: ${weight}kg, Height: ${height}cm, Gender: ${gender}, Age: ${age}, Body Type: ${bodyType}, Fit Preference: ${fitPreference}`;
+
+    document.getElementById('sizeRecommendation').innerText = sizeRecommendation;
+}

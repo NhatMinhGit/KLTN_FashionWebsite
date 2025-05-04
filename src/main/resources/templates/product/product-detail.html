@@ -41,26 +41,14 @@
         <div class="col-md-6" id="product-details" th:data-id="${product.id}" th:data-variant-id="${variantIdByColor.get(selectedColor)}">
             <input type="hidden" id="productId" th:value="${product.id}">
             <h2 class="mb-3" th:text="${product.name}"></h2>
-            <p class="text-white mb-4" th:text="${product.description}"></p>
+            <span th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</span>/5 ⭐
 
+            <br>
             <div class="mb-3">
                 <span id="price" th:text="${product.effectivePrice}" style="display: none;"></span>
                 <span class="h4 me-2" th:text="${@currencyFormatter.formatVND(product.effectivePrice)}"></span>
             </div>
 
-            <!-- Chọn màu -->
-<!--            <div class="mb-4" >-->
-<!--                <label for="colorSelect" class="form-label">Màu sắc:</label>-->
-<!--                <select class="form-select" id="colorSelect" required>-->
-<!--                    <option value="" selected disabled>Chọn màu</option>-->
-<!--                    <option th:each="color : ${sizesByColor.keySet()}"-->
-<!--                            th:value="${color}"-->
-<!--                            th:text="${color}"-->
-<!--                            th:selected="${color == selectedColor}">-->
-<!--                    </option>-->
-<!--                </select>-->
-<!--                <input type="hidden" id="selectedColor" name="selectedColor" th:value="${selectedColor}">-->
-<!--            </div>-->
             <div id="sizeContainer" class="mb-4">
                 <label class="form-label">Chọn màu:</label>
                 <div class="d-flex gap-3 flex-wrap">
@@ -92,9 +80,10 @@
                 <p id="stockMessage" class="text-danger" style="display: none;"></p>
             </div>
             <div class="mb-4">
-                <button type="button" class="btn btn-link p-0 mt-2" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
-                    <i class="fa-solid fa-ruler-combined"></i> Hướng dẫn chọn size
+                <button type="button" class="btn btn-link p-0 mt-2 text-decoration-none" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
+                    <i class="fa-solid fa-ruler-combined text-white"></i> <span class="text-white">Hướng dẫn chọn size</span>
                 </button>
+
                 <div th:replace="fragments/size-guild-modal-fragment :: sizeGuideModal"></div>
                 <div th:replace="fragments/measure-size-guild-fragment :: measureGuideModal"></div>
 

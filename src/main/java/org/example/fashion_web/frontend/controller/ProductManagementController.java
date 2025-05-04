@@ -3,7 +3,9 @@ package org.example.fashion_web.frontend.controller;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.example.fashion_web.backend.dto.*;
+import org.example.fashion_web.backend.dto.CategoryForm;
+import org.example.fashion_web.backend.dto.ProductForm;
+import org.example.fashion_web.backend.dto.SizeInfo;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.ImageRepository;
@@ -384,6 +386,16 @@ public class ProductManagementController {
 
             // Thêm màu sắc đã chọn vào model
             model.addAttribute("selectedColor", selectedColor);
+
+            double averageRating = 0.0;
+            if (feedbacks != null && !feedbacks.isEmpty()) {
+                double sum = 0;
+                for (Feedback feedback : feedbacks) {
+                    sum += feedback.getRating();
+                }
+                averageRating = sum / feedbacks.size();
+            }
+            model.addAttribute("averageRating", averageRating);
 
             // Thêm sản phẩm vào model
             model.addAttribute("product", product);
@@ -883,79 +895,161 @@ public class ProductManagementController {
 
         return "shop"; // Trả về trang shop.html chung
     }
-    @GetMapping("/user/shop/filter")
-    public String listProducts(
-            @RequestParam(value = "category", required = false, defaultValue = "Áo Nam") String category,
-            @RequestParam(value = "color", required = false) String color,
-            @RequestParam(value = "size", required = false) String size,
-            @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
-            Model model, Principal principal) {
+//    @GetMapping("/user/shop/filter")
+//    public String listProducts(
+//            @RequestParam(value = "category", required = false, defaultValue = "Áo Nam") String category,
+//            @RequestParam(value = "color", required = false) String color,
+//            @RequestParam(value = "size", required = false) String size,
+//            @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
+//            @RequestParam(value = "sort", required = false) String sort,
+//            Model model, Principal principal) {
+//
+//        // Xử lý thông tin người dùng nếu có
+//        if (principal != null) {
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+//            if (userDetails != null) {
+//                model.addAttribute("user", userDetails);
+//            }
+//        }
+//        List<Product> products;
+////        if ("Áo Nam".equals(category)) {
+////            List<Long> categoryIds = categoryService.findCategoryIdsByParentCategoryName("Áo Nam");
+////
+////            products = productService.findCategoryIdsByParentCategoryName(color, size, maxPrice,categoryIds);
+////        } else {
+////            // Lọc sản phẩm theo các tham số
+////            products = productService.filterProducts(color, size, maxPrice, category);
+////        }
+//        if ("Áo Nam".equals(category)) {
+//            List<Long> categoryIds = categoryService.findCategoryIdsByParentCategoryName("Áo Nam");
+//            products = productService.findCategoryIdsByParentCategoryName(color, size, maxPrice, categoryIds);
+//        } else {
+//            products = productService.filterProducts(color, size, maxPrice, category);
+//        }
+//        // Tiếp tục xử lý sản phẩm như trước
+//        Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true, category);
+//        for (Product product : products) {
+//            BigDecimal effectivePrice;
+//            if (categoryDiscount.isPresent()) {
+//                effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
+//            } else {
+//                effectivePrice = discountService.getActiveDiscountForProduct(product)
+//                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+//                        .orElse(product.getPrice());
+//            }
+//            product.setEffectivePrice(effectivePrice);
+//        }
+//
+//        model.addAttribute("products", products);
+//
+//        // Nhóm danh sách ảnh theo productId
+//        Map<Long, List<String>> productImages = new HashMap<>();
+//        for (Product product : products) {
+//            List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
+//            List<String> imageUrls = imageList.stream()
+//                    .map(Image::getImageUri)
+//                    .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
+//                    .collect(Collectors.toList());
+//            productImages.put(product.getId(), imageUrls);
+//        }
+//
+//        model.addAttribute("productImages", productImages);
+//
+//        // Lấy danh sách ảnh chung cho từng sản phẩm
+//        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
+//        for (Product product : products) {
+//            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
+//            Map<Long, List<String>> variantImageMap = new HashMap<>();
+//            for (ProductVariant variant : variants) {
+//                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+//                List<String> imageUrls = images.stream()
+//                        .map(Image::getImageUri)
+//                        .collect(Collectors.toList());
+//                variantImageMap.put(variant.getId(), imageUrls);
+//            }
+//            productVariantImages.put(product.getId(), variantImageMap);
+//        }
+//
+//        model.addAttribute("productVariantImages", productVariantImages);
+//        model.addAttribute("currentCategory", category); // Lưu danh mục hiện tại để xử lý giao diện
+//
+//        return "shop"; // Trả về trang shop.html chung
+//    }
+@GetMapping("/user/shop/filter")
+public String listProducts(
+        @RequestParam(value = "category", required = false, defaultValue = "Áo Nam") String category,
+        @RequestParam(value = "color", required = false) String color,
+        @RequestParam(value = "size", required = false) String size,
+        @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
+        @RequestParam(value = "sort", required = false, defaultValue = "asc") String sort, // Đặt mặc định là "asc"
+        Model model, Principal principal) {
 
-        // Xử lý thông tin người dùng nếu có
-        if (principal != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            if (userDetails != null) {
-                model.addAttribute("user", userDetails);
-            }
+    // Xử lý thông tin người dùng nếu có
+    if (principal != null) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+        if (userDetails != null) {
+            model.addAttribute("user", userDetails);
         }
-        List<Product> products;
-        if ("Áo Nam".equals(category)) {
-            List<Long> categoryIds = categoryService.findCategoryIdsByParentCategoryName("Áo Nam");
-
-            products = productService.findCategoryIdsByParentCategoryName(color, size, maxPrice,categoryIds);
-        } else {
-            // Lọc sản phẩm theo các tham số
-            products = productService.filterProducts(color, size, maxPrice, category);
-        }
-        // Tiếp tục xử lý sản phẩm như trước
-        Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true, category);
-        for (Product product : products) {
-            BigDecimal effectivePrice;
-            if (categoryDiscount.isPresent()) {
-                effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
-            } else {
-                effectivePrice = discountService.getActiveDiscountForProduct(product)
-                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-                        .orElse(product.getPrice());
-            }
-            product.setEffectivePrice(effectivePrice);
-        }
-
-        model.addAttribute("products", products);
-
-        // Nhóm danh sách ảnh theo productId
-        Map<Long, List<String>> productImages = new HashMap<>();
-        for (Product product : products) {
-            List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
-            List<String> imageUrls = imageList.stream()
-                    .map(Image::getImageUri)
-                    .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
-                    .collect(Collectors.toList());
-            productImages.put(product.getId(), imageUrls);
-        }
-
-        model.addAttribute("productImages", productImages);
-
-        // Lấy danh sách ảnh chung cho từng sản phẩm
-        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-        for (Product product : products) {
-            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-            Map<Long, List<String>> variantImageMap = new HashMap<>();
-            for (ProductVariant variant : variants) {
-                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-                List<String> imageUrls = images.stream()
-                        .map(Image::getImageUri)
-                        .collect(Collectors.toList());
-                variantImageMap.put(variant.getId(), imageUrls);
-            }
-            productVariantImages.put(product.getId(), variantImageMap);
-        }
-
-        model.addAttribute("productVariantImages", productVariantImages);
-        model.addAttribute("currentCategory", category); // Lưu danh mục hiện tại để xử lý giao diện
-
-        return "shop"; // Trả về trang shop.html chung
     }
+
+    List<Product> products;
+    // Lọc sản phẩm theo category
+    if ("Áo Nam".equals(category)) {
+        List<Long> categoryIds = categoryService.findCategoryIdsByParentCategoryName("Áo Nam");
+        products = productService.findCategoryIdsByParentCategoryName(color, size, maxPrice, categoryIds);
+    } else {
+        products = productService.filterProducts(color, size, maxPrice, category);
+    }
+
+    // Tiếp tục xử lý sản phẩm như trước
+    Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true, category);
+    for (Product product : products) {
+        BigDecimal effectivePrice;
+        if (categoryDiscount.isPresent()) {
+            effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
+        } else {
+            effectivePrice = discountService.getActiveDiscountForProduct(product)
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice());
+        }
+        product.setEffectivePrice(effectivePrice);
+    }
+
+    model.addAttribute("products", products);
+
+    // Nhóm danh sách ảnh theo productId
+    Map<Long, List<String>> productImages = new HashMap<>();
+    for (Product product : products) {
+        List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
+        List<String> imageUrls = imageList.stream()
+                .map(Image::getImageUri)
+                .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
+                .collect(Collectors.toList());
+        productImages.put(product.getId(), imageUrls);
+    }
+
+    model.addAttribute("productImages", productImages);
+
+    // Lấy danh sách ảnh chung cho từng sản phẩm
+    Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
+    for (Product product : products) {
+        List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
+        Map<Long, List<String>> variantImageMap = new HashMap<>();
+        for (ProductVariant variant : variants) {
+            List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+            List<String> imageUrls = images.stream()
+                    .map(Image::getImageUri)
+                    .collect(Collectors.toList());
+            variantImageMap.put(variant.getId(), imageUrls);
+        }
+        productVariantImages.put(product.getId(), variantImageMap);
+    }
+
+    model.addAttribute("productVariantImages", productVariantImages);
+    model.addAttribute("currentCategory", category); // Lưu danh mục hiện tại để xử lý giao diện
+
+    return "shop"; // Trả về trang shop.html chung
+}
     @GetMapping("/user/shop/search")
     public String searchProducts(
             @RequestParam(value = "keyword", required = false) String keyword,

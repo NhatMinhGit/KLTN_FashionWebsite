@@ -164,22 +164,6 @@ public class UserController {
         return "user";
     }
 
-    //    @GetMapping("/user-page")
-//    public String listBestSalerProducts(Model model, Principal principal) {
-//        // Xử lý thông tin người dùng nếu có
-//        if (principal != null) {
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-//            if (userDetails != null) {
-//                model.addAttribute("user", userDetails);
-//            }
-//        }
-//
-//        // Lấy danh sách sản phẩm
-//        List<Product> products = productService.getAllProducts();
-//        model.addAttribute("products", products);
-//        //System.out.println("ProductManagementController 96 ==> products: "+products);
-//        return "user"; // user.html
-//    }
     @GetMapping("admin")
     public String adminPage (Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());

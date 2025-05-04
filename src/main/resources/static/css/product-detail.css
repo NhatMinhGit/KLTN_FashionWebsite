@@ -83,3 +83,7 @@ input[type=number] {
     background-color: white;
     color: black;
 }
+
+.modal-backdrop {
+    display: none !important;
+}
