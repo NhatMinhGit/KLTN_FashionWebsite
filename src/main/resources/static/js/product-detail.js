@@ -1,17 +1,32 @@
+// function changeImage(imgElement) {
+//     document.getElementById('mainImage').src = imgElement.src;
+//     // Xóa class 'active' khỏi tất cả các ảnh nhỏ
+//     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+//     // Thêm class 'active' vào ảnh được chọn
+//     imgElement.classList.add('active');
+// }
 function changeImage(imgElement) {
-    document.getElementById('mainImage').src = imgElement.src;
-    // Xóa class 'active' khỏi tất cả các ảnh nhỏ
+    const mainImage = document.getElementById('mainImage');
+
+    // Thêm lớp fade-out để làm mờ ảnh
+    mainImage.classList.add('fade-out');
+
+    // Sau 300ms, đổi src và xóa fade-out (hiện ảnh mới)
+    setTimeout(() => {
+        mainImage.src = imgElement.src;
+        mainImage.classList.remove('fade-out');
+    }, 300);
+
+    // Xử lý active thumbnail
     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-    // Thêm class 'active' vào ảnh được chọn
     imgElement.classList.add('active');
 }
-
 // add-to-cart
 function addToCart() {
     const productElement = document.getElementById("product-details");
     const priceElement = document.getElementById("price");
     const quantityElement = document.getElementById("quantity");
-    const sizeSelect = document.getElementById("sizeSelect");
+    const sizeSelect = document.getElementById("selectedSize");
     const selectedSize = sizeSelect.value; // Hoặc .options[sizeSelect.selectedIndex].text nếu muốn cả tên + tồn kho
 
     if (!productElement || !priceElement || !quantityElement || !sizeSelect) {
@@ -66,5 +81,130 @@ function addToCart() {
         });
 }
 
+
+function selectColor(element) {
+    // Bỏ viền cũ
+    document.querySelectorAll('.color-thumbnail').forEach(img => {
+        img.classList.remove('border-primary');
+        img.classList.add('border');
+    });
+
+    // Thêm viền cho ảnh được chọn
+    element.classList.add('border-primary');
+    element.classList.remove('border');
+
+    const selectedColor = element.getAttribute('data-color');
+
+    // Cập nhật input hidden
+    document.getElementById('selectedColor').value = selectedColor;
+
+    // Gọi API cập nhật size & ảnh
+    updateSizeOptions(selectedColor);
+    updateProductImages(selectedColor);
+}
+const productId = document.getElementById("productId").value;
+const sizeSelect = document.getElementById("sizeSelect");
+const mainImage = document.getElementById("mainImage");
+const thumbnailContainer = document.getElementById("thumbnailContainer");
+
+async function updateSizeOptions(selectedColor) {
+    try {
+        const response = await fetch(`/api/sizes/${productId}/${selectedColor}`);
+        const sizes = await response.json();
+
+        if (sizes.length === 0) {
+            sizeSelect.innerHTML = '<option disabled selected>Không có size</option>';
+            return;
+        }
+
+        sizeSelect.innerHTML = sizes.map(size =>
+            `<option value="${size.sizeValue}">${size.sizeValue} (Stock: ${size.stockQuantity})</option>`
+        ).join("");
+    } catch (error) {
+        console.error("Lỗi khi lấy size:", error);
+        sizeSelect.innerHTML = '<option disabled selected>Lỗi khi tải size</option>';
+    }
+}
+
+async function updateProductImages(selectedColor) {
+    try {
+        const response = await fetch(`/api/images/${productId}/${selectedColor}`);
+        const images = await response.json();
+
+        if (images.length === 0) {
+            mainImage.src = "";
+            mainImage.alt = "Không có ảnh cho màu này.";
+            thumbnailContainer.innerHTML = "<p>Không có ảnh cho màu đã chọn.</p>";
+            return;
+        }
+
+        mainImage.src = images[0];
+        mainImage.alt = "Ảnh sản phẩm";
+        thumbnailContainer.innerHTML = images.map(imageUri =>
+            `<img src="${imageUri}" class="thumbnail" onclick="changeImage(this)" />`
+        ).join("");
+    } catch (error) {
+        console.error("Lỗi khi lấy ảnh:", error);
+        mainImage.src = "";
+        mainImage.alt = "Lỗi khi tải ảnh";
+        thumbnailContainer.innerHTML = "<p>Lỗi khi tải ảnh</p>";
+    }
+}
+
+function changeImage(thumbnail) {
+    mainImage.src = thumbnail.src;
+}
+
+// Assuming you have a function or way to fetch stock data for the selected size
+async function getStockQuantity(variantId, size) {
+    // Lấy số lượng tồn kho từ variantSizeQuantities cho variantId và size
+    const sizeQuantities = variantSizeQuantities[variantId];
+    if (!sizeQuantities) {
+        console.error(`Không tìm thấy variant với ID ${variantId}`);
+        return 0; // Nếu không tìm thấy variantId thì trả về 0
+    }
+
+    // Lấy số lượng tồn kho của size
+    const stockQuantity = sizeQuantities[size] || 0; // Nếu không có size trong variant thì trả về 0
+    return stockQuantity;
+}
+
+function selectSize(size) {
+    // Update selected size input
+    document.getElementById('selectedSize').value = size;
+
+    // Update the active size button
+    const buttons = document.querySelectorAll('.btn-group .btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    const clickedButton = Array.from(buttons).find(btn => btn.textContent.trim() === size);
+    clickedButton.classList.add('active');
+
+    // Fetch and display the stock quantity for the selected size
+    getStockQuantity(size).then(stockQuantity => {
+        const stockMessageElement = document.getElementById('stockMessage');
+
+        if (stockQuantity < 10) {
+            stockMessageElement.style.display = 'block';
+            stockMessageElement.textContent = `Chỉ còn ${stockQuantity} sản phẩm!`;
+        } else {
+            stockMessageElement.style.display = 'none'; // Hide the message if stock is 10 or more
+        }
+    });
+}
+function changeQuantity(change) {
+    const quantityInput = document.getElementById('quantity');
+    let value = parseInt(quantityInput.value) + change;
+    if (value < 1) value = 1;
+    quantityInput.value = value;
+}
+document.addEventListener('DOMContentLoaded', function () {
+    var sizeGuideButton = document.querySelector('[data-bs-toggle="modal"]');
+    if (sizeGuideButton) {
+        sizeGuideButton.addEventListener('click', function () {
+            var modal = new bootstrap.Modal(document.getElementById('sizeGuideModal'));
+            modal.show();
+        });
+    }
+});
 
 

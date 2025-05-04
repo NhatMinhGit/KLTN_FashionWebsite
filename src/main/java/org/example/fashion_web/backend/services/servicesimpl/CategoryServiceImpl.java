@@ -83,5 +83,10 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findById(categoryId);
     }
 
+    @Override
+    public List<Long> findCategoryIdsByParentCategoryName(String name) {
+        return categoryRepository.findCategoryIdsByParentCategoryName(name);
+    }
+
 
 }

@@ -3,12 +3,10 @@ package org.example.fashion_web.frontend.controller;
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.models.CartItems;
 import org.example.fashion_web.backend.models.Image;
+import org.example.fashion_web.backend.models.Size;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.UserRepository;
-import org.example.fashion_web.backend.services.CartItemService;
-import org.example.fashion_web.backend.services.CartService;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.UserService;
+import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,6 +33,9 @@ public class GlobalModelAttributes {
     private CartService cartService;
 
     @Autowired
+    private SizeService sizeService;
+
+    @Autowired
     private CartItemService cartItemService;
 
     @Autowired
@@ -56,11 +57,19 @@ public class GlobalModelAttributes {
                 List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
                 productImages.put(item.getProduct().getId(), imageUrls);
             }
-//            model.addAttribute("userList", userService.findAll());
+//          model.addAttribute("userList", userService.findAll());
             model.addAttribute("productImages", productImages);
+            Map<Long, String> productSizes = new HashMap<>();
+            for (CartItems item : cart) {
+                List<Size> sizes = sizeService.findAllByProductVariantId(item.getProduct().getId());
+                String sizeName = sizes.isEmpty() ? "Không rõ" : sizes.get(0).getSizeName();
+                productSizes.put(item.getProduct().getId(), sizeName);
+            }
+            model.addAttribute("productSizes", productSizes);
             model.addAttribute("countCart", cart.size());
             model.addAttribute("totalOrderPrice", cartItemService.getTotalPrice(cart));
             model.addAttribute("cartItems", cart);
+
 //            //Lấy số lượng cart của user
 //
 //            Integer countCart = cartService.getCountCart(user.getId());

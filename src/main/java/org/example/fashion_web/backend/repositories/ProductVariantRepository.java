@@ -2,6 +2,7 @@ package org.example.fashion_web.backend.repositories;
 
 import org.example.fashion_web.backend.models.ProductVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +19,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant,L
 
     void deleteById(Long id);
     boolean existsById(Long id);
+
+    @Query("SELECT DISTINCT v.color FROM ProductVariant v WHERE v.color IS NOT NULL")
+    List<String> findAllVariantColorsExist();
 }

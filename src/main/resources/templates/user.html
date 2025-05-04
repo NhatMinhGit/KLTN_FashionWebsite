@@ -48,58 +48,30 @@
 <div class="container">
     <div class="nav custom-nav-container">
         <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center text-center w-100">
-            <li><a th:href="@{/user/shop(category='Nam')}" class="nav-link px-3 link-danger text-white">Nam</a></li>
-            <li><a th:href="@{/user/shop(category='Nữ')}" class="nav-link px-3 link-danger text-white">Nữ</a></li>
+            <li><a th:href="@{/user/shop(category='Áo Nam')}" class="nav-link px-3 link-danger text-white">Nam</a></li>
+            <li><a th:href="@{/user/shop(category='Áo Nữ')}" class="nav-link px-3 link-danger text-white">Nữ</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Trẻ em</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Unisex</a></li>
             <li><a href="#" class="nav-link px-3 link-danger text-white">Phụ kiện</a></li>
         </ul>
     </div>
+
+
     <div class="container mt-3">
+
         <div id="productCardContainer" class="row row-cols-4 g-3">
-            <div class="col" th:each="product : ${products}">
-                <div class="product-card">
-                    <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
-                    <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
-                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
-                            <!-- Lặp qua các variants để hiển thị ảnh -->
-                            <div th:each="variant, iterStat : ${product.variants}">
-                                <div th:each="imageUri : ${productVariantImages[product.id][variant.id]}" th:if="${iterStat.index < 3}">
-                                    <img th:src="${imageUri}" th:alt="${variant.color}" class="product-image" />
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-
-                    <!-- Tiêu đề sản phẩm -->
-                    <h5 th:text="${product.name}" class="product-title"></h5>
-
-                    <!-- Giá sản phẩm -->
-                    <p class="product-price">
-                    <span th:if="${product.effectivePrice != null and product.effectivePrice lt product.price}">
-                        <span class="original-price text-muted text-decoration-line-through"
-                              th:text="${@currencyFormatter.formatVND(product.price)}">
-                        </span>
-                        <span class="discounted-price text-black fw-bold ms-2"
-                              th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
-                        </span>
-                    </span>
-                        <span th:unless="${product.effectivePrice != null and product.effectivePrice lt product.price}"
-                              th:text="${@currencyFormatter.formatVND(product.price)}">
-                    </span>
-                    </p>
-
-                    <!-- Mô tả sản phẩm -->
-                    <p th:text="${product.description}" class="product-description"></p>
-
-                </div>
+            <div th:each="product : ${products}"
+                 class="product-card"
+                 th:insert="fragments/product-card :: productCardFragment(${product})">
             </div>
+
         </div>
 
         <!-- Nút xem thêm -->
         <div class="text-center mt-3">
-            <button class="btn btn-outline-primary" onclick="loadMore()">Xem thêm</button>
+            <button id="loadMoreButton" class="btn btn-primary">
+                Xem thêm
+            </button>
         </div>
     </div>
 
@@ -145,8 +117,6 @@
             <img src="/pics/tet-de-dang-theme.webp" alt="Khuyến mãi Tết">
         </div>
     </div>
-<!--Chat-->
-<!--<div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
