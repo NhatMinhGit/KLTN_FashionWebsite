@@ -6,12 +6,24 @@
 
     <div th:fragment="productCardFragment(product)">
         <!-- Nội dung sản phẩm -->
+<!--        <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">-->
+<!--            <a th:href="@{/user/product-detail/{id}(id=${product.id})}">-->
+<!--                <div th:each="variant, iterStat : ${product.variants}">-->
+<!--                    <div th:each="imageUri : ${productVariantImages[product.id][variant.id]}" th:if="${iterStat.index < 2}">-->
+<!--                        <img th:src="${imageUri}" th:alt="${variant.color}" class="product-image" />-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
         <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
             <a th:href="@{/user/product-detail/{id}(id=${product.id})}">
-                <div th:each="variant, iterStat : ${product.variants}">
-                    <div th:each="imageUri : ${productVariantImages[product.id][variant.id]}" th:if="${iterStat.index < 3}">
-                        <img th:src="${imageUri}" th:alt="${variant.color}" class="product-image" />
-                    </div>
+                <div class="image-slider">
+                    <img th:each="variant, iterStat : ${product.variants}"
+                         th:src="${productVariantImages[product.id][variant.id][0]}"
+                         th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
+                    <img th:each="variant, iterStat : ${product.variants}"
+                         th:src="${productVariantImages[product.id][variant.id][1]}"
+                         th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
                 </div>
             </a>
         </div>

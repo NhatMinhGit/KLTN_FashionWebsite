@@ -8,6 +8,54 @@
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <link th:href="@{/css/product-detail.css}" rel="stylesheet">
     <script th:src="@{/js/guide-modal.js}"></script>
+    <!-- Slick CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <!-- Slick Theme -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+    <style>
+        .thumbnail-carousel {
+            position: relative;  /* cần để absolute position hoạt động */
+            width: 50%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            margin: 1rem auto;
+        }
+
+        .thumbnail-carousel::before,
+        .thumbnail-carousel::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 20px; /* Độ rộng vùng mờ */
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;  /* để click ảnh không bị chặn */
+        }
+
+        .thumbnail-carousel::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
+        }
+
+        .thumbnail-carousel::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
+        }
+
+        .thumbnail-carousel img {
+            width: 40px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 4px;
+        }
+        #mainImage {
+            height: 580px; /* hoặc 300px, tùy theo bạn muốn cao bao nhiêu */
+            object-fit: cover;  /* đảm bảo không méo ảnh */
+            border-radius: 8px;  /* nếu muốn bo góc */
+        }
+    </style>
 </head>
 <body>
 
@@ -28,7 +76,14 @@
                 <p>Không có ảnh cho màu đã chọn.</p>
             </div>
 
-            <div class="d-flex justify-content-between mt-2 carousel-item" id="thumbnailContainer">
+<!--            <div class="d-flex justify-content-between mt-2 carousel-item" id="thumbnailContainer">-->
+<!--                <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"-->
+<!--                     th:src="@{${imageUri}}"-->
+<!--                     class="thumbnail"-->
+<!--                     th:alt="${product.name}"-->
+<!--                     onclick="changeImage(this)">-->
+<!--            </div>-->
+            <div class="thumbnail-carousel">
                 <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"
                      th:src="@{${imageUri}}"
                      class="thumbnail"
@@ -157,6 +212,21 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script th:src="@{/js/product-detail.js}"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Slick JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
 </body>
+<script>
+    $(document).ready(function(){
+        $('.thumbnail-carousel').slick({
+            centerMode: true,
+            centerPadding: '40px',
+            slidesToShow: 2,
+            arrows: true,
+            focusOnSelect: true
+        });
+    });
+</script>
 </html>

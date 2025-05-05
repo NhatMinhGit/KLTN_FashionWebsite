@@ -13,12 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class ExcelImportController {
@@ -237,24 +240,37 @@ public class ExcelImportController {
         for (Map<String, Object> row : rows) {
             ImageDto dto = mapToImageDto(row); // Chuyển đổi row thành ImageDto
             Image image = new Image();
-            image.setImageUri(baseUrl + encodeForCloudinary(dto.getImageUrl())); // Cộng thêm đường dẫn Cloudinary
+
+            // Mã hóa và tạo URI hình ảnh từ Cloudinary
+            String encodedImageUrl = encodeForCloudinary(dto.getImageUrl());
+            String imageUri = baseUrl + encodedImageUrl;
+
+            // Log URL để kiểm tra
+            System.out.println("Generated Image URL: " + imageUri);
+
+            image.setImageUri(imageUri); // Cộng thêm đường dẫn Cloudinary
             image.setImageName(dto.getImageName());
 
-            // Lấy parent category từ DB
+            // Lấy thông tin ProductVariant từ DB
             ProductVariant productVariant = productVariantService.findById(dto.getProductVariantId()).orElse(null);
             if (productVariant == null) {
                 System.out.println("Không tìm thấy Product Variant với ID: " + dto.getProductVariantId());
                 continue; // Bỏ qua bản ghi lỗi
             }
 
+            // Thiết lập thông tin cho đối tượng Image
             image.setProductVariant(productVariant);
             image.setImageSize(dto.getImageSize());
             image.setImageType(dto.getImageType());
-            System.out.println("Image url: " + image.getImageUri() + ", Name: " + image.getImageName());
 
+            // Log thêm thông tin image
+            System.out.println("Image URL: " + image.getImageUri() + ", Name: " + image.getImageName());
+
+            // Lưu ảnh vào DB
             imageService.save(image); // Lưu ảnh vào DB
         }
     }
+
 
 
 
@@ -370,17 +386,26 @@ public class ExcelImportController {
     // Hàm chuẩn hóa tên sản phẩm thành slug
     public static String encodeForCloudinary(String input) {
         try {
-            return URLEncoder.encode(input, StandardCharsets.UTF_8.toString())
-                    .replace("+", "%20")
-                    .replace("%21", "!")
-                    .replace("%27", "'")
-                    .replace("%28", "(")
-                    .replace("%29", ")")
-                    .replace("%7E", "~");
+            return Arrays.stream(input.split("/"))
+                    .map(part -> {
+                        try {
+                            return URLEncoder.encode(part, StandardCharsets.UTF_8.toString())
+                                    .replace("+", "%20")
+                                    .replace("%21", "!")
+                                    .replace("%27", "'")
+                                    .replace("%28", "(")
+                                    .replace("%29", ")")
+                                    .replace("%7E", "~");
+                        } catch (UnsupportedEncodingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .collect(Collectors.joining("/"));  // Giữ nguyên dấu /
         } catch (Exception e) {
             return input;
         }
     }
+
     private Long parseLong(Object value) {
         try {
             return Long.parseLong(String.valueOf(value));
