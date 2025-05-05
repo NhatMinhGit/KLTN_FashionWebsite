@@ -17,6 +17,16 @@ public class CartItems {
     @Column(name = "cart_item_id")
     private int cartItemId;
 
+    @Column(name = "added_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime addedAt;
+
+    @Column(name = "price_per_unit", nullable = false)
+    private BigDecimal pricePerUnit;
+
+    @Column(name = "quantity", nullable = false)
+    private int quantity;
+
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
@@ -33,15 +43,7 @@ public class CartItems {
     @JoinColumn(name = "variant_id", nullable = true)
     private ProductVariant variant;
 
-    @Column(name = "quantity", nullable = false)
-    private int quantity;
 
-    @Column(name = "price_per_unit", nullable = false)
-    private BigDecimal pricePerUnit;
-
-    @Column(name = "added_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime addedAt;
 
     @PrePersist
     protected void onCreate() {
