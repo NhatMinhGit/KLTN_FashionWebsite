@@ -15,9 +15,11 @@ import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -213,6 +215,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> searchByKeyword(String keyword) {
         return productRepository.findByNameContaining(keyword); // Tìm kiếm sản phẩm theo tên
+    }
+
+    @Override
+    public List<Product> findCategoryIdsByParentCategoryName(String color, String size, BigDecimal maxPrice,List<Long> categories) {
+        return productRepository.filterProductsWithCategoryIds(color,size,maxPrice,categories);
+    }
+
+    @Override
+    public List<Product> filterProducts(String color, String size, BigDecimal maxPrice, String category) {
+        return productRepository.filterProducts(color,size,maxPrice, category);
     }
 
 

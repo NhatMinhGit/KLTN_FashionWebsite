@@ -46,44 +46,64 @@ document.querySelectorAll('.product-description').forEach((element) => {
         element.style.maxWidth = '200px';  // Điều chỉnh width theo nhu cầu
     });
 });
+document.querySelectorAll('.product-card').forEach((card) => {
+    card.addEventListener('mouseenter', () => {
+        card.classList.add('hovered');
+        document.querySelectorAll('.product-card').forEach((otherCard) => {
+            if (otherCard !== card) {
+                otherCard.classList.add('faded');
+            }
+        });
+    });
 
+    card.addEventListener('mouseleave', () => {
+        card.classList.remove('hovered');
+        document.querySelectorAll('.product-card').forEach((otherCard) => {
+            otherCard.classList.remove('faded');
+        });
+    });
+});
+document.addEventListener('DOMContentLoaded', () => {
+    let visibleCount = 12; // Số sản phẩm ban đầu hiển thị
+    const step = 8; // Số sản phẩm mỗi lần nhấn 'Xem thêm'
+    const allCards = document.querySelectorAll('.product-card');
+    const loadMoreButton = document.querySelector('#loadMoreButton');
 
-let visibleCount = 12; // Ban đầu hiển thị 12 sản phẩm
-const step = 8; // Mỗi lần nhấn hiện thêm 8
-const allCards = document.querySelectorAll('.product-card');
-const loadMoreButton = document.querySelector('#loadMoreButton'); // Thêm id cho nút "Xem thêm"
+    // Hàm hiển thị thêm sản phẩm
+    function loadMore(event) {
+        const nextVisible = visibleCount + step;
 
-function loadMore(event) {
-    const nextVisible = visibleCount + step;
-    for (let i = visibleCount; i < nextVisible && i < allCards.length; i++) {
-        const cardCol = allCards[i].closest('.col'); // Lấy phần tử .col chứa .product-card
-        cardCol.classList.remove('hidden-col'); // Hiển thị .col
-        allCards[i].style.display = 'block'; // Hiển thị .product-card
+        // Hiển thị thêm sản phẩm
+        for (let i = visibleCount; i < nextVisible && i < allCards.length; i++) {
+            allCards[i].style.display = 'block'; // Hiển thị sản phẩm
+        }
+        visibleCount = nextVisible;
+
+        // Ẩn nút nếu đã hiển thị hết sản phẩm
+        if (visibleCount >= allCards.length) {
+            loadMoreButton.style.display = 'none'; // Ẩn nút nếu hết sản phẩm
+        }
     }
-    visibleCount = nextVisible;
 
-    if (visibleCount >= allCards.length) {
-        loadMoreButton.style.display = 'none'; // Ẩn nút nếu hết sản phẩm
-    }
-}
-
-// Ẩn toàn bộ sản phẩm, chỉ hiện các sản phẩm đầu tiên
-window.onload = () => {
-    // Kiểm tra xem nút "Xem thêm" có tồn tại hay không
+    // Gán sự kiện click cho nút "Xem thêm"
     if (loadMoreButton) {
         loadMoreButton.addEventListener('click', loadMore);
+    } else {
+        console.error('Nút "Xem thêm" không được tìm thấy!');
     }
+
+    // Ẩn các sản phẩm ngoài visibleCount khi tải trang
     allCards.forEach((card, index) => {
-        const cardCol = card.closest('.col');
         if (index < visibleCount) {
-            cardCol.classList.remove('hidden-col'); // Hiển thị .col
-            card.style.display = 'block'; // Hiển thị .product-card
+            card.style.display = 'block'; // Hiển thị các sản phẩm ban đầu
         } else {
-            cardCol.classList.add('hidden-col'); // Ẩn .col
-            card.style.display = 'none'; // Ẩn .product-card
+            card.style.display = 'none'; // Ẩn các sản phẩm ngoài visibleCount
         }
     });
 
-    // Gắn sự kiện cho nút "Xem thêm"
-    loadMoreButton.addEventListener('click', loadMore);
-};
+    // Ẩn nút "Xem thêm" nếu số sản phẩm <= visibleCount
+    if (allCards.length <= visibleCount) {
+        loadMoreButton.style.display = 'none'; // Ẩn nút nếu số sản phẩm <= visibleCount
+    }
+});
+

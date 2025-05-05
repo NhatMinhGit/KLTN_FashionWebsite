@@ -13,9 +13,172 @@
     <script th:src="@{/js/header.js}"></script>
 </head>
 <body>
+<div class="overlay-dark" id="overlay"></div>
 
 <!--Header-->
 <div th:replace="~{fragments/header :: header}"></div>
+<div class="container mx-auto px-0 md:px-4 mt-1 md:mt-5">
+    <div class="px-4 py-4 md:px-5 md:py-4 w-full border border-secondary md:mb-3 d-flex justify-content-between">
+        <div class="d-flex flex-wrap align-items-center">
+            <div class="me-3">
+                <div class="d-flex">
+                    <span id="product-count" class="fw-bold">0</span>&nbsp;<span>Sản phẩm</span>
+                </div>
+            </div>
+            <div class="d-none d-md-block" id="breadcrumb-container">
+                <!-- Breadcrumb will be dynamically inserted here by JavaScript -->
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <div class="d-flex gap-3">
+                <!-- Icon filter chung -->
+                <div class="cursor-pointer" title="Filter" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <!-- Modal Filter -->
+                <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content text-white" style="background-color: #0e2433;">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="filterModalLabel">Bộ lọc sản phẩm</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Bộ lọc màu sắc -->
+                                <div class="mb-3">
+                                    <label class="form-label">Màu sắc</label>
+                                    <div class="color-options">
+                                        <div class="color-item">
+                                            <input type="radio" id="red" name="color" value="Đỏ">
+                                            <label for="red">
+                                                <span class="color-box" style="background-color: #800000;"></span>
+                                                <span class="color-name">Đỏ</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="brown" name="color" value="Nâu">
+                                            <label for="brown">
+                                                <span class="color-box" style="background-color: #A0522D;"></span>
+                                                <span class="color-name">Nâu</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="white" name="color" value="Trắng">
+                                            <label for="white">
+                                                <span class="color-box" style="background-color: #FFFFFF;"></span>
+                                                <span class="color-name">Trắng</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="yellow" name="color" value="Nâu Đỏ">
+                                            <label for="yellow">
+                                                <span class="color-box" style="background-color: #FFD700;"></span>
+                                                <span class="color-name">Nâu Đỏ</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="orange" name="color" value="Hồng Đậm">
+                                            <label for="orange">
+                                                <span class="color-box" style="background-color: #FFA07A;"></span>
+                                                <span class="color-name">Hồng Đậm</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="green" name="color" value="Rêu">
+                                            <label for="green">
+                                                <span class="color-box" style="background-color: #008000;"></span>
+                                                <span class="color-name">Rêu</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="blue" name="color" value="Xanh Dương">
+                                            <label for="blue">
+                                                <span class="color-box" style="background-color: #ADD8E6;"></span>
+                                                <span class="color-name">Xanh Dương</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="pink" name="color" value="Hồng Phấn">
+                                            <label for="pink">
+                                                <span class="color-box" style="background-color: #FFC0CB;"></span>
+                                                <span class="color-name">Hồng Phấn</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="purple" name="color" value="Xanh Ngọc">
+                                            <label for="purple">
+                                                <span class="color-box" style="background-color: #DDA0DD;"></span>
+                                                <span class="color-name">Xanh Ngọc</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="beige" name="color" value="Kem">
+                                            <label for="beige">
+                                                <span class="color-box" style="background-color: #F5F5DC;"></span>
+                                                <span class="color-name">Kem</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="grey" name="color" value="Xám">
+                                            <label for="grey">
+                                                <span class="color-box" style="background-color: #808080;"></span>
+                                                <span class="color-name">Xám</span>
+                                            </label>
+                                        </div>
+                                        <div class="color-item">
+                                            <input type="radio" id="navy" name="color" value="Xanh Denim">
+                                            <label for="navy">
+                                                <span class="color-box" style="background-color: #000080;"></span>
+                                                <span class="color-name">Xanh Denim</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!-- Bộ lọc kích cỡ -->
+                                <div class="mb-3">
+                                    <label for="filterSize" class="form-label">Kích cỡ</label>
+                                    <select id="filterSize" class="form-select">
+                                        <option value="">Chọn size</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="XXL">XXL</option>
+                                    </select>
+                                </div>
+
+                                <!-- Bộ lọc giá -->
+                                <div class="mb-3">
+                                    <label for="filterPrice" class="form-label">Giá tối đa: <span id="priceValue">500000</span> VNĐ</label>
+                                    <input type="range" class="form-range" min="0" max="1000000" step="50000" id="filterPrice" value="500000" oninput="document.getElementById('priceValue').innerText = this.value;">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                <button type="button" class="btn btn-primary" id="applyFilterBtn">Áp dụng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giữ icon list view -->
+                <div class="cursor-pointer" title="List view"><i class="fas fa-list"></i></div>
+            </div>
+
+            <div class="d-flex gap-3 ms-3">
+                <div class="cursor-pointer"><i class="fas fa-square"></i></div>
+                <div class="cursor-pointer"><i class="fas fa-th-large"></i></div>
+                <div class="cursor-pointer"><i class="fas fa-th"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
 <div class="container">
     <nav class="nav-menu d-flex mx-auto align-items-center" style="width: fit-content;">
 
@@ -81,7 +244,6 @@
                 </li>
             </ul>
         </div>
-
         <!-- Dropdown Nữ -->
         <div class="dropdown">
             <a href="#" class="dropdown-toggle text-white" id="dropdownNu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -137,52 +299,100 @@
         <a href="#" class="text-white">Thương Hiệu</a>
         <a href="#" class="text-white">Khuyến Mãi</a>
     </nav>
-    <div class="container mt-3">
-        <h2 th:text="'Sản phẩm ' + ${currentCategory}"></h2>
-        <div id="productCardContainer" class="row row-cols-4 g-3">
-            <div class="col" th:each="product : ${products}">
-                <div class="product-card">
-                    <!-- Bọc tất cả ảnh trong 1 div để chồng ảnh lên nhau -->
-                    <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
-                        <a th:href="@{user/product-detail/{id}(id=${product.id})}">
-                            <img th:each="imageUri : ${productImages[product.id]}"
-                                 th:src="${imageUri}"
-                                 th:alt="${product.name}"
-                                 class="product-image">
-                        </a>
-                    </div>
 
-                    <h5 th:text="${product.name}" class="product-title"></h5>
-                    <p class="product-price">
-                        <span th:if="${product.effectivePrice != null and product.effectivePrice lt product.price}">
-                        <span class="original-price text-muted text-decoration-line-through"
-                              th:text="${@currencyFormatter.formatVND(product.price)}">
-                        </span>
-                        <span class="discounted-price text-black fw-bold ms-2"
-                              th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
-                        </span>
-                        </span>
-                        <span th:unless="${product.effectivePrice != null and product.effectivePrice lt product.price}"
-                              th:text="${@currencyFormatter.formatVND(product.price)}">
-                        </span>
-
-                    </p>
-                    <p th:text="${product.description}" class="product-description"></p>
-                </div>
+    <div class="container mt-3" >
+        <div id="productCardContainer" class="row row-cols-4 g-3" >
+            <div th:each="product : ${products}"
+                 class="product-card"
+                 th:insert="fragments/product-card :: productCardFragment(product=${product})">
             </div>
         </div>
+
         <!-- Nút xem thêm -->
         <div class="text-center mt-3">
-            <button class="btn btn-outline-primary" onclick="loadMore()">Xem thêm</button>
+            <button id="loadMoreButton" class="btn btn-primary">
+                Xem thêm
+            </button>
         </div>
     </div>
-    <!--Chat-->
-<!--    <div th:replace="~{fragments/chat_fragment :: chat_fragment}"></div>-->
 
 
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 <script th:src="@{/js/card-js.js}"></script>
+<script>
+    document.getElementById('applyFilterBtn').addEventListener('click', function() {
+        var color = document.querySelector('input[name="color"]:checked') ? document.querySelector('input[name="color"]:checked').value : '';
+        var size = document.getElementById('filterSize').value;
+        var maxPrice = document.getElementById('filterPrice').value;
+        // var category = 'nam';  // Hoặc lấy từ URL nếu cần thiết
+        // Lấy giá trị category từ URL nếu có, nếu không thì mặc định là 'nam'
+        var urlParams = new URLSearchParams(window.location.search);
+        var category = urlParams.get('category') || 'Áo Nam';
+        // Tạo URL với các tham số lọc
+        var url = `/user/shop/filter?color=${color}&size=${size}&maxPrice=${maxPrice}&category=${category}`;
+
+        // Chuyển hướng đến URL lọc (hoặc bạn có thể sử dụng Ajax để gửi yêu cầu)
+        window.location.href = url;
+    });
+
+    // Function to create and update breadcrumb dynamically
+    function updateBreadcrumb() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('category') || '';
+
+        let breadcrumbItems = [{name: "Trang chủ", link: "/user/shop"}];
+        if (categoryParam) {
+            const categories = categoryParam.split(' > ');
+            let accumulatedCategory = "";
+            categories.forEach((cat, index) => {
+                accumulatedCategory += (index > 0 ? " > " : "") + cat;
+                breadcrumbItems.push({
+                    name: cat,
+                    link: index < categories.length - 1
+                        ? `/user/shop?category=${encodeURIComponent(accumulatedCategory)}`
+                        : "" // cuối không link
+                });
+            });
+        }
+
+        let breadcrumbHTML = '<nav class="d-inline-block"><ol class="breadcrumb mb-0">';
+        breadcrumbItems.forEach(item => {
+            if (item.link) {
+                breadcrumbHTML += `<li class="breadcrumb-item"><a href="${item.link}" class="text-white text-decoration-none">${item.name}</a></li>`;
+            } else {
+                breadcrumbHTML += `<li class="breadcrumb-item active text-white fw-bold" aria-current="page">${item.name}</li>`;
+            }
+        });
+        breadcrumbHTML += '</ol></nav>';
+
+        const breadcrumbContainer = document.getElementById('breadcrumb-container');
+        if (breadcrumbContainer) {
+            breadcrumbContainer.innerHTML = breadcrumbHTML;
+        }
+    }
+
+    function updateProductCount() {
+        const productList = document.querySelectorAll('.product-card');
+        const productCount = productList.length;
+        const productCountElem = document.getElementById('product-count');
+        if (productCountElem) {
+            productCountElem.textContent = productCount;
+        }
+    }
+    // Cập nhật các phần tử cần thiết khi trang được tải
+    window.addEventListener('load', () => {
+        updateBreadcrumb();
+        updateProductCount();
+    });
+
+    // Xử lý sự kiện popstate cho việc duy trì trạng thái của bộ lọc khi quay lại trang
+    window.addEventListener('popstate', () => {
+        updateBreadcrumb();
+        updateProductCount();
+    });
+</script>
+
 
 </html>

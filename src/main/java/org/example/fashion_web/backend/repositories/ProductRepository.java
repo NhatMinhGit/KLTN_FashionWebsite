@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,5 +42,41 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByPriceBetween(long priceMin,long priceMax);
 
     List<Product>findByPriceBetweenAndCategoryName(long priceMin,long priceMax,String name);
+
+
+
+    @Query("""
+    SELECT DISTINCT p FROM Product p
+    JOIN p.variants v
+    JOIN v.sizes s
+    JOIN p.category c
+    WHERE (:color IS NULL OR v.color = :color)
+      AND (:size IS NULL OR s.sizeName = :size)
+      AND (:maxPrice IS NULL OR p.price <= :maxPrice)
+      AND (c.id IN :categoryIds)
+    """)
+    List<Product> filterProductsWithCategoryIds(
+            @Param("color") String color,
+            @Param("size") String size,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("categoryIds") List<Long> categoryIds);
+
+
+
+    @Query("""
+    SELECT DISTINCT p FROM Product p
+    JOIN p.variants v
+    JOIN v.sizes s
+    JOIN p.category c
+    WHERE (:color IS NULL OR v.color = :color)
+      AND (:size IS NULL OR s.sizeName = :size)
+      AND (:maxPrice IS NULL OR p.price <= :maxPrice)
+      AND (:category IS NULL OR c.name = :category)
+    """)
+    List<Product> filterProducts(@Param("color") String color,
+                                 @Param("size") String size,
+                                 @Param("maxPrice") BigDecimal maxPrice,
+                                 @Param("category") String category);
+
 
 }

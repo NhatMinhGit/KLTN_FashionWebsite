@@ -3,13 +3,35 @@
     height: auto;
     border-radius: 8px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.4s ease-in-out;
+    opacity: 1;
 }
-.carousel-item img {
+
+.product-img.fade-out {
+    opacity: 0;
+}
+
+.thumbnail {
+    width: 80px;
     height: 80px;
     object-fit: cover;
     margin: auto;
+    cursor: pointer;
+    transition: transform 0.3s, border 0.3s;
+    border: 2px solid transparent;
+    border-radius: 8px;
 }
-.container p, div{
+
+.thumbnail:hover {
+    transform: scale(1.1);
+    border: 2px solid #007bff;
+}
+
+.thumbnail.active {
+    border: 2px solid #007bff;
+}
+
+.container p, div {
     color: white;
 }
 
@@ -35,4 +57,33 @@
 .star-rating label:hover,
 .star-rating label:hover ~ label {
     color: #ffc107;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    appearance: textfield;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 50%;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 1rem;
+}
+
+.btn-group .btn {
+    border: 1px solid black;
+    border-radius: 0;
+}
+.btn-group .btn.active {
+    background-color: white;
+    color: black;
+}
+
+.modal-backdrop {
+    display: none !important;
 }
