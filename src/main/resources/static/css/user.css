@@ -210,3 +210,92 @@ body {
     object-fit: cover; /* Ensures the image covers the container without distortion */
 }
 
+
+
+
+/* Dịch vụ */
+.service-section {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 40px 0;
+    background-color: #f9f9f9;
+}
+
+.service-box {
+    text-align: center;
+    width: 250px;
+    padding: 25px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.service-box i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.service-box h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.service-box p {
+    font-size: 14px;
+    color: #555;
+}
+
+.service-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.service-box i:hover {
+    color: #007bff;
+}
+
+/* Thành viên */
+.membership-section {
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: #fff;
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 12px;
+    margin: 40px auto;
+    max-width: 800px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.membership-section h2 {
+    font-size: 24px;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 0;
+}
+
+
+#loadMoreButton {
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    border: none;
+    color: white;
+    padding: 15px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 60px;
+    height: 60px;
+}
+
+#loadMoreButton:hover {
+    background: linear-gradient(90deg, #0056b3, #0094cc);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+

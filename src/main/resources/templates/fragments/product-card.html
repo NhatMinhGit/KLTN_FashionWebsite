@@ -1,0 +1,52 @@
+<link rel="stylesheet" th:href="@{/css/card.css}">
+<link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+<script th:src="@{/js/card-js.js}"></script>
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+
+    <div th:fragment="productCardFragment(product)">
+        <!-- Nội dung sản phẩm -->
+<!--        <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">-->
+<!--            <a th:href="@{/user/product-detail/{id}(id=${product.id})}">-->
+<!--                <div th:each="variant, iterStat : ${product.variants}">-->
+<!--                    <div th:each="imageUri : ${productVariantImages[product.id][variant.id]}" th:if="${iterStat.index < 2}">-->
+<!--                        <img th:src="${imageUri}" th:alt="${variant.color}" class="product-image" />-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+        <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
+            <a th:href="@{/user/product-detail/{id}(id=${product.id})}">
+                <div class="image-slider">
+                    <img th:each="variant, iterStat : ${product.variants}"
+                         th:src="${productVariantImages[product.id][variant.id][0]}"
+                         th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
+                    <img th:each="variant, iterStat : ${product.variants}"
+                         th:src="${productVariantImages[product.id][variant.id][1]}"
+                         th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
+                </div>
+            </a>
+        </div>
+
+        <h5 th:text="${product.name}" class="product-title"></h5>
+
+        <p class="product-price">
+            <span th:if="${product.effectivePrice != null and product.effectivePrice < product.price}">
+                <span class="original-price text-muted text-decoration-line-through"
+                      th:text="${@currencyFormatter.formatVND(product.price)}">
+                </span>
+                <span class="discounted-price text-black fw-bold ms-2"
+                      th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
+                </span>
+                <span class="discount-percentage text-danger fw-bold ms-2"
+                      th:text="'- ' + ${product.productDiscount} + '%'">
+                </span>
+            </span>
+            <span th:unless="${product.effectivePrice != null and product.effectivePrice < product.price}"
+                  th:text="${@currencyFormatter.formatVND(product.price)}">
+            </span>
+        </p>
+
+        <p th:text="${product.description}" class="product-description"></p>
+    </div>
+

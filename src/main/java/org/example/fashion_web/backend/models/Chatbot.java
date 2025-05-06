@@ -21,30 +21,10 @@ public class Chatbot {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-    @Column(name = "session_id")
-    private String sessionId;
-
     @Column(name = "name", nullable = false)
     private String name;
-
-    @Column(name = "response_type")
-    private String responseType;
 
     @Column(name = "timestamp", nullable = false)
     private Timestamp timestamp;
 
-    @Column(name = "message_type")
-    private String messageType;
-
-    @Column(name = "intent")
-    private String intent;
-
-    @Column(name = "entities", columnDefinition = "TEXT")
-    private String entities;
-
-    @Column(name = "status")
-    private String status;
-
-    @Column(name = "conversation_log", columnDefinition = "TEXT")
-    private String conversationLog;
 }

@@ -100,7 +100,8 @@
       <div class="order-details mt-4">
         <h5>Chi tiết đơn hàng</h5>
         <div th:each="item : ${cartItems}" class="order-card">
-          <img th:src="@{${productImages}}" class="img-fluid rounded-3" th:alt="${item.product.name}">
+          <img th:src="@{${productImages[item.product.id][0]}}" class="img-fluid rounded-3" th:alt="${item.product.name}"
+               style="object-fit: contain; max-width: 100%; height: auto;">
           <div class="order-info">
             <p class="mb-0" th:text="${item.product.name}"></p>
             <small class="text-muted" th:text="${item.product.category.name}"></small>

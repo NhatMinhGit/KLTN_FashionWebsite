@@ -1,0 +1,69 @@
+<link rel="stylesheet" th:href="@{/css/card.css}">
+<link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+<script th:src="@{/js/card-js.js}"></script>
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+<div th:fragment="sizeGuideModal">
+    <!-- Modal -->
+    <div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-labelledby="sizeGuideModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #0e2433;">
+                    <div class="d-flex">
+                        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
+                            Hướng dẫn chọn size
+                        </button>
+                        <button type="button" class="btn btn-light ms-2" data-bs-toggle="modal" data-bs-target="#measureGuideModal">
+                            Số đo sản phẩm
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 d-flex justify-content-center align-items-center">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746271605/Other/GuildSize.jpg" alt="Cách đo" style="min-width: 400px;">
+                    </div>
+
+                    <!-- Bảng kích thước -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Size</th>
+                                <th>Chiều cao (cm)</th>
+                                <th>Cân nặng (kg)</th>
+                                <th>Ngang vai</th>
+                                <th>Vòng ngực</th>
+                                <th>Vòng eo</th>
+                                <th>Dài tay</th>
+                                <th>Dài tay ngắn</th>
+                                <th>Dài áo</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>S</td><td>&lt; 168</td><td>&lt; 62</td><td>43.5</td><td>100</td><td>96</td><td>61.5</td><td>23.5</td><td>71.5</td></tr>
+                            <tr><td>M</td><td>169 - 172</td><td>63 - 69</td><td>45</td><td>104</td><td>100</td><td>63</td><td>24</td><td>73</td></tr>
+                            <tr><td>L</td><td>173 - 176</td><td>70 - 76</td><td>46.5</td><td>108</td><td>104</td><td>64.5</td><td>24.5</td><td>74.5</td></tr>
+                            <tr><td>XL</td><td>177 - 180</td><td>77 - 83</td><td>48</td><td>112</td><td>108</td><td>66</td><td>25</td><td>76</td></tr>
+                            <tr><td>XXL</td><td>&gt; 180</td><td>&gt; 83</td><td>49.5</td><td>116</td><td>112</td><td>67.5</td><td>25.5</td><td>77.5</td></tr>
+                            </tbody>
+                        </table>
+                        <p class="small text-muted">*Thông số chiều cao và cân nặng chỉ mang tính tham khảo. Số đo thực tế có thể chênh lệch 0.5 - 1cm.</p>
+                    </div>
+
+                    <!-- Hướng dẫn đo -->
+                    <div class="mt-4 text-black">
+                        <h6>Hướng dẫn đo sản phẩm:</h6>
+                        <ol class="small text-black">
+                            <li><strong>Chiều dài áo:</strong> Đo từ điểm cao nhất ở vai đến gấu áo.</li>
+                            <li><strong>Ngang vai:</strong> Đo từ đường may vai trái sang phải.</li>
+                            <li><strong>Vòng ngực:</strong> Đo ngang phần rộng nhất ở ngực.</li>
+                            <li><strong>Vòng eo:</strong> Đo ngang phần nhỏ nhất ở eo.</li>
+                            <li><strong>Dài tay:</strong> Đo từ điểm may vai đến cuối tay áo.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -24,4 +24,5 @@ public interface CategoryService {
 
     Optional<Category> findById(Long categoryId);
 
+    List<Long> findCategoryIdsByParentCategoryName(String name);
 }

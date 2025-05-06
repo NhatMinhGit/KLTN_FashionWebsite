@@ -9,15 +9,17 @@
         <!--            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
         <!--                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>-->
         <!--            </a>-->
-        <form id="search-form" class="d-flex justify-content-center">
+        <form id="search-form" class="d-flex justify-content-center" method="GET" th:action="@{/user/shop/search}">
           <div class="search-bar position-relative">
-            <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm sản phẩm...">
-<!--            <button type="submit" class="search-btn" onclick="searchProducts(event)">-->
-              <button type="submit" class="search-btn">
+            <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm sản phẩm..." name="keyword">
+            <!-- Bạn có thể thêm category nếu muốn -->
+            <input type="hidden" name="category" value="nam"> <!-- Ví dụ: "nam" -->
+            <button type="submit" class="search-btn">
               <i class="fas fa-search"></i>
             </button>
           </div>
         </form>
+
 
 
 
@@ -40,21 +42,31 @@
             <div  class="dropdown-menu dropdown-menu-end p-3" style="width: 350px;">
               <!-- Sản phẩm trong giỏ hàng -->
               <th:block th:each="item : ${cartItems}">
-              <div class="d-flex align-items-center mb-2">
+              <div class="d-flex align-items-center mb-2 text-black">
                 <input type="checkbox" checked class="me-2">
-                <img th:src="@{${productImages}}" class="img-fluid rounded-3" th:alt="${item.product.name}" width="50" height="50">
+                <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
+                     th:src="@{${productImages[item.product.id][0]}}"
+                     class="img-fluid rounded-3"
+                     th:alt="${item.product.name}"
+                     width="50"
+                     height="50">
+                <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
                 <div class="flex-grow-1">
-                  <p class="mb-1 fw-bold" th:text="${item.product.name}"></p>
-                  <div class="d-flex justify-content-between" style="font-size:12px;">
-                    <p>Giá: </p>
-                    <p class="mb-0 fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></p>
-                    <p>| Loại: </p>
-                    <p class="mb-0 text-muted" th:text="${item.product.category.name}"></p>
-                    <p>| Sl: </p>
-                    <p class="mb-0 text-muted" th:text="${item.quantity}"></p>
+                  <p class="mb-1 fw-bold text-black" th:text="${item.product.name}"></p>
+                  <div class="d-flex flex-wrap align-items-center gap-1" style="font-size:12px; color: black">
+                    <span>Giá: <span class="fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></span></span>
+                    <span>| Loại: <span th:text="${item.product.category.name}"></span></span>
+                    <span>| Sl: <span th:text="${item.quantity}"></span></span>
+                    <span>| Size: <span th:text="${productSizes[item.product.id]}"></span></span>
                   </div>
                 </div>
-                <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>
+                <form th:action="@{/user/cart/remove-from-cart}" method="post">
+                  <input type="hidden" name="id" th:value="${item.cartItemId}" />
+                  <button type="submit" class="btn btn-link text-muted">
+                    <i class="fa-solid fa-trash" style="color: red"></i>
+                  </button>
+                </form>
+
               </div>
               </th:block>
 

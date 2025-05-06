@@ -27,8 +27,6 @@ public class ProductDiscount {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-//    @Column(name = "discount_amount", nullable = true)
-//    private BigDecimal discountAmount;
     @Column(name = "discount_percent", nullable = true)
     private Integer discountPercent;
 

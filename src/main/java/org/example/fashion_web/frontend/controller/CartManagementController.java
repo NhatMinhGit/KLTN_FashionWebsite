@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -203,53 +200,60 @@ public class CartManagementController {
 
     }
 
+    @PostMapping("user/cart/remove-from-cart")
+    public String removeFromCart(@RequestParam("id") Integer cartItemId,
+                                 HttpSession session,
+                                 @RequestHeader(value = "Referer", required = false) String referer) {
+        List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
 
-//    @PostMapping("/user/cart/remove-from-cart")
-//    public String removeFromCart(@RequestParam("productId") Long productId, HttpSession session) {
-//        List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
-//        if (cart != null) {
-//            cart.removeIf(item -> item.getProduct().getId().equals(productId));
-//            session.setAttribute("cartItems", cart);
-//        }
-//        return "redirect:/user/cart";
-//    }
-@PostMapping("user/cart/remove-from-cart")
-public String removeFromCart(@RequestParam("id") Long cartItemId, HttpSession session) {
-    List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
+        Optional<CartItems> item = cartItemService.findById(cartItemId);
+        if (item != null) {
+            Size size = item.get().getSize();
+            int quantityToReturn = item.get().getQuantity();
 
-    if (cart == null) {
-        System.out.println("Cart is NULL! No items to remove.");
-        return "redirect:/user/cart";
+            size.setStockQuantity(size.getStockQuantity() + quantityToReturn);
+            sizeService.save(size);
+
+            cartItemService.removeCartItem(cartItemId);
+        }
+        if (cart == null) {
+            System.out.println("Cart is NULL! No items to remove.");
+            return "redirect:" + (referer != null ? referer : "/user/cart");
+        }
+
+        if (cart != null) {
+            cart.removeIf(ci -> Objects.equals(ci.getCartItemId(), cartItemId));
+            session.setAttribute("cartItems", cart);
+        }
+
+        System.out.println("Redirecting to: " + referer);
+
+        return "redirect:" + (referer != null ? referer : "/user/cart");
     }
 
-    System.out.println("Before removal: " + cart);
-    System.out.println("Attempting to remove item with ID: " + cartItemId);
-    boolean removed = cart.removeIf(item -> Objects.equals(item.getCartItemId(), cartItemId));
-    System.out.println("After removal: " + cart);
-    System.out.println("Item removed: " + removed);
+    @PostMapping("/user/cart/update-quantity")
+    @ResponseBody
+    public ResponseEntity<?> updateQuantity(@RequestParam("id") Integer cartItemId,
+                                            @RequestParam("change") Integer change,
+                                            HttpSession session) {
+        List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
+        if (cart == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Cart not found in session."));
+        }
 
+        for (CartItems item : cart) {
+            if (Objects.equals(item.getCartItemId(), cartItemId)) {
+                int newQuantity = item.getQuantity() + change;
+                if (newQuantity < 1) newQuantity = 1;
+                item.setQuantity(newQuantity);
 
-    if (removed) {
-        System.out.println("Item removed successfully!");
-    } else {
-        System.out.println("Item not found in the cart!");
+                cartItemService.updateCartItemQuantity(cartItemId, newQuantity);
+
+                session.setAttribute("cartItems", cart);
+                return ResponseEntity.ok(Map.of("newQuantity", newQuantity));
+            }
+        }
+
+        return ResponseEntity.badRequest().body(Map.of("error", "Cart item not found."));
     }
-
-
-    session.setAttribute("cartItems", cart);
-
-    return "redirect:/user/cart";
-}
-
-
-
-
-
-
-
-
-
-
-
-
 }

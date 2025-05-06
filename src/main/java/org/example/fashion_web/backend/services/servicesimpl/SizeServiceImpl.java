@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -49,6 +50,23 @@ public class SizeServiceImpl implements SizeService {
         return sizeRepository.findByProductVariantIdAndSizeName(id,name);
     }
 
+    @Override
+    public void increaseStock(Long productSizeId, int amount) {
+        Size size = sizeRepository.findById(productSizeId)
+                .orElseThrow(() -> new NoSuchElementException("ProductSize not found"));
+        size.setStockQuantity(size.getStockQuantity() + amount);
+        sizeRepository.save(size);
+    }
+
+    @Override
+    public boolean decreaseStock(Long productSizeId, int amount) {
+        Size size = sizeRepository.findById(productSizeId)
+                .orElseThrow(() -> new NoSuchElementException("ProductSize not found"));
+        if (size.getStockQuantity() < amount) return false;
+        size.setStockQuantity(size.getStockQuantity() - amount);
+        sizeRepository.save(size);
+        return true;
+    }
 //    @Override
 //    public Optional<Size> findByProductAndSizeName(Product product, String sizeName) {
 //        return sizeRepository.findByProductAndSizeName(product, sizeName);

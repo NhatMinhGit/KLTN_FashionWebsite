@@ -25,25 +25,40 @@
                                     <th:block th:each="item : ${cartItems}">
                                         <div class="row mb-4 d-flex justify-content-between align-items-center">
                                             <div class="col-md-2 col-lg-2 col-xl-2">
-                                                 <img th:src="@{${productImages}}" class="img-fluid rounded-3" th:alt="${item.product.name}">
+<!--                                                 <img th:src="@{${productImages}}" class="img-fluid rounded-3" th:alt="${item.product.name}">-->
+                                                <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
+                                                     th:src="@{${productImages[item.product.id][0]}}"
+                                                     class="img-fluid rounded-3"
+                                                     th:alt="${item.product.name}"
+                                                     width="150"
+                                                     height="80">
+                                                <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
                                             </div>
                                             <div class="col-md-3 col-lg-3 col-xl-3">
                                                 <h6 class="text-muted" th:text="${item.product.category.name}"></h6>
                                                 <h6 class="mb-0" th:text="${item.product.name}"></h6>
                                             </div>
                                             <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                                                <button class="btn btn-link px-2" th:onclick="updateQuantity( + ${item.cartItemId} + , -1)">
+                                                <button class="btn btn-link px-2"
+                                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', -1)'">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
 
+<!--                                                <input type="number" min="1" name="quantity"-->
+<!--                                                       th:value="${item.quantity}"-->
+<!--                                                       class="form-control form-control-sm"-->
+<!--                                                       style="display: block; width: 50px;">-->
                                                 <input type="number" min="1" name="quantity"
                                                        th:value="${item.quantity}"
+                                                       th:attr="data-cart-id=${item.cartItemId}"
                                                        class="form-control form-control-sm"
                                                        style="display: block; width: 50px;">
-                                                
-                                                <button class="btn btn-link px-2" th:onclick="updateQuantity( + ${item.cartItemId} + , 1)">
+
+                                                <button class="btn btn-link px-2"
+                                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', 1)'">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
+
                                             </div>
                                             <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
                                                 <h6 class="mb-0" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></h6>
@@ -89,8 +104,32 @@
 </body>
 <script>
     function updateQuantity(cartItemId, change) {
-        console.log("Cart Item ID:", cartItemId, "Change:", change);
+        console.log("Updating quantity: ", cartItemId, change);
+        fetch('/user/cart/update-quantity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `id=${cartItemId}&change=${change}`
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Update failed');
+                return response.json(); // trả JSON thay vì text
+            })
+            .then(data => {
+                console.log(data);
+                const input = document.querySelector(`input[data-cart-id='${cartItemId}']`);
+                if (input) {
+                    input.value = data.newQuantity;  // set giá trị mới trả về
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Không thể cập nhật số lượng.");
+            });
     }
+
+
     document.addEventListener("DOMContentLoaded", function () {
         var checkoutBtn = document.getElementById("checkoutBtn");
         var countCart = [[${countCart}]]; // Lấy giá trị countCart từ Thymeleaf
@@ -100,27 +139,7 @@
                 event.preventDefault(); // Ngăn chặn chuyển hướng
                 alert("Chưa có sản phẩm trong giỏ hàng để thực hiện thanh toán");
             }
-     });
-
-
-});
-
-// function removeFromCart(cartItemId) {
-//     console.log("Removing cart item:", cartItemId);
-//
-//     fetch('/user/cart/remove-from-cart', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-//         body: new URLSearchParams({ id: cartItemId })
-//     }).then(response => {
-//         console.log("Response status:", response.status);
-//         if (response.ok) {
-//             console.log("Item removed successfully!");
-//             location.reload();
-//         } else {
-//             console.log("Failed to remove item!");
-//         }
-//     }).catch(error => console.error("Error:", error));
-// }
+        });
+    });
 </script>
 </html>
