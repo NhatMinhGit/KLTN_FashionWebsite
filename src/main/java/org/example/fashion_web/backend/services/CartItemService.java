@@ -5,6 +5,7 @@ import org.example.fashion_web.backend.models.User;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 
 public interface CartItemService {
@@ -12,7 +13,7 @@ public interface CartItemService {
     CartItems addToCart(User user, Long productId, int quantity);
 
     // Cập nhật số lượng sản phẩm trong giỏ hàng
-    CartItems updateCartItemQuantity(Long cartItemId, int newQuantity);
+    CartItems updateCartItemQuantity(Integer cartItemId, int newQuantity);
 
     // Xóa một sản phẩm khỏi giỏ hàng
     void removeCartItem(Integer cartItemId);
@@ -23,4 +24,9 @@ public interface CartItemService {
     BigDecimal getTotalPrice(List<CartItems> cartItems);
 
     CartItems save(CartItems item);
+
+    Optional<CartItems> findById(Integer id);
+
+
+
 }

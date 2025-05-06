@@ -60,7 +60,13 @@
                     <span>| Size: <span th:text="${productSizes[item.product.id]}"></span></span>
                   </div>
                 </div>
-                <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>
+                <form th:action="@{/user/cart/remove-from-cart}" method="post">
+                  <input type="hidden" name="id" th:value="${item.cartItemId}" />
+                  <button type="submit" class="btn btn-link text-muted">
+                    <i class="fa-solid fa-trash" style="color: red"></i>
+                  </button>
+                </form>
+
               </div>
               </th:block>
 

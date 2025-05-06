@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CartItemServiceImpl implements CartItemService {
@@ -23,9 +21,14 @@ public class CartItemServiceImpl implements CartItemService {
     }
 
     @Override
-    public CartItems updateCartItemQuantity(Long cartItemId, int newQuantity) {
-        return null;
+    public CartItems updateCartItemQuantity(Integer cartItemId, int newQuantity) {
+        CartItems item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new NoSuchElementException("CartItem with id " + cartItemId + " not found"));
+
+        item.setQuantity(newQuantity);
+        return cartItemRepository.save(item);
     }
+
 
     @Override
     public void removeCartItem(Integer cartItemId) {
@@ -60,5 +63,10 @@ public class CartItemServiceImpl implements CartItemService {
     @Override
     public CartItems save(CartItems item) {
         return cartItemRepository.save(item);
+    }
+
+    @Override
+    public Optional<CartItems> findById(Integer id) {
+        return cartItemRepository.findById(id);
     }
 }
