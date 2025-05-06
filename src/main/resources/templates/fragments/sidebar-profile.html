@@ -32,7 +32,7 @@
                        th:classappend="${currentPage == 'profile'} ? 'fw-bold disabled-link'">Tài khoản</a>
                 </li>
                 <li>
-                    <a href="@{/user/orders}" class="text-dark"
+                    <a th:href="@{/user/user-order}" class="text-dark"
                        th:classappend="${currentPage == 'orders'} ? 'fw-bold disabled-link'">Đơn hàng</a>
                 </li>
                 <li>

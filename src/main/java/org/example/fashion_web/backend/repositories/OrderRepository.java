@@ -26,4 +26,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // 2. Doanh thu từng năm (distinct năm có đơn hàng)
     @Query("SELECT YEAR(o.orderDate) as year, SUM(o.totalPrice) as total FROM Order o GROUP BY YEAR(o.orderDate) ORDER BY YEAR(o.orderDate) ASC")
     List<Object[]> getRevenueByYears();
+
+    List<Order> findByUser_IdOrderByIdDesc(Long userId);
+
 }

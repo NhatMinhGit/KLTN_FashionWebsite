@@ -9,6 +9,14 @@
   <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
   <link th:href="@{/css/order.css}" rel="stylesheet">
   <script th:src="@{/js/order.js}"></script>
+  <style>
+    .btn-dark {
+      border-radius: 0;
+    }
+    .btn i {
+      font-size: 14px;
+    }
+  </style>
 </head>
 
 <body>
@@ -100,16 +108,17 @@
       <div class="order-details mt-4">
         <h5>Chi tiết đơn hàng</h5>
         <div th:each="item : ${cartItems}" class="order-card">
-          <img th:src="@{${productImages[item.product.id][0]}}" class="img-fluid rounded-3" th:alt="${item.product.name}">
+          <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
+               th:src="@{${productImages[item.product.id][0]}}"
+               class="img-fluid rounded-3"
+               th:alt="${item.product.name}"
+               width="50"
+               height="50">
+          <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
           <div class="order-info">
             <p class="mb-0" th:text="${item.product.name}"></p>
             <small class="text-muted" th:text="${item.product.category.name}"></small>
-            <div class="quantity-control mt-1">
-              <!--              <button>-</button>-->
-              <!--              <span class="mx-2">2</span>-->
-              <!--              <button>+</button>-->
-              <span class="mx-2">Quantity: <span th:text="${item.quantity}"></span></span>
-            </div>
+            <small class="mx-2"><p class="text-muted mb-2" th:text="'Màu: '+${item.variant.color + ' | Size: ' + item.size.sizeName + ' | SL: ' + item.quantity}">GRAY, S</p> </small>
           </div>
           <strong th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></strong>
         </div>
@@ -177,7 +186,7 @@
           <tr>
             <td>Phí vận chuyển</td>
             <td>:</td>
-            <td class="text-success">Free ship</td>
+            <td class="text-success">Chúng tôi sẽ liên hệ để thông báo về phí vận chuyển</td>
           </tr>
 
           <tr>
@@ -195,7 +204,7 @@
           </tr>
           </tbody>
         </table>
-        <button class="btn btn-continue w-100" id="checkoutBtn">Thanh toán</button>
+        <button class="btn btn-dark w-100 mb-3" id="checkoutBtn">Thanh toán</button>
       </div>
     </div>
   </div>

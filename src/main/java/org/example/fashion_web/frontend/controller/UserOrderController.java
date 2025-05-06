@@ -9,6 +9,7 @@ import org.example.fashion_web.backend.repositories.ImageRepository;
 import org.example.fashion_web.backend.repositories.OrderItemRepository;
 import org.example.fashion_web.backend.repositories.OrderRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
+import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.example.fashion_web.backend.utils.CurrencyFormatter;
@@ -23,10 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class UserOrderController {
@@ -45,14 +43,18 @@ public class UserOrderController {
     @Autowired
     private CurrencyFormatter currencyFormatter;
 
+    @Autowired
+    private ImageService imageService;
+
 
     @Autowired
     private ImageRepository imageRepository;
 
     @GetMapping("user/user-order")
-    public String voucherIndex(Model model, Principal principal, @AuthenticationPrincipal CustomUserDetails userDetail) {
-        List<Order> orders = orderRepository.findByUser_Id(userDetail.getUser().getId());
+    public String userOrderIndex(Model model, Principal principal, @AuthenticationPrincipal CustomUserDetails userDetail) {
+        List<Order> orders = orderRepository.findByUser_IdOrderByIdDesc(userDetail.getUser().getId());
         List<Voucher> vouchers = voucherService.getAllVouchersAvilable(userDetail.getUser().getId());
+
 
         model.addAttribute("currentPage", "orders");
         model.addAttribute("orders", orders);
@@ -69,13 +71,12 @@ public class UserOrderController {
         for (int i = 0; i < items.size(); i++) {
             System.out.println(items.toString());
         }
+
         return items.stream().map(item -> {
             String productName = item.getProduct().getName();
-//            String imageUrl = imageRepository.findFirstByProduct_Id(item.getProduct().getId())
-//                    .map(Image::getImageUri)
-//                    .orElse("/img/no-image.png"); // ảnh mặc định nếu không có
-            //chỉnh sửa sau khi có hình ảnh
-            String imageUrl = "";
+            Optional<Image> imageOpt = imageRepository.findFirstByProductVariant_Id(item.getProduct().getId());
+            String imageUrl = imageOpt.map(Image::getImageUri).orElse("/img/no-image.png");
+
             String priceFormatted = currencyFormatter.formatVND(item.getPricePerUnit());
 
             return new OrderItemDto(productName, imageUrl, item.getQuantity(), priceFormatted);
