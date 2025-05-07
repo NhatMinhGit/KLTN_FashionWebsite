@@ -54,7 +54,7 @@
                 <div class="flex-grow-1">
                   <p class="mb-1 fw-bold text-black" th:text="${item.product.name}"></p>
                   <div class="d-flex flex-wrap align-items-center gap-1" style="font-size:12px; color: black">
-                    <span>Giá: <span class="fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></span></span>
+                    <span>Giá: <span class="fw-bold" th:text="${@currencyFormatter.formatVND(item.product.effectivePrice)}"></span></span>
                     <span>| Loại: <span th:text="${item.product.category.name}"></span></span>
                     <span>| Sl: <span th:text="${item.quantity}"></span></span>
                     <span>| Size: <span th:text="${item.size.sizeName}"></span></span>

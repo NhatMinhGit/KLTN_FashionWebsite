@@ -4,24 +4,21 @@ import com.sendgrid.Response;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.dto.EmailRequest;
-import org.example.fashion_web.backend.services.EmailService;
-import org.example.fashion_web.backend.services.VNPAYService;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
+import org.example.fashion_web.backend.services.EmailService;
 import org.example.fashion_web.backend.services.ImageService;
 import org.example.fashion_web.backend.services.SizeService;
+import org.example.fashion_web.backend.services.VNPAYService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 public class PaymentController {
@@ -102,14 +99,14 @@ public class PaymentController {
                 productOpt.ifPresentOrElse(product -> {
                     // Tìm variant tương ứng với sản phẩm
                     Optional<ProductVariant> variantOpt = product.getVariants().stream()
-                            .filter(variant -> variant.getId() == item.getVariant().getId()) // so sánh theo ID variant
+                            .filter(variant -> variant.getId().equals(item.getVariant().getId())) // so sánh theo ID variant
                             .findFirst();
 
                     variantOpt.ifPresentOrElse(variant -> {
                         // Thay vì lấy từ variant.getSizes(), gọi sizeService
                         List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
                         Optional<Size> sizeOpt = sizes.stream()
-                                .filter(size -> size.getId() == item.getSize().getId()) // So sánh theo ID size
+                                .filter(size -> size.getId().equals(item.getSize().getId())) // So sánh theo ID size
                                 .findFirst();
 
                         sizeOpt.ifPresentOrElse(size -> {
