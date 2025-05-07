@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #0d6efd;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+            color: #555;
+        }
+        .order-detail {
+            margin: 10px 0;
+        }
+        .item {
+            margin-left: 20px;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-top: 15px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <h2>🎉 Đặt hàng thành công tại MNT Fashion Shop!</h2>
+
+    <p>Xin chào <strong th:text="${userName}">[Tên khách hàng]</strong>,</p>
+    <p>Cảm ơn bạn đã đặt hàng tại cửa hàng chúng tôi. Dưới đây là thông tin đơn hàng của bạn:</p>
+
+    <div class="section-title">Thông tin đơn hàng:</div>
+    <div class="order-detail">
+        Mã đơn hàng: <strong th:text="${orderId}">[Mã đơn]</strong><br>
+        Ngày đặt: <strong th:text="${orderDate}">[Ngày]</strong><br>
+        Phương thức thanh toán: <strong th:text="${paymentMethod}">[Phương thức]</strong><br>
+        Địa chỉ giao hàng: <strong th:text="${shippingAddress}">[Địa chỉ giao hàng]</strong><br>
+    </div>
+
+    <div class="section-title">Sản phẩm đã mua:</div>
+    <div class="order-detail" th:utext="${productList}">[Danh sách sản phẩm]</div>
+
+    <div class="total">Tổng tiền: <span th:text="${totalAmount}">[Tổng tiền]</span></div>
+
+    <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng phản hồi email này hoặc liên hệ hotline hỗ trợ.</p>
+
+    <div class="footer">
+        MNT Fashion Shop - Hotline: 1900 1234 - Email: support@mntfashionshop.vn<br>
+        Địa chỉ: 12 Nguyễn Văn Bảo, Phường 1, Gò Vấp, Hồ Chí Minh
+    </div>
+</div>
+</body>
+</html>

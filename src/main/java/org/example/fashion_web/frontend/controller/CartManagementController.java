@@ -48,7 +48,7 @@ public class CartManagementController {
         this.productService = productService;
     }
     @GetMapping("/user/cart")
-    public String showCart(Model model, HttpSession session, Principal principal) {
+    public String showCart(Model model, HttpSession session) {
         List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
         System.out.println(cart);
         if (cart == null) {

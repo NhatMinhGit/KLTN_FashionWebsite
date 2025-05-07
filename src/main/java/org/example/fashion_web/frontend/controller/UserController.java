@@ -61,12 +61,12 @@ public class UserController {
 
 
     @GetMapping("/registration")
-    public String getRegistrationPage(@ModelAttribute("user") UserDto userDto) {
+    public String getRegistrationPage(@ModelAttribute("register_user") UserDto userDto) {
         return "register";
     }
 
     @PostMapping("/registration")
-    public String saveUser(@ModelAttribute("user") UserDto userDto, RedirectAttributes redirectAttributes) {
+    public String saveUser(@ModelAttribute("register_user") UserDto userDto, RedirectAttributes redirectAttributes) {
         User user = userRepository.findByEmail(userDto.getEmail());
         if (user == null) {
             userService.save(userDto);
@@ -92,12 +92,15 @@ public class UserController {
                 .map(User::getEmail)
                 .collect(Collectors.toList());
     }
-    @GetMapping("user")
+    @GetMapping({"/", "/user"})
     public String userPage(Model model, Principal principal) throws JsonProcessingException {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-        model.addAttribute("user", userDetails);
+        if (principal != null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+            model.addAttribute("user", userDetails);
 
-        User user = userService.findByEmail(userDetails.getUsername());
+            User user = userService.findByEmail(userDetails.getUsername());
+            model.addAttribute("currentUser", user);
+        }
 
         // Lấy danh sách sản phẩm
         List<Product> products = productService.getAllProducts();

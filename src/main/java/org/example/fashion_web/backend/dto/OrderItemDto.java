@@ -12,6 +12,7 @@ public class OrderItemDto {
     private String productImageUrl;
     private Integer quantity;
     private String pricePerUnit;
-
+    private Long productId;
+    private boolean hasReviewed;
 
 }

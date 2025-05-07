@@ -57,7 +57,7 @@
                     <span>Giá: <span class="fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></span></span>
                     <span>| Loại: <span th:text="${item.product.category.name}"></span></span>
                     <span>| Sl: <span th:text="${item.quantity}"></span></span>
-                    <span>| Size: <span th:text="${productSizes[item.product.id]}"></span></span>
+                    <span>| Size: <span th:text="${item.size.sizeName}"></span></span>
                   </div>
                 </div>
                 <form th:action="@{/user/cart/remove-from-cart}" method="post">
@@ -69,9 +69,6 @@
 
               </div>
               </th:block>
-
-              <!-- Thông báo miễn phí vận chuyển -->
-<!--              <p class="small text-success">Add <span class="fw-bold">$27.00</span> more for <span class="fw-bold">FREE SHIPPING</span>!</p>-->
 
               <hr>
 
@@ -89,19 +86,25 @@
           <div class="dropdown">
             <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
                data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
+              <img src="/pics/default-avatar.jpg" alt="mdo" width="32" height="32" class="rounded-circle">
+
             </a>
-            <h6 class="text-white">Welcome, [[${user.getName()}]]</h6>
-            <ul class="dropdown-menu text-small" style="">
-              <li><a class="dropdown-item" th:href="@{/user/profile}">My Profiles</a></li>
-              <li><a class="dropdown-item" th:href="@{/user/user-order}">My Orders</a></li>
-              <li><a class="dropdown-item" th:href="@{/user/voucher}">My Coupons</a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><span sec:authorize="isAuthenticated">
-                                  <a class="dropdown-item" th:href="@{/logout}">Logout</a>
-                              </span></li>
+            <h6 class="text-white">[[${user.getName()}]]</h6>
+            <ul class="dropdown-menu text-small">
+
+              <!-- Nếu người dùng đã đăng nhập -->
+              <span sec:authorize="isAuthenticated">
+                <li><a class="dropdown-item" th:href="@{/user/profile}">Hồ sơ của tôi</a></li>
+                <li><a class="dropdown-item" th:href="@{/user/user-order}">Hóa đơn của tôi</a></li>
+                <li><a class="dropdown-item" th:href="@{/user/voucher}">Voucher của tôi</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a></li>
+              </span>
+              <!-- Nếu người dùng chưa đăng nhập -->
+              <span sec:authorize="!isAuthenticated">
+                <li><a class="dropdown-item" th:href="@{/login}">Đăng nhập</a></li>
+                <li><a class="dropdown-item" th:href="@{/registration}">Đăng ký</a></li>
+              </span>
             </ul>
           </div>
         </div>

@@ -37,13 +37,11 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(request -> request
                                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
-                                .requestMatchers("/admin/chat").permitAll()
-                                .requestMatchers("/ws").permitAll()
                                 .requestMatchers("/products").hasAuthority("ADMIN")  // Chỉ Admin được truy cập
                                 .requestMatchers("/add").hasAuthority("ADMIN")
                                 .requestMatchers("/edit").hasAuthority("ADMIN")
                                 .requestMatchers("/user-page").hasAuthority("USER")
-                                .requestMatchers("/registration").permitAll()
+                                .requestMatchers("/", "/admin/chat", "/ws", "/registration", "/login", "/user", "/products", "/refresh-token", "/css/**", "/js/**", "/pics/**", "/pics/logo/**","/fontawesome-6.7.1/**").permitAll()
                         .anyRequest().authenticated())
 
                 .formLogin(form -> form.loginPage("/login").loginProcessingUrl("/login")

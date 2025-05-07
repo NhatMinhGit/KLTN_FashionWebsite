@@ -5,18 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Ký Tài Khoản</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/header.js}"></script>
 
     <style>
-        body {
+        .register-container {
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
             font-size: 14px;
-        }
-
-        .register-container {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -108,6 +106,7 @@
 </head>
 
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
 <div class="register-container">
     <div class="register-box">
         <h3 class="fw-bold my-3">ĐĂNG KÝ</h3>
@@ -120,35 +119,74 @@
 
         <p class="text-divider">or sign up with email</p>
 
-        <form th:action="@{/registration}" method="post" role="form" th:object="${user}">
+        <form th:action="@{/registration}" method="post" role="form" th:object="${register_user}" onsubmit="return validatePasswords()">
+            <!-- Họ và tên -->
             <div class="mb-3 text-start">
                 <label for="name" class="form-label">Họ và Tên</label>
-                <input th:field="*{name}" type="text" class="form-control" id="name" required>
+                <input th:field="*{name}" type="text" class="form-control" id="name" required
+                       pattern="^[a-zA-ZÀ-ỹ]+(?: [a-zA-ZÀ-ỹ]+)+$"
+                       title="Vui lòng nhập ít nhất hai từ, không chứa ký tự đặc biệt.">
             </div>
+
+            <!-- Email -->
             <div class="mb-3 text-start">
                 <label for="email" class="form-label">Email</label>
-                <input th:field="*{email}" type="email" class="form-control" id="email" required>
+                <input th:field="*{email}" type="email" class="form-control" id="email" required
+                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                       title="Email không hợp lệ">
             </div>
+
+            <!-- Mật khẩu -->
             <div class="mb-3 text-start">
                 <label for="password" class="form-label">Mật khẩu</label>
                 <div class="position-relative">
-                    <input th:field="*{password}" type="password" class="form-control" id="password" required>
+                    <input th:field="*{password}" type="password" class="form-control" id="password" required
+                           minlength="8" title="Mật khẩu phải từ 8 ký tự trở lên">
                     <span class="toggle-password" onclick="togglePassword()">👁</span>
                 </div>
             </div>
-            <a href="#" class="forgot-password">Quên mật khẩu?</a>
+
+            <!-- Xác nhận mật khẩu -->
+            <div class="mb-3 text-start">
+                <label for="confirm-password" class="form-label">Xác nhận Mật khẩu</label>
+                <div class="position-relative">
+                    <input type="password" class="form-control" id="confirm-password" required
+                           placeholder="Nhập lại mật khẩu">
+                    <span class="toggle-password" onclick="togglePassword2()">👁</span>
+                </div>
+                <div class="invalid-feedback" id="confirm-error" style="display:none;">Mật khẩu không khớp.</div>
+            </div>
+
             <div th:if="${message}" class="alert alert-info">
                 <p th:text="${message}"></p>
             </div>
+
             <button type="submit" class="btn btn-primary mt-3">Đăng ký</button>
         </form>
+
     </div>
 </div>
-
+<div th:replace="~{fragments/footer :: footer}"></div>
 <script>
     function togglePassword() {
         var passwordInput = document.getElementById("password");
         passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+    }
+    function togglePassword2() {
+        var passwordInput = document.getElementById("confirm-password");
+        passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+    }
+    function validatePasswords() {
+        const password = document.getElementById("password").value;
+        const confirm = document.getElementById("confirm-password").value;
+        const errorDiv = document.getElementById("confirm-error");
+
+        if (password !== confirm) {
+            errorDiv.style.display = "block";
+            return false; // chặn submit
+        }
+        errorDiv.style.display = "none";
+        return true;
     }
 </script>
 </body>

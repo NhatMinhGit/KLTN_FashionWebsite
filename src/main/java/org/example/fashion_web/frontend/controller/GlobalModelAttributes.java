@@ -78,6 +78,9 @@ public class GlobalModelAttributes {
 //            }
 //            model.addAttribute("countCart", countCart);
         } else {
+            User user = new User();
+            user.setName("Đăng nhập");
+            model.addAttribute("user", user);
             model.addAttribute("countCart", 0);
         }
     }

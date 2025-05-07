@@ -1,7 +1,8 @@
-package org.example.fashion_web.backend.configurations;
+package org.example.fashion_web.backend.services;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.example.fashion_web.backend.configurations.VNPAYConfig;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.repositories.OrderRepository;

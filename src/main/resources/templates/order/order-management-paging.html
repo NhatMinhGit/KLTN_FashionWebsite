@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý hóa đơn</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Quản lý hóa đơn</h1>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-dark">
+                    <i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]
+                </span>
+                <a class="btn btn-danger" th:href="@{/logout}">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Khách hàng</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orderPage}">
+                <td th:text="${order.id}">1</td>
+                <td th:text="${order.user.name}">Khách A</td>
+                <td th:text="${order.orderDate}">2025-05-07</td>
+                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' ₫'">100.000 ₫</td>
+                <td th:text="${order.status}">PENDING</td>
+                <td>
+                    <a th:href="@{/admin/order/detail/{id}(id=${order.id})}" class="btn btn-primary btn-sm">
+                        Xem chi tiết
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <!-- Previous -->
+                <li class="page-item" th:classappend="${orderPage.first} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="${orderPage.first} ? '#' : @{/admin/order(page=${orderPage.number - 1}, size=${orderPage.size})}">
+                        &laquo;
+                    </a>
+                </li>
+
+                <!-- Page numbers -->
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, orderPage.totalPages - 1)}"
+                    th:classappend="${i == orderPage.number} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/admin/order(page=${i}, size=${orderPage.size})}"
+                       th:text="${i + 1}">1</a>
+                </li>
+
+                <!-- Next -->
+                <li class="page-item" th:classappend="${!orderPage.hasNext()} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="${!orderPage.hasNext()} ? '#' : @{/admin/order(page=${orderPage.number + 1}, size=${orderPage.size})}">
+                        &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</body>
+</html>
