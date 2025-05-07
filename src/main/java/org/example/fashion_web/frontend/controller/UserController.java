@@ -24,6 +24,7 @@ import java.math.RoundingMode;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class UserController {
@@ -106,21 +107,32 @@ public class UserController {
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
 
+        // Lấy giảm giá cho sản phẩm
         for (Product product : products) {
-            // Lấy danh sách tất cả discount đang active của product
-            List<ProductDiscount> activeDiscounts = discountService.getActiveDiscountsForProduct(product);
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
 
-            // Tìm discount lớn nhất (nếu có)
-            Optional<ProductDiscount> maxDiscount = activeDiscounts.stream()
+            // Lấy giảm giá cho danh mục
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Gộp cả 2 danh sách giảm giá
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
                     .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
 
-            // Áp dụng discount lớn nhất nếu có, ngược lại giữ giá gốc
+            // Áp dụng giảm giá cao nhất (nếu có)
             BigDecimal effectivePrice = maxDiscount
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
 
+            // Cập nhật giá hiệu lực cho sản phẩm
             product.setEffectivePrice(effectivePrice);
         }
+
 
 
         // Trong phương thức @GetMapping("/user")

@@ -16,6 +16,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class CartManagementController {
@@ -118,9 +119,27 @@ public class CartManagementController {
             }
 
             // Áp dụng giảm giá nếu có
-            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+            // Lấy giảm giá cho danh mục
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Gộp cả 2 danh sách giảm giá
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng giảm giá cao nhất (nếu có)
+            BigDecimal effectivePrice = maxDiscount
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
+
+            // Cập nhật giá hiệu lực cho sản phẩm
             product.setEffectivePrice(effectivePrice);
 
             // Lấy giỏ hàng từ session hoặc tạo mới nếu chưa có

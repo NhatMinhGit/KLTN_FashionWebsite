@@ -103,7 +103,7 @@
                     </div>
                     <!-- Giá -->
                     <div class="text-end">
-                        <p class="fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}">471.000đ</p>
+                        <p class="fw-bold" th:text="${@currencyFormatter.formatVND(item.product.effectivePrice)}">471.000đ</p>
                     </div>
                 </div>
             </th:block>
