@@ -167,26 +167,26 @@
 <div class="container mt-5">
     <h4 class="mb-4">Bình luận</h4>
 
-    <form th:action="@{/user/product-detail/{id}/comments(id=${product.id})}" method="post"
-          class="mb-4 p-4 rounded shadow-sm bg-light">
-        <div class="mb-3">
-            <label class="form-label d-block mb-2 text-black">Đánh giá của bạn:</label>
-            <div class="star-rating">
-                <input type="radio" id="star5" name="rating" value="5" required><label for="star5">★</label>
-                <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
-                <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
-                <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
-                <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
-            </div>
-        </div>
+<!--    <form th:action="@{/user/product-detail/{id}/comments(id=${product.id})}" method="post"-->
+<!--          class="mb-4 p-4 rounded shadow-sm bg-light">-->
+<!--        <div class="mb-3">-->
+<!--            <label class="form-label d-block mb-2 text-black">Đánh giá của bạn:</label>-->
+<!--            <div class="star-rating">-->
+<!--                <input type="radio" id="star5" name="rating" value="5" required><label for="star5">★</label>-->
+<!--                <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>-->
+<!--                <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>-->
+<!--                <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>-->
+<!--                <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>-->
+<!--            </div>-->
+<!--        </div>-->
 
-        <div class="mb-3 text-black">
-            <label for="commentContent" class="form-label">Bình luận của bạn:</label>
-            <textarea class="form-control" id="commentContent" name="comment" rows="3" placeholder="Nhập bình luận..." required></textarea>
-        </div>
+<!--        <div class="mb-3 text-black">-->
+<!--            <label for="commentContent" class="form-label">Bình luận của bạn:</label>-->
+<!--            <textarea class="form-control" id="commentContent" name="comment" rows="3" placeholder="Nhập bình luận..." required></textarea>-->
+<!--        </div>-->
 
-        <button type="submit" class="btn btn-success">Gửi bình luận</button>
-    </form>
+<!--        <button type="submit" class="btn btn-success">Gửi bình luận</button>-->
+<!--    </form>-->
 
     <div th:if="${#lists.isEmpty(feedbacks)}">
         <p class="text-white fst-italic">Chưa có bình luận nào. Hãy là người đầu tiên!</p>

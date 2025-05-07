@@ -41,13 +41,6 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="avatar" class="form-label">Ảnh đại diện</label>
-                        <input type="file" class="form-control" id="avatar" name="avatarFile">
-                        <img th:src="${userProfileDto.avatar != null ? userProfileDto.avatar : '/pics/default-avatar.jpg'}"
-                             alt="User Avatar" class="img-thumbnail" width="150">
-                    </div>
-
-                    <div class="mb-3">
                         <label for="dob" class="form-label">Ngày sinh</label>
                         <input type="date" class="form-control" id="dob" th:field="*{dob}" required>
                     </div>

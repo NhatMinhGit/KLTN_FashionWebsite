@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -24,6 +25,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -791,25 +793,50 @@ public class ProductManagementController {
         return productService.searchProducts(keyword, pageable);
     }
 
+//    @PostMapping("user/product-detail/{id}/comments")
+//    public String addComment(@PathVariable("id") Long productId,
+//                             @RequestParam("comment") String content,
+//                             @RequestParam("rating") int rating,
+//                             Principal principal) {
+//
+//        User user = userService.findByEmail(principal.getName());
+//        System.out.println(user.toString());
+//        Product product = productService.findById(productId)
+//                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+////        // Tìm feedback của sản phẩm
+////        Feedback feedback = feedBackService.findByProductId(productId)
+////                .orElseThrow(() -> new IllegalArgumentException("Feedback not found"));
+//
+//        Feedback feedback = new Feedback();
+//        feedback.setUser(user);
+////        feedback.setOrderItem(orderItem);
+////        comment.setFeedback(feedback);
+//        feedback.setProduct(product); // Gắn comment với sản phẩm luôn
+//        feedback.setComment(content);
+//        feedback.setRating(rating);
+//        feedback.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+//
+//        feedBackService.save(feedback);
+//
+//        return "redirect:/user/product-detail/" + productId;
+//    }
+
+
     @PostMapping("user/product-detail/{id}/comments")
     public String addComment(@PathVariable("id") Long productId,
                              @RequestParam("comment") String content,
                              @RequestParam("rating") int rating,
-                             Principal principal) {
-
-        User user = userService.findByEmail(principal.getName());
-        System.out.println(user.toString());
+                             @AuthenticationPrincipal CustomUserDetails userDetail) {
+        if (productId == null || productId <= 0) {
+            throw new IllegalArgumentException("Invalid product ID");
+        }
+        User user = userDetail.getUser();
         Product product = productService.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-//        // Tìm feedback của sản phẩm
-//        Feedback feedback = feedBackService.findByProductId(productId)
-//                .orElseThrow(() -> new IllegalArgumentException("Feedback not found"));
 
         Feedback feedback = new Feedback();
         feedback.setUser(user);
-//        feedback.setOrderItem(orderItem);
-//        comment.setFeedback(feedback);
-        feedback.setProduct(product); // Gắn comment với sản phẩm luôn
+        feedback.setProduct(product);
         feedback.setComment(content);
         feedback.setRating(rating);
         feedback.setCreatedAt(new Timestamp(System.currentTimeMillis()));

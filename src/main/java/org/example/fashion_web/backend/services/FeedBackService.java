@@ -10,4 +10,6 @@ public interface FeedBackService {
 
     void save(Feedback feedback);
     List<Feedback> findByProductIdOrderByCreateAtDesc(Long id);
+
+    boolean hasUserReviewedProduct(Long userId, Long productId);
 }

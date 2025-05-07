@@ -2,6 +2,9 @@ package org.example.fashion_web.backend.repositories;
 
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.Order;
+import org.example.fashion_web.backend.models.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,4 +29,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // 2. Doanh thu từng năm (distinct năm có đơn hàng)
     @Query("SELECT YEAR(o.orderDate) as year, SUM(o.totalPrice) as total FROM Order o GROUP BY YEAR(o.orderDate) ORDER BY YEAR(o.orderDate) ASC")
     List<Object[]> getRevenueByYears();
+
+    List<Order> findByUser_IdOrderByIdDesc(Long userId);
+
+    List<Order> findAllByOrderByIdDesc();
+
+    List<Order> findAllByOrderByIdDesc(Pageable pageable);
+
+
 }

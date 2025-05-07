@@ -23,5 +23,7 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     @Transactional
     void deleteImageByImageUri(String imageUri);
 
+    @Transactional
+    Optional<Image> findFirstByProductVariant_Id(Long variantId);
 //    Optional<Image> findFirstByProduct_Id(Long productId);
 }

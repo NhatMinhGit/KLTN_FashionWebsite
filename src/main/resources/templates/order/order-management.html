@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý hóa đơn</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <style>
+        #sidebar-wrapper {
+            position: fixed;
+            height: 100vh;
+            width: 250px;
+            overflow-y: auto;
+        }
+        .container-fluid {
+            margin-left: 260px; /* Đẩy nội dung qua bên phải để tránh bị che */
+        }
+    </style>
+</head>
+
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+
+    <!-- Content -->
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Quản lý hóa đơn</h1>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
+                <span sec:authorize="isAuthenticated">
+                    <a class="text-decoration-none text-dark cursor-pointer btn btn-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </span>
+            </div>
+        </div>
+        <!-- Thanh tìm kiếm -->
+        <div class="mb-3 d-flex">
+            <input type="text" id="searchInput" class="form-control me-2"
+                   placeholder="Tìm kiếm hóa đơn...">
+            <button class="btn btn-primary" onclick="searchUser()">Tìm kiếm</button>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Khách hàng</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td th:text="${order.id}">1</td>
+                <td th:text="${order.user.name}">Nguyễn Văn A</td>
+                <td th:text="${order.orderDate}">2025-05-07</td>
+                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' ₫'">100.000 ₫</td>
+                <td th:text="${order.status}">PENDING</td>
+                <td>
+                    <a class="btn btn-primary btn-sm"
+                       th:href="@{/admin/order/detail/{id}(id=${order.id})}">
+                        Xem chi tiết
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+
+</body>
+
+</html>

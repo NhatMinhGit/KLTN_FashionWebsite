@@ -1,8 +1,11 @@
 package org.example.fashion_web.frontend.controller;
 
+import com.sendgrid.Response;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.example.fashion_web.backend.configurations.VNPAYService;
+import org.example.fashion_web.backend.dto.EmailRequest;
+import org.example.fashion_web.backend.services.EmailService;
+import org.example.fashion_web.backend.services.VNPAYService;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
@@ -14,7 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,12 @@ public class PaymentController {
     @Autowired
     private SizeRepository sizeRepository;
 
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("/user/order/submitOrder")
     public String rejectGetSubmitOrder() {
         return "redirect:/user/order?error=invalid-method";
@@ -67,8 +75,12 @@ public class PaymentController {
         int paymentStatus = vnPayService.orderReturn(request);
         List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
         OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
+
         Long orderId = (Long) session.getAttribute("paymentOrderId");
+
         Optional<Order> order = orderRepository.findById(orderId);
+        User user = userRepository.findById(paymentInfo.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         String orderInfo = request.getParameter("vnp_OrderInfo");
         String bankCode = request.getParameter("bankCode");
@@ -76,20 +88,14 @@ public class PaymentController {
         String transactionId = request.getParameter("vnp_TransactionNo");
         String totalPrice = request.getParameter("vnp_Amount");
         String vnpId = request.getParameter("vnp_TxnRef");
-        // Nhóm danh sách ảnh theo productId
-        Map<Long, List<String>> productImages = new HashMap<>();
-        for (CartItems item : cartItems) {
-            List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
-            List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
-            productImages.put(item.getProduct().getId(), imageUrls);
-        }
+
         if (paymentStatus == 1 && order.isPresent()) {
             // Cập nhật trạng thái đơn hàng
             Order o = order.get();
             o.setStatus(Order.OrderStatusType.PAID);
             o.setVnpId(vnpId);
             orderRepository.save(o);
-
+            paymentInfo.setId(o.getId());
             for (CartItems item : cartItems) {
                 Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
 
@@ -156,11 +162,23 @@ public class PaymentController {
             model.addAttribute("totalAmount", paymentInfo.getTotalPrice()); // định dạng nếu cần
             model.addAttribute("paymentMethod", payment.getPaymentMethod().toString());
             model.addAttribute("cartItems", cartItems);  // để hiển thị danh sách sản phẩm đã mua
-            model.addAttribute("productImages", productImages);
-            // Dọn session
-            session.removeAttribute("cartItems");
-            session.removeAttribute("paymentInfo");
-            session.removeAttribute("paymentOrderId");
+
+            // Gửi email
+            try {
+                String htmlContent = emailService.buildOrderConfirmationEmail(user, paymentInfo, cartItems);
+                EmailRequest emailRequest = new EmailRequest(user.getEmail(), "Xác nhận đơn hàng #" + o.getId(), htmlContent);
+                Response response = emailService.sendEmail(emailRequest, user.getEmail());
+
+                if (response.getStatusCode() != 200 && response.getStatusCode() != 202) {
+                    System.out.println("❌ Gửi email thất bại: " + response.getStatusCode());
+                }
+                session.removeAttribute("paymentOrderId");
+                session.removeAttribute("cartItems");
+                session.removeAttribute("paymentInfo");
+            } catch (Exception e) {
+                System.out.println("❌ Lỗi khi gửi email: " + e.getMessage());
+            }
+
             return "/order/ordersuccess";
         } else  {
             // Cập nhật trạng thái đơn hàng
