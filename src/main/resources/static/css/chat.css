@@ -396,3 +396,24 @@ body {
     }
 }
 
+/* Đảm bảo rằng phần tử chứa chat container chiếm toàn bộ không gian */
+.container.main-container {
+    width: 150vh;      /* Chiếm toàn bộ chiều rộng */
+    height: 90vh;    /* Chiếm toàn bộ chiều cao của cửa sổ trình duyệt */
+    display: flex;    /* Dùng flexbox để dễ dàng điều chỉnh các phần tử con */
+    flex-direction: column;  /* Xếp các phần tử con theo chiều dọc */
+}
+
+/* Đảm bảo chat-container chiếm toàn bộ không gian */
+.chat-container {
+    width: 100%;      /* Chiếm toàn bộ chiều rộng */
+    height: 100%;     /* Chiếm toàn bộ chiều cao của container */
+    display: flex;    /* Dùng flexbox để dễ dàng điều chỉnh các phần tử con bên trong */
+    flex-direction: column;  /* Xếp các phần tử con theo chiều dọc */
+}
+
+/* Đảm bảo các phần tử con của chat-container chiếm toàn bộ không gian */
+.chat-messages {
+    flex: 1; /* Chiếm toàn bộ không gian còn lại */
+    overflow-y: auto; /* Cho phép cuộn dọc khi tin nhắn quá dài */
+}

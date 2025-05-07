@@ -157,7 +157,9 @@ body {
 .banner-content .btn:hover {
     background-color: #555;
 }
-
+.service-box{
+    background-color: #0e2433 !important;
+}
 .service-section {
     display: flex;
     justify-content: center;
@@ -280,9 +282,9 @@ body {
 
 
 #loadMoreButton {
-    background: linear-gradient(90deg, #007bff, #00c6ff);
+    background: white;
     border: none;
-    color: white;
+    color: #0e2433;
     padding: 15px;
     border-radius: 50%;
     cursor: pointer;

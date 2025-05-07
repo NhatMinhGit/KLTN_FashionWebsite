@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Classico - About Us</title>
+    <meta name="description" content="">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script th:src="@{/js/header.js}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+</head>
+<style>
+    .about_section,
+    .choseus_area,
+    .about_gallery_section,
+    .testimonial_section {
+        margin-bottom: 5px !important; /* Thêm khoảng cách 5px phía dưới mỗi section */
+        padding-top: 10px !important; /* Giảm padding cho các section */
+        padding-bottom: 10px !important;
+    }
+
+
+
+    .single_chose img {
+        width: 80px; /* chỉnh kích thước ảnh */
+        height: 80px;
+        object-fit: cover; /* giữ tỉ lệ, cắt thừa nếu cần */
+        margin-bottom: 15px; /* khoảng cách dưới */
+    }
+
+    .chose_content h3 {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .chose_content p {
+        font-size: 14px;
+    }
+    /* Cố định độ lớn ảnh */
+    .gallery-img {
+        width: 100%;
+        height: 250px; /* Cố định chiều cao ảnh */
+        object-fit: cover; /* Cắt ảnh sao cho vừa với kích thước */
+    }
+
+    .choseus_area {
+        padding: 60px 0;
+        background-size: cover;
+        background-position: center;
+        color: #fff;
+        text-align: center;
+    }
+
+    .single_chose {
+        background-color: rgba(0, 0, 0, 0.5); /* Màu nền mờ */
+        height: 300px;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Hiệu ứng bóng */
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .single_chose:hover {
+        transform: translateY(-10px); /* Hiệu ứng di chuyển khi hover */
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); /* Tăng bóng khi hover */
+    }
+
+    .chose_icone img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        margin-bottom: 15px;
+    }
+
+    .chose_content h3 {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .chose_content p {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .nav-link{
+        color: black;
+    }
+    /* Đảm bảo các cột được căn giữa khi có kích thước màn hình nhỏ */
+    @media (max-width: 768px) {
+        .single_chose {
+            margin: 0 auto;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chose_content h3 {
+            font-size: 1.4rem;
+        }
+
+        .chose_content p {
+            font-size: 0.9rem;
+        }
+    }
+
+
+</style>
+<body>
+
+<!-- Header Section -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- About Us Section -->
+<section class="about_section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-white">
+                <h1>Về Chúng Tôi - MNT Fashion</h1>
+                <h3>Chúng tôi tin rằng mỗi bộ trang phục là một tác phẩm nghệ thuật và mỗi sản phẩm đều mang trong mình một câu chuyện riêng.</h3>
+                <p>Vì lý do đó, mỗi thiết kế của chúng tôi đều hướng đến một ý tưởng cụ thể. Sức mạnh của MNT Fashion nằm ở sự tỉ mỉ và chú trọng đến từng chi tiết. Đội ngũ của chúng tôi luôn nỗ lực hết mình để mang lại những sản phẩm hoàn hảo nhất cho khách hàng.</p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746607945/banner/s6mvrpexgl9xnej7xsia.jpg" class="img-fluid" alt="About Image">
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Chose Us Section -->
+<div class="choseus_area" style="background-image: url('assets/img/about/about-us-policy-bg.jpg');">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="single_chose">
+                    <div class="chose_icone">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746608149/banner/jatvif4eugw88jcmrfdl.avif" alt="">
+                    </div>
+                    <div class="chose_content text-white">
+                        <h3>Thiết Kế Sáng Tạo</h3>
+                        <p>MNT Fashion luôn mang đến những thiết kế độc đáo, sáng tạo để thể hiện cá tính riêng của bạn.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="single_chose">
+                    <div class="chose_icone">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746608181/banner/w8vncbwyoyh6fndpms0h.png" alt="">
+                    </div>
+                    <div class="chose_content text-white">
+                        <h3>Bảo Hành Hoàn Tiền 100%</h3>
+                        <p>Nếu bạn không hài lòng với sản phẩm, chúng tôi cam kết hoàn tiền đầy đủ. Sự hài lòng của bạn là ưu tiên hàng đầu của chúng tôi.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="single_chose">
+                    <div class="chose_icone">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746608216/banner/vszw9pv6wyjqwpqajsvu.avif" alt="">
+                    </div>
+                    <div class="chose_content text-white">
+                        <h3>Hỗ Trợ Trực Tuyến 24/7</h3>
+                        <p>Chúng tôi luôn sẵn sàng hỗ trợ bạn. Đội ngũ hỗ trợ của MNT Fashion hoạt động 24/7 để giải đáp mọi thắc mắc của bạn.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Our Gallery Section -->
+<div class="about_gallery_section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <figure>
+                    <div class="gallery_thumb">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746608564/Other/bukvgqphug6bdjsusz93.webp" class="img-fluid gallery-img" alt="Our Products">
+                    </div>
+                    <figcaption class="about_gallery_content text-white">
+                        <h3>Sản Phẩm Đa Dạng</h3>
+                        <p>MNT Fashion cung cấp nhiều loại quần áo với thiết kế phong phú, từ trẻ trung đến thanh lịch, phù hợp cho mọi nhu cầu.</p>
+                    </figcaption>
+                </figure>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <figure>
+                    <div class="gallery_thumb">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746608561/Other/riu47wx541iyvh3lcqzj.webp" class="img-fluid gallery-img" alt="Customer Experience">
+                    </div>
+                    <figcaption class="about_gallery_content text-white">
+                        <h3>Trải Nghiệm Mua Sắm Tuyệt Vời</h3>
+                        <p>MNT Fashion luôn mang đến trải nghiệm mua sắm thân thiện, nhanh chóng và thoải mái cho khách hàng.</p>
+                    </figcaption>
+                </figure>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <figure>
+                    <div class="gallery_thumb">
+                        <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746608560/Other/pfcgyg7mkdorhriz4xq2.webp" class="img-fluid gallery-img" alt="Our Store">
+                    </div>
+                    <figcaption class="about_gallery_content text-white">
+                        <h3>Cửa Hàng Của Chúng Tôi</h3>
+                        <p>Hãy ghé thăm cửa hàng của MNT Fashion để trải nghiệm không gian mua sắm hiện đại và lựa chọn những bộ trang phục phù hợp nhất.</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Testimonials Section -->
+<div class="testimonial_section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-12">
+                <h2 class="mb-4 text-white">What Our Customers Say</h2>
+                <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <!-- Customer 1 -->
+                        <div class="carousel-item active text-center p-4">
+                            <div class="testimonial_thumb mb-3">
+                                <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746607945/banner/s6mvrpexgl9xnej7xsia.jpg" class="img-fluid rounded-circle" alt="Customer 1" style="width: 100px; height: 100px; object-fit: cover;">
+                            </div>
+                            <div class="testimonial_content text-white">
+                                <p class="mb-2">"Sản phẩm rất đẹp, chất liệu co giãn tốt và cực kỳ<br> thoải mái khi mặc. Rất hài lòng!"</p>
+                                <h5 class="mb-1">Nhật Minh</h5>
+                                <small>Dev of MNT</small>
+                            </div>
+                        </div>
+                        <!-- Customer 2 -->
+                        <div class="carousel-item text-center p-4">
+                            <div class="testimonial_thumb mb-3">
+                                <img src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746607945/banner/s6mvrpexgl9xnej7xsia.jpg" class="img-fluid rounded-circle" alt="Customer 2" style="width: 100px; height: 100px; object-fit: cover;">
+                            </div>
+                            <div class="testimonial_content text-white">
+                                <p class="mb-3">"Dịch vụ tuyệt vời! Đội ngũ MNT rất chuyên nghiệp, tận tâm<br> và sản phẩm chất lượng ngoài mong đợi."</p>
+                                <h5 class="mb-1">Đức Thắng</h5>
+                                <small>Dev of MNT</small>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Controls -->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+
+                </div>
+            </div>
+
+
+
+            <div class="col-lg-6 col-md-12">
+                <h2 class="text-white">What Can We Do For You?</h2>
+                <div class="panel-group" id="faq" role="tablist" aria-multiselectable="true">
+                    <div class="panel panel-default text-white">
+                        <div class="panel-heading" role="tab" id="faq1">
+                            <h5 class="panel-title">
+                                <a data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                                    Giao hàng nhanh & miễn phí
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse1" class="panel-collapse collapse show" role="tabpanel" aria-labelledby="faq1" data-bs-parent="#faq">
+                            <div class="panel-body">
+                                <p>MNT Fashion giao hàng toàn quốc nhanh chóng, miễn phí với đơn từ 500k. Nhận hàng ngay tại nhà, không lo chờ đợi!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default text-white">
+                        <div class="panel-heading" role="tab" id="faq2">
+                            <h5 class="panel-title">
+                                <a class="collapsed" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                                    Đổi trả dễ dàng trong 7 ngày
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq2" data-bs-parent="#faq">
+                            <div class="panel-body">
+                                <p>Không vừa ý? Đổi trả dễ dàng trong vòng 7 ngày với sản phẩm còn nguyên tag và chưa qua sử dụng.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default text-white">
+                        <div class="panel-heading" role="tab" id="faq3">
+                            <h5 class="panel-title">
+                                <a class="collapsed" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                                    Tư vấn thời trang miễn phí
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq3" data-bs-parent="#faq">
+                            <div class="panel-body">
+                                <p>Đội ngũ stylist của MNT Fashion luôn sẵn sàng giúp bạn chọn lựa outfit phù hợp, tự tin khoe cá tính.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default text-white">
+                        <div class="panel-heading" role="tab" id="faq4">
+                            <h5 class="panel-title">
+                                <a class="collapsed" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                                    Chất lượng sản phẩm vượt trội
+                                </a>
+                            </h5>
+                        </div>
+                        <div id="collapse4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq4" data-bs-parent="#faq">
+                            <div class="panel-body">
+                                <p>MNT Fashion cam kết mang đến sản phẩm chất lượng cao, chất liệu bền đẹp, thoáng mát và hợp xu hướng.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Footer Section -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+<script>
+
+
+
+</script>
+</html>

@@ -9,11 +9,24 @@
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
     <link rel="stylesheet" th:href="@{/css/user.css}">
     <link rel="stylesheet" th:href="@{/css/card.css}">
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
 <!--    <link rel="stylesheet" th:href="@{/css/carousel.css}">-->
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <script th:src="@{/js/header.js}"></script>
-</head>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+</head>
+    <style>
+        .rounded-circle,
+        .featurette-image{
+            transition: transform 0.3s ease;
+        }
+        .rounded-circle:hover,
+        .featurette-image:hover{
+            transform: scale(1.1);
+        }
+    </style>
 <body>
 <!--Header-->
 <div th:replace="~{fragments/header :: header}"></div>
@@ -50,19 +63,19 @@
 
         <!-- Three columns of text below the carousel -->
         <div class="row">
-            <div class="col-lg-4">
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
                 <img class="rounded-circle" src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746367922/Other/new-collection.webp" width="140" height="140">
                 <h2>Bộ Sưu Tập Mới</h2>
                 <p>Khám phá các thiết kế thời trang mới nhất, cập nhật xu hướng mùa hè 2025 với những mẫu áo váy độc đáo, cá tính và đầy phong cách.</p>
                 <p><a class="btn btn-secondary" href="#" role="button">Xem ngay »</a></p>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
                 <img class="rounded-circle" src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746368054/Other/%C6%AFu%20%C4%91%C3%A3i%20%C4%91%E1%BA%B7c%20bi%E1%BB%87t.png" width="140" height="140">
                 <h2>Ưu Đãi Đặc Biệt</h2>
                 <p>Giảm giá đến 50% cho các sản phẩm trong tuần lễ khai trương. Đừng bỏ lỡ cơ hội sở hữu những món đồ thời thượng với mức giá ưu đãi.</p>
                 <p><a class="btn btn-secondary" href="/user/shop" role="button">Mua ngay »</a></p>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
                 <img class="rounded-circle" src="https://res.cloudinary.com/dgtfqxgvx/image/upload/v1746368140/Other/Ph%E1%BB%A5%20ki%E1%BB%87n%20nam%20hot.jpg" width="140" height="140">
                 <h2>Phụ Kiện Hot</h2>
                 <p>Hoàn thiện phong cách của bạn với các phụ kiện như túi xách, giày dép, kính mát... Tất cả đều đang có mặt tại cửa hàng với nhiều mẫu mã đa dạng.</p>
@@ -74,7 +87,7 @@
 
         <hr class="featurette-divider">
 
-        <div class="row featurette">
+        <div class="row featurette" data-aos="fade-right">
             <div class="col-md-7">
                 <h2 class="featurette-heading">Phong Cách Hiện Đại. <span class="text-muted">Tự tin tỏa sáng.</span></h2>
                 <p class="lead">Chúng tôi mang đến cho bạn những bộ trang phục trẻ trung, hiện đại, giúp bạn tự tin trong mọi hoàn cảnh: từ đi làm, đi chơi đến dự tiệc.</p>
@@ -86,7 +99,7 @@
 
         <hr class="featurette-divider">
 
-        <div class="row featurette">
+        <div class="row featurette" data-aos="fade-left">
             <div class="col-md-7 order-md-2">
                 <h2 class="featurette-heading">Chất Liệu Cao Cấp. <span class="text-muted">Thoải mái suốt ngày dài.</span></h2>
                 <p class="lead">Sản phẩm được làm từ chất liệu thân thiện với làn da, co giãn, thoáng mát, mang đến cảm giác dễ chịu và bền đẹp lâu dài.</p>
@@ -98,7 +111,7 @@
 
         <hr class="featurette-divider">
 
-        <div class="row featurette">
+        <div class="row featurette" data-aos="fade-up">
             <div class="col-md-7">
                 <h2 class="featurette-heading">Dịch Vụ Khách Hàng Tận Tâm. <span class="text-muted">Hỗ trợ 24/7.</span></h2>
                 <p class="lead">Đội ngũ tư vấn viên sẵn sàng giải đáp mọi thắc mắc, hỗ trợ đổi trả sản phẩm nhanh chóng và tận tình để mang đến trải nghiệm mua sắm tốt nhất.</p>
@@ -152,33 +165,47 @@
     </div>
 </div>
 
-
-
-
-
-
-    <!-- Dịch vụ -->
-    <div class="service-section">
-        <div class="service-box">
-            <i class="fas fa-comment text-black"></i> <!-- đổi fa-regular thành fas -->
-            <h3>Uy tín</h3>
-            <p>Luôn đảm bảo chất lượng ở mức tốt nhất</p>
+    <div class="container">
+        <!-- Dịch vụ -->
+        <div class="service-section">
+            <div class="service-box">
+                <i class="fas fa-comment text-white"></i> <!-- đổi fa-regular thành fas -->
+                <h3 class="text-white">Uy tín</h3>
+                <p class="text-white">Luôn đảm bảo chất lượng ở mức tốt nhất</p>
+            </div>
+            <div class="service-box">
+                <i class="fas fa-star text-white"></i>
+                <h3 class="text-white">Chất lượng cao</h3>
+                <p class="text-white">Sản phẩm đạt tiêu chuẩn, nguồn gốc rõ ràng.</p>
+            </div>
+            <div class="service-box">
+                <i class="fas fa-tags text-white"></i>
+                <h3 class="text-white">Giá cả hợp lý</h3>
+                <p class="text-white">Cập nhật mức giá cạnh tranh, phù hợp với chất lượng.</p>
+            </div>
         </div>
-        <div class="service-box">
-            <i class="fas fa-star text-black"></i>
-            <h3>Chất lượng cao</h3>
-            <p>Sản phẩm đạt tiêu chuẩn, nguồn gốc rõ ràng.</p>
-        </div>
-        <div class="service-box">
-            <i class="fas fa-tags text-black"></i>
-            <h3>Giá cả hợp lý</h3>
-            <p>Cập nhật mức giá cạnh tranh, phù hợp với chất lượng.</p>
+    </div>
+
+    <div class="popup-container">
+        <button class="popup-button" id="mainPopupBtn">
+            ☰
+        </button>
+        <div class="popup-links" id="popupLinks">
+            <a href="https://www.facebook.com/" target="_blank" class="popup-link facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://zalo.me/" target="_blank" class="popup-link zalo">
+                <i class="fas fa-comment-dots"></i>
+            </a>
         </div>
     </div>
 
 
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 <script th:src="@{/js/card-js.js}"></script>
+<script th:src="@{/js/popup.js}"></script>
+
 </html>

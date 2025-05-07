@@ -63,12 +63,14 @@
                                             <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
                                                 <h6 class="mb-0" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></h6>
                                             </div>
-                                            <form th:action="@{/user/cart/remove-from-cart}" method="post">
-                                                <input type="hidden" name="id" th:value="${item.cartItemId}" />
-                                                <button type="submit" class="btn btn-link text-muted">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
+                                            <div class="col-md-1 col-lg-1 col-xl-1 text-end">
+                                                <form th:action="@{/user/cart/remove-from-cart}" method="post">
+                                                    <input type="hidden" name="id" th:value="${item.cartItemId}" />
+                                                    <button type="submit" class="btn btn-link text-muted">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                         <hr class="my-4">
                                     </th:block>
@@ -102,34 +104,8 @@
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
+<script th:src="@{/js/cart.js}"></script>
 <script>
-    function updateQuantity(cartItemId, change) {
-        console.log("Updating quantity: ", cartItemId, change);
-        fetch('/user/cart/update-quantity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `id=${cartItemId}&change=${change}`
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('Update failed');
-                return response.json(); // trả JSON thay vì text
-            })
-            .then(data => {
-                console.log(data);
-                const input = document.querySelector(`input[data-cart-id='${cartItemId}']`);
-                if (input) {
-                    input.value = data.newQuantity;  // set giá trị mới trả về
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Không thể cập nhật số lượng.");
-            });
-    }
-
-
     document.addEventListener("DOMContentLoaded", function () {
         var checkoutBtn = document.getElementById("checkoutBtn");
         var countCart = [[${countCart}]]; // Lấy giá trị countCart từ Thymeleaf

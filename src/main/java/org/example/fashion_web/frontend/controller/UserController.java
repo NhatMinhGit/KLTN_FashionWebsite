@@ -3,10 +3,7 @@ package org.example.fashion_web.frontend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.fashion_web.backend.dto.UserDto;
-import org.example.fashion_web.backend.models.Image;
-import org.example.fashion_web.backend.models.Product;
-import org.example.fashion_web.backend.models.ProductVariant;
-import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.OrderItemRepository;
 import org.example.fashion_web.backend.repositories.ProductVariantRepository;
 import org.example.fashion_web.backend.repositories.UserRepository;
@@ -25,10 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -110,11 +104,21 @@ public class UserController {
         model.addAttribute("products", products);
 
         for (Product product : products) {
-            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+            // Lấy danh sách tất cả discount đang active của product
+            List<ProductDiscount> activeDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+            // Tìm discount lớn nhất (nếu có)
+            Optional<ProductDiscount> maxDiscount = activeDiscounts.stream()
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng discount lớn nhất nếu có, ngược lại giữ giá gốc
+            BigDecimal effectivePrice = maxDiscount
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
+
             product.setEffectivePrice(effectivePrice);
         }
+
 
         // Trong phương thức @GetMapping("/user")
         List<Product> preSaleProducts = products.stream()
@@ -170,5 +174,9 @@ public class UserController {
         model.addAttribute("user", userDetails);
         model.addAttribute("userList", userService.findAll());
         return "admin";
+    }
+    @GetMapping("/about")
+    public String aboutPage() {
+        return "about-us"; // Trả về tên file template "about-us.html"
     }
 }

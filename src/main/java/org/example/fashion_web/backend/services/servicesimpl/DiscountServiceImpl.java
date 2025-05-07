@@ -50,6 +50,17 @@ public class DiscountServiceImpl implements DiscountService {
                 product, now, now
         );
     }
+
+    @Override
+    public List<ProductDiscount> getActiveDiscountsForProduct(Product product) {
+        return discountRepository.findByProductIdAndActiveTrue(product.getId());
+    }
+
+    @Override
+    public List<ProductDiscount> getActiveDiscountsForCategory(Category category) {
+        return discountRepository.findByCategoryIdAndActiveTrue(category.getId());
+    }
+
     @Override
     public List<BigDecimal> getEffectivePrices(List<Product> products) {
         List<BigDecimal> effectivePrices = new ArrayList<>();
@@ -88,7 +99,7 @@ public class DiscountServiceImpl implements DiscountService {
 
                 ProductDiscount discount = new ProductDiscount();
                 discount.setProduct(product);
-                discount.setDiscountPercent(20); // giảm 20%
+                discount.setDiscountPercent(20);
                 discount.setActive(true);
                 discount.setName("Giảm giá sản phẩm bán chậm");
                 discount.setStartTime(LocalDateTime.now());
@@ -118,7 +129,7 @@ public class DiscountServiceImpl implements DiscountService {
 
                 ProductDiscount discount = new ProductDiscount();
                 discount.setProduct(product);
-                discount.setDiscountPercent(20); // giảm 20%
+                discount.setDiscountPercent(20);
                 discount.setActive(true);
                 discount.setName("Giảm giá sản phẩm bán chậm");
                 discount.setStartTime(LocalDateTime.now());
