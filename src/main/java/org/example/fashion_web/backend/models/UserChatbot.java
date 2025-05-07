@@ -16,16 +16,15 @@ import java.time.LocalDateTime;
 @Table(name = "User_Chatbot")
 public class UserChatbot {
 
-    @EmbeddedId
-    private UserChatbotId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("chatbotId")
     @JoinColumn(name = "chatbot_id", nullable = false)
     private Chatbot chatbot;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

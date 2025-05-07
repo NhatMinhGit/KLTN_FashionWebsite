@@ -1,5 +1,6 @@
 package org.example.fashion_web.backend.services;
 
+import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.ProductDiscount;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,10 @@ public interface DiscountService {
     ProductDiscount save(ProductDiscount productDiscount);
 
     Optional<ProductDiscount> getActiveDiscountForProduct(Product product);
+
+    List<ProductDiscount> getActiveDiscountsForProduct(Product product);
+
+    List<ProductDiscount> getActiveDiscountsForCategory(Category category);
 
     List<BigDecimal> getEffectivePrices(List<Product> products);
 

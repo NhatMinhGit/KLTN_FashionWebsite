@@ -51,72 +51,6 @@
         <div class="col-lg-8 bg-white p-4 rounded shadow-sm">
             <h5 class="fw-bold mb-3 text-center">Giao Hàng</h5>
             <hr class="border-dark">
-<!--=======-->
-<!--<body>-->
-<!--<section class="h-100 h-custom" style="background-color: #d2c9ff;">-->
-<!--    <div class="container py-5 h-100">-->
-<!--        <div class="row d-flex justify-content-center align-items-center h-100">-->
-<!--            <div class="col-12">-->
-<!--                <div class="card card-registration card-registration-2" style="border-radius: 15px;">-->
-<!--                    <div class="card-body p-0">-->
-<!--                        <div class="row g-0">-->
-<!--                            <div class="col-lg-8">-->
-<!--                                <div class="p-5">-->
-<!--                                    <div class="d-flex justify-content-between align-items-center mb-5">-->
-<!--                                        <h3 class="fw-bold mb-0">Shopping Cart</h3>-->
-<!--                                    </div>-->
-<!--                                    <th:block th:each="item : ${cartItems}">-->
-<!--                                        <div class="row mb-4 d-flex justify-content-between align-items-center">-->
-<!--                                            <div class="col-md-2 col-lg-2 col-xl-2">-->
-<!--&lt;!&ndash;                                                 <img th:src="@{${productImages}}" class="img-fluid rounded-3" th:alt="${item.product.name}">&ndash;&gt;-->
-<!--                                                <img th:if="${#lists.size(productImages[item.product.id]) > 0}"-->
-<!--                                                     th:src="@{${productImages[item.product.id][0]}}"-->
-<!--                                                     class="img-fluid rounded-3"-->
-<!--                                                     th:alt="${item.product.name}"-->
-<!--                                                     width="150"-->
-<!--                                                     height="80">-->
-<!--                                                <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>-->
-<!--                                            </div>-->
-<!--                                            <div class="col-md-3 col-lg-3 col-xl-3">-->
-<!--                                                <h6 class="text-muted" th:text="${item.product.category.name}"></h6>-->
-<!--                                                <h6 class="mb-0" th:text="${item.product.name}"></h6>-->
-<!--                                            </div>-->
-<!--                                            <div class="col-md-3 col-lg-3 col-xl-2 d-flex">-->
-<!--                                                <button class="btn btn-link px-2"-->
-<!--                                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', -1)'">-->
-<!--                                                    <i class="fas fa-minus"></i>-->
-<!--                                                </button>-->
-
-<!--&lt;!&ndash;                                                <input type="number" min="1" name="quantity"&ndash;&gt;-->
-<!--&lt;!&ndash;                                                       th:value="${item.quantity}"&ndash;&gt;-->
-<!--&lt;!&ndash;                                                       class="form-control form-control-sm"&ndash;&gt;-->
-<!--&lt;!&ndash;                                                       style="display: block; width: 50px;">&ndash;&gt;-->
-<!--                                                <input type="number" min="1" name="quantity"-->
-<!--                                                       th:value="${item.quantity}"-->
-<!--                                                       th:attr="data-cart-id=${item.cartItemId}"-->
-<!--                                                       class="form-control form-control-sm"-->
-<!--                                                       style="display: block; width: 50px;">-->
-
-<!--                                                <button class="btn btn-link px-2"-->
-<!--                                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', 1)'">-->
-<!--                                                    <i class="fas fa-plus"></i>-->
-<!--                                                </button>-->
-
-<!--                                            </div>-->
-<!--                                            <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">-->
-<!--                                                <h6 class="mb-0" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></h6>-->
-<!--                                            </div>-->
-<!--                                            <form th:action="@{/user/cart/remove-from-cart}" method="post">-->
-<!--                                                <input type="hidden" name="id" th:value="${item.cartItemId}" />-->
-<!--                                                <button type="submit" class="btn btn-link text-muted">-->
-<!--                                                    <i class="fas fa-times"></i>-->
-<!--                                                </button>-->
-<!--                                            </form>-->
-<!--                                        </div>-->
-<!--                                        <hr class="my-4">-->
-<!--                                    </th:block>-->
-<!--&gt;>>>>>> 836e09ff0ba99bbf4d2df0cfb42c7f45b7201946-->
-
             <!-- Chọn tất cả -->
             <div class="d-flex align-items-center mb-3">
                 <input type="checkbox" class="form-check-input me-2" checked>
@@ -146,24 +80,30 @@
                         <p class="fw-bold mb-1" th:text="${item.product.name}">Tên sản phẩm</p>
                         <p class="text-muted mb-2" th:text="'Màu: '+${item.variant.color + ' | Size: ' + item.size.sizeName}">GRAY, S</p>
                         <div class="d-flex align-items-center">
-                            <button class="btn btn-outline-dark btn-sm px-2" th:onclick="updateQuantity( + ${item.cartItemId} + , -1)">
+                            <button class="btn btn-outline-dark btn-sm px-2" th:onclick="'updateQuantity(' + ${item.cartItemId} + ', -1)'">
                                 <i class="fas fa-minus"></i>
                             </button>
-                            <input type="number" min="1" th:value="${item.quantity}" class="form-control form-control-sm mx-2" style="width: 60px;">
-                            <button class="btn btn-outline-dark btn-sm px-2" th:onclick="updateQuantity( + ${item.cartItemId} + , 1)">
+                            <input type="number" min="1" name="quantity"
+                                   th:value="${item.quantity}"
+                                   th:attr="data-cart-id=${item.cartItemId}"
+                                   class="form-control form-control-sm"
+                                   style="display: block; width: 50px;">
+                            <button class="btn btn-outline-dark btn-sm px-2" th:onclick="'updateQuantity(' + ${item.cartItemId} + ', 1)'">
                                 <i class="fas fa-plus"></i>
                             </button>
-                            <form th:action="@{/user/cart/remove-from-cart}" method="post" class="ms-3">
-                                <input type="hidden" name="id" th:value="${item.cartItemId}" />
-                                <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <div class="col-md-1 col-lg-1 col-xl-1 text-end">
+                                <form th:action="@{/user/cart/remove-from-cart}" method="post">
+                                    <input type="hidden" name="id" th:value="${item.cartItemId}" />
+                                    <button type="submit" class="btn btn-link text-muted">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     <!-- Giá -->
                     <div class="text-end">
-                        <p class="fw-bold" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}">471.000đ</p>
+                        <p class="fw-bold" th:text="${@currencyFormatter.formatVND(item.product.effectivePrice)}">471.000đ</p>
                     </div>
                 </div>
             </th:block>
@@ -177,7 +117,7 @@
                     <p class="fw-bold" th:text="${@currencyFormatter.formatVND(totalOrderPrice)}">471.000đ</p>
                 </div>
                 <a th:href="@{/user/order}" class="btn btn-dark w-100 mb-3">THANH TOÁN</a>
-                <a th:href="@{/shop}" class="btn btn-outline-dark w-100">TIẾP TỤC MUA SẮM</a>
+                <a th:href="@{/user/shop}" class="btn btn-outline-dark w-100">TIẾP TỤC MUA SẮM</a>
             </div>
         </div>
     </div>
@@ -186,33 +126,9 @@
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+</body>
+<script th:src="@{/js/cart.js}"></script>
 <script>
-    function updateQuantity(cartItemId, change) {
-        console.log("Updating quantity: ", cartItemId, change);
-        fetch('/user/cart/update-quantity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `id=${cartItemId}&change=${change}`
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('Update failed');
-                return response.json(); // trả JSON thay vì text
-            })
-            .then(data => {
-                console.log(data);
-                const input = document.querySelector(`input[data-cart-id='${cartItemId}']`);
-                if (input) {
-                    input.value = data.newQuantity;  // set giá trị mới trả về
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Không thể cập nhật số lượng.");
-            });
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
         var checkoutBtn = document.getElementById("checkoutBtn");
         var countCart = [[${countCart}]];

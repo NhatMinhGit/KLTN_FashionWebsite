@@ -1,7 +1,5 @@
 package org.example.fashion_web.backend.services;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.example.fashion_web.backend.models.Cart;
 import org.example.fashion_web.backend.models.CartItems;
 import org.example.fashion_web.backend.models.User;
@@ -22,4 +20,5 @@ public interface CartService {
     Cart save(Cart cart);
 
     Integer getCountCart(Long userId);
+
 }

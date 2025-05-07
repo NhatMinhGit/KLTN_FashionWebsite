@@ -49,7 +49,7 @@ public class GeminiAdminController {
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         }
         else if (isFAQS(message)){
-            response = geminiService.faqShow();
+            response = geminiService.faqShowForStaff();
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         } else if (isMonthlyRenvenue(message)) {
             response = geminiService.checkMonthlyRenvenue(message);

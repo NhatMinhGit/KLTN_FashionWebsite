@@ -37,6 +37,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 
@@ -308,10 +309,35 @@ public class ProductManagementController {
             }
 
             // Áp dụng discount nếu có
-            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+//            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+//                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+//                    .orElse(product.getPrice());
+//            product.setEffectivePrice(effectivePrice);
+
+            // Lấy giảm giá cho sản phẩm
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+            // Lấy giảm giá cho category
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Gộp cả 2 danh sách
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng giảm giá cao nhất (nếu có)
+            BigDecimal effectivePrice = maxDiscount
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
+
             product.setEffectivePrice(effectivePrice);
+
+
 
             // Lấy các variant của sản phẩm
             List<ProductVariant> productVariants = productVariantService.findAllByProductId(product.getId());
@@ -869,22 +895,35 @@ public class ProductManagementController {
 //        for (Product p : products) {
 //            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
 //        }
-        // Lấy giảm giá cho toàn bộ danh mục, nếu có
-        Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true,category);
-
+        // Lấy giảm giá cho sản phẩm
         for (Product product : products) {
-            BigDecimal effectivePrice;
-            if (categoryDiscount.isPresent()) {
-                // Áp dụng giảm giá cho toàn bộ danh mục
-                effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
-            } else {
-                effectivePrice = discountService.getActiveDiscountForProduct(product)
-                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-                        .orElse(product.getPrice());
-            }
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+            // Lấy giảm giá cho danh mục
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Gộp cả 2 danh sách giảm giá
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng giảm giá cao nhất (nếu có)
+            BigDecimal effectivePrice = maxDiscount
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice());
+
+            // Cập nhật giá hiệu lực cho sản phẩm
             product.setEffectivePrice(effectivePrice);
         }
+
+        // Cập nhật lại model với danh sách sản phẩm đã tính giá hiệu lực
         model.addAttribute("products", products);
+
 
         // Nhóm danh sách ảnh theo productId
         Map<Long, List<String>> productImages = new HashMap<>();
@@ -1028,21 +1067,35 @@ public String listProducts(
         products = productService.filterProducts(color, size, maxPrice, category);
     }
 
-    // Tiếp tục xử lý sản phẩm như trước
-    Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true, category);
+    // Lấy giảm giá cho sản phẩm
     for (Product product : products) {
-        BigDecimal effectivePrice;
-        if (categoryDiscount.isPresent()) {
-            effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
-        } else {
-            effectivePrice = discountService.getActiveDiscountForProduct(product)
-                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-                    .orElse(product.getPrice());
-        }
+        List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+        // Lấy giảm giá cho danh mục
+        List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+        // Gộp cả 2 danh sách giảm giá
+        Stream<ProductDiscount> allDiscounts = Stream.concat(
+                productDiscounts.stream(),
+                categoryDiscounts.stream()
+        );
+
+        // Tìm giảm giá cao nhất
+        Optional<ProductDiscount> maxDiscount = allDiscounts
+                .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+        // Áp dụng giảm giá cao nhất (nếu có)
+        BigDecimal effectivePrice = maxDiscount
+                .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                .orElse(product.getPrice());
+
+        // Cập nhật giá hiệu lực cho sản phẩm
         product.setEffectivePrice(effectivePrice);
     }
 
+    // Cập nhật lại model với danh sách sản phẩm đã tính giá hiệu lực
     model.addAttribute("products", products);
+
 
     // Nhóm danh sách ảnh theo productId
     Map<Long, List<String>> productImages = new HashMap<>();
@@ -1099,20 +1152,33 @@ public String listProducts(
             products = productService.getProductsByCategory(category);  // Nếu không có từ khóa tìm kiếm, lấy sản phẩm theo danh mục
         }
 
-        // Áp dụng giảm giá cho từng sản phẩm
-        Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true, category);
+        // Lấy giảm giá cho sản phẩm
         for (Product product : products) {
-            BigDecimal effectivePrice;
-            if (categoryDiscount.isPresent()) {
-                effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
-            } else {
-                effectivePrice = discountService.getActiveDiscountForProduct(product)
-                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-                        .orElse(product.getPrice());
-            }
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+            // Lấy giảm giá cho danh mục
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Gộp cả 2 danh sách giảm giá
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng giảm giá cao nhất (nếu có)
+            BigDecimal effectivePrice = maxDiscount
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice());
+
+            // Cập nhật giá hiệu lực cho sản phẩm
             product.setEffectivePrice(effectivePrice);
         }
 
+        // Cập nhật lại model với danh sách sản phẩm đã tính giá hiệu lực
         model.addAttribute("products", products);
 
         // Nhóm ảnh sản phẩm theo productId

@@ -2,7 +2,6 @@ package org.example.fashion_web.backend.repositories;
 
 import org.example.fashion_web.backend.models.Cart;
 import org.example.fashion_web.backend.models.CartItems;
-import org.example.fashion_web.backend.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,4 +17,5 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
     BigDecimal getTotalPriceByCartId(Long id);
 
     Integer countByUserId(Long userId);
+
 }

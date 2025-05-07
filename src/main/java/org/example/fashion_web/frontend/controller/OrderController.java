@@ -308,7 +308,7 @@ public class OrderController {
                         // Thay vì lấy từ variant.getSizes(), gọi sizeService
                         List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
                         Optional<Size> sizeOpt = sizes.stream()
-                                .filter(size -> size.getId() == item.getSize().getId()) // So sánh theo ID size
+                                .filter(size -> size.getId().equals(item.getSize().getId()))// So sánh theo ID size
                                 .findFirst();
 
                         sizeOpt.ifPresentOrElse(size -> {

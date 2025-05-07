@@ -1,37 +1,40 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+### Java ###
+*.class
+*.war
+*.ear
+/build/
+/target/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+### Gradle ###
+.gradle/
+!gradle-wrapper.jar
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+/out/
+
+### Eclipse ###
+.project
+.classpath
+.settings/
+bin/
 
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
-/.nb-gradle/
 
 ### VS Code ###
 .vscode/
+
+### Railway & Docker ###
+Dockerfile
+docker-compose.yml
+Procfile
+
+### Environment Variables ###
+.env

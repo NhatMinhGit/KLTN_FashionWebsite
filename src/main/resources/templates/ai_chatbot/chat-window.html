@@ -15,6 +15,50 @@
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <!-- Custom JS -->
     <script th:src="@{/js/chatbot.js}"></script>
+    <style>
+        .main-container {
+            width: 90%;
+            padding: 1rem;
+        }
+
+        .chat-container {
+            max-width: 90%;
+            margin: 1rem;
+        }
+
+        .container-fluid {
+            padding: 0;
+            margin: 0;
+        }
+        .service-categories {
+            display: none;
+            overflow: hidden;
+            height: 200px;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center; /* Căn giữa theo chiều ngang */
+            align-items: center;     /* Căn giữa theo chiều dọc (nếu cần) */
+            height: 50px;           /* Đảm bảo có đủ không gian để căn giữa */
+        }
+
+        #showCategoriesBtn {
+            background: none;        /* Không có nền */
+            border: none;            /* Không có viền */
+            padding: 10px;           /* Khoảng cách xung quanh nút */
+            cursor: pointer;        /* Thêm con trỏ chuột khi di chuột qua */
+        }
+
+        #arrowIcon {
+            font-size: 20px;         /* Kích thước biểu tượng mũi tên */
+            transition: transform 0.3s ease; /* Thêm hiệu ứng chuyển động cho mũi tên */
+        }
+        #questionTabsContent {
+            height: 200px; /* Giảm chiều cao xuống, có thể thay đổi theo nhu cầu */
+            overflow-y: auto; /* Thêm cuộn dọc nếu nội dung vượt quá chiều cao */
+        }
+    </style>
 </head>
 <body>
 <!-- Header -->
@@ -26,7 +70,7 @@
                     <a th:href="@{/user}" class="text-decoration-none text-dark">
                         <h1 class="mb-0 fw-bold">MNT Fashion</h1>
                     </a>
-                    <span class="ms-2 support-text">SUPPORT</span>
+                    <span class="ms-2 support-text">TRANG HỖ TRỢ</span>
                 </div>
             </div>
             <div class="col-6 col-md-8">
@@ -34,12 +78,12 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="#">Customer Service</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Service Records</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">FAQ</a>
-                    </li>
+<!--                    <li class="nav-item">-->
+<!--                        <a class="nav-link" href="#">Service Records</a>-->
+<!--                    </li>-->
+<!--                    <li class="nav-item">-->
+<!--                        <a class="nav-link" href="#">FAQ</a>-->
+<!--                    </li>-->
                 </ul>
             </div>
         </div>
@@ -48,8 +92,6 @@
 
 <!-- Main Chat Container -->
 <div class="container main-container">
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
             <div class="chat-container">
                 <!-- Chat Header -->
                 <div class="chat-header">
@@ -62,7 +104,7 @@
                         <div class="col-8 col-md-10">
                             <div class="header-info">
                                 <h5 class="mb-0">MNT Fashion</h5>
-                                <p class="mb-0 small">Customer Service</p>
+                                <p class="mb-0 small">Hỗ Trợ Khách Hàng</p>
                             </div>
                         </div>
                     </div>
@@ -84,6 +126,13 @@
                 </div>
 
                 <!-- Service Categories -->
+                <div class="button-container">
+                    <button id="showCategoriesBtn">
+                        <i class="fa-solid fa-arrow-down" id="arrowIcon" style="font-size: 20px; transition: transform 0.3s ease;"></i> <!-- Biểu tượng mũi tên ban đầu là mũi tên xuống -->
+                    </button>
+                </div>
+
+
                 <div class="service-categories">
                     <div class="row">
                         <div class="col-3">
@@ -91,7 +140,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-truck-fast"></i>
                                 </div>
-                                <span>Urgent Delivery</span>
+                                <span>Giao Hàng Nhanh</span>
                             </div>
                         </div>
                         <div class="col-3">
@@ -99,7 +148,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-location-dot"></i>
                                 </div>
-                                <span>Track</span>
+                                <span>Theo Dõi Đơn Hàng</span>
                             </div>
                         </div>
                         <div class="col-3">
@@ -107,7 +156,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-rotate-left"></i>
                                 </div>
-                                <span>Return & Refund</span>
+                                <span>Đổi Trả</span>
                             </div>
                         </div>
                         <div class="col-3">
@@ -115,7 +164,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-truck-arrow-right"></i>
                                 </div>
-                                <span>Expedite Shipment</span>
+                                <span>Ship Hỏa Tốc</span>
                             </div>
                         </div>
                     </div>
@@ -125,7 +174,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-clock-rotate-left"></i>
                                 </div>
-                                <span>Service Records</span>
+                                <span>Lịch Sử Dịch Vụ</span>
                             </div>
                         </div>
                         <div class="col-3">
@@ -133,7 +182,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-ban"></i>
                                 </div>
-                                <span>Cancel Item</span>
+                                <span>Hủy Sản Phẩm</span>
                             </div>
                         </div>
                         <div class="col-3">
@@ -141,7 +190,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-truck-ramp-box"></i>
                                 </div>
-                                <span>Quick Return</span>
+                                <span>Đổi Trả Nhanh</span>
                             </div>
                         </div>
                         <div class="col-3">
@@ -149,7 +198,7 @@
                                 <div class="icon-container">
                                     <i class="fa-solid fa-map-location-dot"></i>
                                 </div>
-                                <span>Modify Address</span>
+                                <span>Chỉnh Địa Chỉ</span>
                             </div>
                         </div>
                     </div>
@@ -159,22 +208,25 @@
                 <div class="question-tabs">
                     <ul class="nav nav-tabs" id="questionTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="hot-tab" data-bs-toggle="tab" data-bs-target="#hot" type="button" role="tab" aria-selected="true">Hot Questions</button>
+                            <button class="nav-link active" id="hot-tab" data-bs-toggle="tab" data-bs-target="#hot" type="button" role="tab" aria-selected="true">Câu Hỏi Nổi Bật</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tracking-tab" data-bs-toggle="tab" data-bs-target="#tracking" type="button" role="tab" aria-selected="false">Tracking & Delivery</button>
+                            <button class="nav-link" id="tracking-tab" data-bs-toggle="tab" data-bs-target="#tracking" type="button" role="tab" aria-selected="false">Tra Cứu Vận Chuyển</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="return-tab" data-bs-toggle="tab" data-bs-target="#return" type="button" role="tab" aria-selected="false">Return & Refund</button>
+                            <button class="nav-link" id="return-tab" data-bs-toggle="tab" data-bs-target="#return" type="button" role="tab" aria-selected="false">Chính Sách Đổi Trả</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="processing-tab" data-bs-toggle="tab" data-bs-target="#processing" type="button" role="tab" aria-selected="false">Processing</button>
+                            <button class="nav-link" id="processing-tab" data-bs-toggle="tab" data-bs-target="#processing" type="button" role="tab" aria-selected="false">Đang Xử Lý</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="presale-tab" data-bs-toggle="tab" data-bs-target="#presale" aria-controls="presale" type="button" role="tab" aria-selected="false">Pre-sale</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab" aria-selected="false">Payment & Account</button>
+                            <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab" aria-selected="false">Thanh Toán & Tài Khoản</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="cart-tab" data-bs-toggle="tab" data-bs-target="#cart" type="button" role="tab" aria-selected="false">Giỏ Hàng</button>
                         </li>
                     </ul>
                 </div>
@@ -185,22 +237,22 @@
                         <div class="question-list">
                             <div class="question-item">
                                 <span class="question-number">1</span>
-                                <span class="question-text">Delivered but not received</span>
+                                <span class="question-text">Chưa nhận được hàng</span>
                                 <i class="fa-solid fa-chevron-right"></i>
                             </div>
                             <div class="question-item">
                                 <span class="question-number">2</span>
-                                <span class="question-text">Can I change a payment method?</span>
+                                <span class="question-text">Có thể đổi phương thức thanh toán không ?</span>
                                 <i class="fa-solid fa-chevron-right"></i>
                             </div>
                             <div class="question-item">
                                 <span class="question-number">3</span>
-                                <span class="question-text">Why was my payment declined?</span>
+                                <span class="question-text">Tại sao thanh toán lại bị từ chối ?</span>
                                 <i class="fa-solid fa-chevron-right"></i>
                             </div>
                             <div class="question-item">
                                 <span class="question-number">4</span>
-                                <span class="question-text">How long will the order take to arrive?</span>
+                                <span class="question-text">Đơn hàng sẽ được giao trong bao lâu?</span>
                                 <i class="fa-solid fa-chevron-right"></i>
                             </div>
                         </div>
@@ -232,7 +284,7 @@
                                     <!-- Lấy variant đầu tiên -->
                                     <div th:if="${productVariants[product.id] != null and !productVariants[product.id].isEmpty()}">
                                         <img th:src="@{${imagesByVariant[productVariants[product.id][0].id][0]}}"
-                                             alt="Ảnh sản phẩm" width="50">
+                                             alt="Ảnh sản phẩm" width="80">
                                     </div>
                                     <div th:unless="${productVariants[product.id] != null and !productVariants[product.id].isEmpty()}">
                                         <span>Không có ảnh</span>
@@ -260,7 +312,56 @@
                     <div class="tab-pane fade" id="payment" role="tabpanel" aria-labelledby="payment-tab">
                         <!-- Payment & Account questions would go here -->
                     </div>
+                <div class="tab-pane fade" id="cart" role="tabpanel" aria-labelledby="cart-tab">
+                    <th:block th:each="item : ${cartItems}">
+                        <div class="row mb-4 d-flex justify-content-between align-items-center">
+                            <div class="col-md-2 col-lg-2 col-xl-2">
+                                <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
+                                     th:src="@{${productImages[item.product.id][0]}}"
+                                     class="img-fluid rounded-3"
+                                     th:alt="${item.product.name}"
+                                     width="150"
+                                     height="80">
+                                <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
+                            </div>
+                            <div class="col-md-3 col-lg-3 col-xl-3">
+                                <h6 class="text-muted" th:text="${item.product.category.name}"></h6>
+                                <h6 class="mb-0" th:text="${item.product.name}"></h6>
+                            </div>
+                            <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                                <button class="btn btn-link px-2"
+                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', -1)'">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                                <input type="number" min="1" name="quantity"
+                                       th:value="${item.quantity}"
+                                       th:attr="data-cart-id=${item.cartItemId}"
+                                       class="form-control form-control-sm"
+                                       style="display: block; width: 50px;">
+
+                                <button class="btn btn-link px-2"
+                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', 1)'">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="col-md-2 col-lg-2 col-xl-2">
+                                <h6 class="mb-0" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></h6>
+                            </div>
+                            <!-- Đưa nút xóa vào cột riêng trong row -->
+                            <div class="col-md-1 col-lg-1 col-xl-1 text-end">
+                                <form th:action="@{/user/cart/remove-from-cart}" method="post">
+                                    <input type="hidden" name="id" th:value="${item.cartItemId}" />
+                                    <button type="submit" class="btn btn-link text-muted">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                    </th:block>
                 </div>
+            </div>
 
                 <!-- Chat Navigation - Back to Latest -->
                 <div class="back-to-latest text-center my-2">
@@ -273,13 +374,15 @@
                 <div class="quick-options">
                     <div class="row">
                         <div class="col d-flex justify-content-between">
-                            <button class="btn btn-sm btn-outline-secondary">Recommend Me</button>
-                            <button class="btn btn-sm btn-outline-secondary">Send Order</button>
-                            <button class="btn btn-sm btn-outline-secondary">Urgent Delivery</button>
-                            <button class="btn btn-sm btn-outline-secondary">Expedite Shipment</button>
-                            <button class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-location-dot"></i> Track</button>
+                            <button class="btn btn-sm btn-outline-secondary">Gợi Ý Sản Phẩm</button>
+                            <button class="btn btn-sm btn-outline-secondary">Thêm Yêu Cầu</button>
+                            <button class="btn btn-sm btn-outline-secondary">BEST SELLERS</button>
+                            <button class="btn btn-sm btn-outline-secondary">Giao Hàng Nhanh</button>
+                            <button class="btn btn-sm btn-outline-secondary">Hỏa Tốc</button>
+                            <button class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-location-dot"></i> Theo dõi đơn hàng</button>
                             <button class="btn btn-sm btn-outline-secondary">Service Records</button>
-                            <button class="btn btn-sm btn-outline-secondary">Return & Refund Request</button>
+                            <button class="btn btn-sm btn-outline-secondary">FAQS</button>
+                            <button class="btn btn-sm btn-outline-secondary">Chính Sách Đổi Trả</button>
                         </div>
                     </div>
                 </div>
@@ -291,11 +394,36 @@
                         <button class="btn btn-send" id="send-button" type="button">Enter</button>
                     </div>
                 </div>
-            </div>
-        </div>
     </div>
 </div>
-
-
+<script th:src="@{/js/chatbot.js}">
+    window.addToCart = function(productId, productName, price) {
+        alert(`Bạn đã chọn sản phẩm "${productName}" với giá ${price}`);
+    };
+</script>
 </body>
+<script th:src="@{/js/cart.js}"></script>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>-->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+    $(document).ready(function(){
+        // Khi nhấn nút hiển thị/ẩn bảng
+        $("#showCategoriesBtn").click(function(){
+            $(".service-categories").stop(true, true).slideToggle(500); // Tăng thời gian lên 500ms cho hiệu ứng mượt hơn
+
+            // Thay đổi biểu tượng mũi tên
+            var icon = $("#arrowIcon");
+            if (icon.hasClass("fa-arrow-down")) {
+                icon.removeClass("fa-arrow-down").addClass("fa-arrow-up"); // Mũi tên xuống -> mũi tên lên
+            } else {
+                icon.removeClass("fa-arrow-up").addClass("fa-arrow-down"); // Mũi tên lên -> mũi tên xuống
+            }
+        });
+    });
+
+
+</script>
+
 </html>

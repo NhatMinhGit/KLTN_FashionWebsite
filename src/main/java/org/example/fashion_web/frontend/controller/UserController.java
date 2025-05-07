@@ -3,10 +3,7 @@ package org.example.fashion_web.frontend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.fashion_web.backend.dto.UserDto;
-import org.example.fashion_web.backend.models.Image;
-import org.example.fashion_web.backend.models.Product;
-import org.example.fashion_web.backend.models.ProductVariant;
-import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.OrderItemRepository;
 import org.example.fashion_web.backend.repositories.ProductVariantRepository;
 import org.example.fashion_web.backend.repositories.UserRepository;
@@ -25,11 +22,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class UserController {
@@ -112,12 +107,33 @@ public class UserController {
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
 
+        // Lấy giảm giá cho sản phẩm
         for (Product product : products) {
-            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+
+            // Lấy giảm giá cho danh mục
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Gộp cả 2 danh sách giảm giá
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng giảm giá cao nhất (nếu có)
+            BigDecimal effectivePrice = maxDiscount
                     .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
                     .orElse(product.getPrice());
+
+            // Cập nhật giá hiệu lực cho sản phẩm
             product.setEffectivePrice(effectivePrice);
         }
+
+
 
         // Trong phương thức @GetMapping("/user")
         List<Product> preSaleProducts = products.stream()
@@ -173,5 +189,9 @@ public class UserController {
         model.addAttribute("user", userDetails);
         model.addAttribute("userList", userService.findAll());
         return "admin";
+    }
+    @GetMapping("/about")
+    public String aboutPage() {
+        return "about-us"; // Trả về tên file template "about-us.html"
     }
 }

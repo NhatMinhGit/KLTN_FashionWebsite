@@ -1,5 +1,6 @@
 package org.example.fashion_web.frontend.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
@@ -7,16 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/user")
@@ -49,9 +51,15 @@ public class GeminiController {
     @Autowired
     private SizeService sizeService;
 
+    @Autowired
+    private CartItemService cartItemService;
+
+    @Autowired
+    private CartService cartService;
+
 
     @GetMapping("/chat")
-    public ResponseEntity<String> chat(@RequestParam String message, Principal principal) {
+    public ResponseEntity<String> chat(@RequestParam String message, Principal principal, Model model, HttpSession session) {
         String response;
         String userName = principal.getName();
         User user = userService.findByEmail(userName);
@@ -69,12 +77,71 @@ public class GeminiController {
         } else if (isPrice(message)) {
             response = geminiService.checkPriceAndCategory(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        } else {
+        }
+        else if (isServiceRecords(message)) {
+            response = geminiService.loadServiceLog(user.getId());
+        }
+        else if (isRefundPolicy(message)){
+            response = geminiService.refundPolicyForUser();
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        }
+        else if (isFAQS(message)){
+            response = geminiService.faqShowForUser();
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        } else if (isBESTSELLERS(message)) {
+            response = geminiService.checkTopProductsRevenueForUser(message);
+            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        }
+//        else if (isProductSizeAndQuantityQuery(message)) {
+//            // Trích xuất thông tin size và số lượng từ message
+//            String size = extractSizeFromMessage(message);
+//            int quantity = extractQuantityFromMessage(message);
+//
+//            // Xử lý theo size và quantity
+//            response = geminiService.addToCart(user.getId(), productId, size, color, quantity);
+//            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+//        }
+        else {
             response = geminiService.chatWithAI(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         }
 
+
         return ResponseEntity.ok(response);
+    }
+    private boolean isServiceRecords(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("service record") ||
+                lowerCaseMessage.contains("service records") ||
+                lowerCaseMessage.contains("record");
+    }
+    // Ví dụ phương thức kiểm tra thông điệp chứa thông tin về size và số lượng
+    private boolean isProductSizeAndQuantityQuery(String message) {
+        return message.matches(".*(size|kích thước).*\\d+.*(số lượng|mua).*\\d+.*");
+    }
+
+    // Trích xuất thông tin size từ thông điệp
+    private String extractSizeFromMessage(String message) {
+        // Giả sử thông điệp có cấu trúc như "size: M" hoặc "kích thước: L"
+        if (message.contains("size")) {
+            // Sử dụng regex hoặc phương pháp khác để trích xuất size
+            return message.replaceAll(".*(size|kích thước):\\s*(\\w+).*", "$2");
+        }
+        return null;
+    }
+
+    // Trích xuất số lượng từ thông điệp
+    private int extractQuantityFromMessage(String message) {
+        // Ví dụ: trích xuất số lượng như "2 sản phẩm" hoặc "Mua 3"
+        Pattern pattern = Pattern.compile("(\\d+)\\s*(sản phẩm|cái|mua)");
+        Matcher matcher = pattern.matcher(message);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return 0; // Nếu không tìm thấy, trả về số lượng mặc định
     }
 
     private boolean isStockQuery(String message) {
@@ -87,6 +154,47 @@ public class GeminiController {
                 lowerCaseMessage.contains("có hàng không") ||
                 lowerCaseMessage.contains("số lượng");
 
+    }
+
+    private boolean isBESTSELLERS(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("best sellers") ||
+                lowerCaseMessage.contains("bán chạy") ||
+                lowerCaseMessage.contains("được yêu thích") ||
+                lowerCaseMessage.contains("trending");
+    }
+    private boolean isRefundPolicy(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("refund policy") ||
+                lowerCaseMessage.contains("hoàn phí") ||
+                lowerCaseMessage.contains("chính sách hoàn phí") ||
+                lowerCaseMessage.contains("chính sách đổi trả") ||
+                lowerCaseMessage.contains("refund");
+    }
+    private boolean isFAQS(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return  lowerCaseMessage.contains("faqs") ||
+                lowerCaseMessage.contains("thắc mắc") ||
+                lowerCaseMessage.contains("sử dụng") ||
+                lowerCaseMessage.contains("hướng dẫn") ||
+                lowerCaseMessage.contains("hướng dẫn sử dụng");
+    }
+
+    private boolean isOrderRequest(String message) {
+        String lowerCaseMessage = message.toLowerCase();
+        return lowerCaseMessage.startsWith("đặt hàng") ||
+                lowerCaseMessage.startsWith("mua") ||
+                lowerCaseMessage.contains("tôi muốn mua") ||
+                lowerCaseMessage.contains("tôi muốn đặt");
     }
 
     private boolean isPrice(String message) {
@@ -138,7 +246,7 @@ public class GeminiController {
 
 
     @GetMapping("/chatbot")
-    public ModelAndView chatbotPage(Principal principal, Model model) {
+    public ModelAndView chatbotPage(Principal principal, Model model,HttpSession session) {
         Long userId = null;
 
         // Lấy danh sách sản phẩm
@@ -194,12 +302,55 @@ public class GeminiController {
         model.addAttribute("productSizeQuantities", productSizeQuantities);
 
         // Lọc các sản phẩm khuyến mãi
+        // Lấy giảm giá cho sản phẩm
+        for (Product product : products) {
+            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+
+            // Nếu không có giảm giá, giữ nguyên giá gốc
+            if (productDiscounts.isEmpty() && categoryDiscounts.isEmpty()) {
+                product.setEffectivePrice(product.getPrice());
+                continue;
+            }
+
+            // Gộp cả 2 danh sách giảm giá
+            Stream<ProductDiscount> allDiscounts = Stream.concat(
+                    productDiscounts.stream(),
+                    categoryDiscounts.stream()
+            );
+
+            // Tìm giảm giá cao nhất
+            Optional<ProductDiscount> maxDiscount = allDiscounts
+                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+            // Áp dụng giảm giá cao nhất (nếu có)
+            BigDecimal effectivePrice = maxDiscount
+                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                    .orElse(product.getPrice()); // Nếu không có giảm giá, sử dụng giá gốc
+
+            // Cập nhật giá hiệu lực cho sản phẩm
+            product.setEffectivePrice(effectivePrice);
+        }
+
+// Lọc các sản phẩm khuyến mãi (đã có giá hiệu lực hợp lệ)
         List<Product> preSaleProducts = products.stream()
-                .filter(p -> p.getEffectivePrice().compareTo(p.getPrice()) < 0)
-                .sorted(Comparator.comparing(Product::getEffectivePrice))
-                .limit(10)
-                .collect(Collectors.toList());
-        model.addAttribute("preSaleProducts", preSaleProducts);
+                .filter(p -> p.getPrice() != null
+                        && p.getEffectivePrice() != null
+                        && p.getPrice().compareTo(BigDecimal.ZERO) > 0
+                        && p.getEffectivePrice().compareTo(BigDecimal.ZERO) >= 0
+                        && p.getEffectivePrice().compareTo(p.getPrice()) < 0) // Chỉ chọn sản phẩm có giảm giá
+                .sorted(Comparator.comparing((Product p) ->
+                        p.getPrice().subtract(p.getEffectivePrice())
+                                .divide(p.getPrice(), 2, RoundingMode.HALF_UP) // Tính tỷ lệ giảm giá
+                ).reversed()) // Sắp xếp giảm dần
+                .limit(10) // Giới hạn 10 sản phẩm đầu tiên
+                .collect(Collectors.toList()); // Thu thập thành danh sách
+
+        model.addAttribute("preSaleProducts", preSaleProducts); // Đưa vào model để hiển thị trên giao diện
+
+
+
+
 
         // Xử lý principal
         if (principal != null) {
@@ -209,6 +360,23 @@ public class GeminiController {
                 model.addAttribute("user", user);
             }
         }
+        List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");
+        System.out.println(cart);
+        if (cart == null) {
+            cart = new ArrayList<>();
+        }
+
+        // Nhóm danh sách ảnh theo productId
+        Map<Long, List<String>> productImages = new HashMap<>();
+        for (CartItems item : cart) {
+            List<Image> images = imageService.findImagesByProductVariantId(item.getProduct().getId());
+            List<String> imageUrls = images.stream().map(Image::getImageUri).collect(Collectors.toList());
+            productImages.put(item.getProduct().getId(), imageUrls);
+        }
+
+        model.addAttribute("productImages", productImages);
+        model.addAttribute("cartItems", cart);
+        System.out.println("Items cart sau khi load trang cart: " + cart);
 
         return new ModelAndView("ai_chatbot/chat-window");
     }
