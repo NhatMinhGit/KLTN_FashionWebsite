@@ -11,6 +11,7 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
+
 }
 
 configurations {
@@ -49,7 +50,6 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.1'
 	implementation 'org.hibernate.common:hibernate-commons-annotations:6.0.6.Final'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'

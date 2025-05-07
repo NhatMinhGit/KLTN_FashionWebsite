@@ -19,4 +19,8 @@ public interface SizeService {
     List<Size> findAllByProductVariantId(Long id);
 
     Optional<Size> findByProductVariantIdAndSizeName(Long id, String name);
+
+    void increaseStock(Long productSizeId, int amount);
+
+    boolean decreaseStock(Long productSizeId, int amount);
 }
