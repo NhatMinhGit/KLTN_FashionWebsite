@@ -23,4 +23,5 @@ public interface SizeService {
     void increaseStock(Long productSizeId, int amount);
 
     boolean decreaseStock(Long productSizeId, int amount);
+
 }

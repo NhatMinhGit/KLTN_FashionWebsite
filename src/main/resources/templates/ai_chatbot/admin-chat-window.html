@@ -12,23 +12,29 @@
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <!-- Custom JS -->
     <script th:src="@{/js/adminchatbot.js}"></script>
-
+    <style>
+        /* Đảm bảo rằng phần tử chứa chat container chiếm toàn bộ không gian */
+        .container.main-container {
+            width: 100vh;      /* Chiếm toàn bộ chiều rộng */
+            height: 100vh;    /* Chiếm toàn bộ chiều cao của cửa sổ trình duyệt */
+            display: flex;    /* Dùng flexbox để dễ dàng điều chỉnh các phần tử con */
+            flex-direction: column;  /* Xếp các phần tử con theo chiều dọc */
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex" id="wrapper">
     <!-- Sidebar -->
     <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
     <!-- Content -->
-    <div class="container-fluid p-4">
+    <div class="container-fluid p-8">
     <!-- Main Chat Container -->
         <div class="container main-container">
-            <div class="row justify-content-center">
-                <div class="col-md-10 col-lg-8">
                     <div class="chat-container">
                         <!-- Chat Header -->
                         <div class="chat-header">
                             <div class="row align-items-center">
-                                <div class="col-2 col-md-1">
+                                <div class="col-1 col-md-1">
                                     <div class="avatar-container">
                                         <span class="avatar">[Icon]</span>
                                     </div>
@@ -88,8 +94,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

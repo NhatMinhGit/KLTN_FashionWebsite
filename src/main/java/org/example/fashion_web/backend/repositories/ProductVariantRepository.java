@@ -22,4 +22,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant,L
 
     @Query("SELECT DISTINCT v.color FROM ProductVariant v WHERE v.color IS NOT NULL")
     List<String> findAllVariantColorsExist();
+
+    ProductVariant findByProductIdAndColor(Long id, String color);
 }

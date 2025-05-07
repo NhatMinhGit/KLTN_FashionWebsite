@@ -22,6 +22,7 @@
     .nav-container {
         width: 33.33%;
         margin: 0 auto;
+        color: black;
     }
 
     .custom-nav-container {
@@ -36,7 +37,9 @@
         display: flex;
         justify-content: space-between;
         padding: 0;
+        color: black;
     }
+
 
     h2 {
         color: #45b6fe;

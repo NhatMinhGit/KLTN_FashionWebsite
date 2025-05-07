@@ -1,3 +1,32 @@
+// Đảm bảo DOM đã tải xong trước khi thêm sự kiện
+// Đảm bảo DOM đã tải xong trước khi thêm sự kiện
+document.addEventListener("DOMContentLoaded", function() {
+    // Lấy tất cả các phần tử có class 'product-item'
+    const productItems = document.querySelectorAll('.product-item');
+
+    // Kiểm tra có lấy được các phần tử hay không
+    if (productItems.length === 0) {
+        console.log("Không tìm thấy phần tử có class 'product-item'");
+    }
+
+    productItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Lấy dữ liệu từ các thuộc tính data-*
+            const productId = this.dataset.id;
+            const productName = this.dataset.name;
+            const price = this.dataset.price;
+
+            // Thêm thông báo vào console để kiểm tra
+            console.log("Sản phẩm đã được chọn:");
+            console.log("ID: " + productId);
+            console.log("Tên sản phẩm: " + productName);
+            console.log("Giá: " + price);
+
+            // Gọi hàm addToCart khi click
+            addToCart(productId, productName, price);
+        });
+    });
+});
 document.addEventListener('DOMContentLoaded', function() {
     // DOM elements
     const sendButton = document.getElementById('send-button');
@@ -41,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+
     // Function to send messages
     function sendMessage() {
         const message = userInput.value.trim();
@@ -63,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sendToAPI(query);
     }
 
+
     // Function to send message to API
     function sendToAPI(message) {
         // Show loading indicator
@@ -77,14 +108,81 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                return response.text(); //Nếu backend trả về plain text
+                return response.json(); // Chuyển dữ liệu trả về thành JSON
             })
-            .then(data => addMessage(data, 'ai')) //Xử lý phản hồi
+            .then(data => {
+                setTimeout(() => {
+                    removeLoadingIndicator(loadingId); // Xoá spinner
+
+                    // Kiểm tra dữ liệu từ API trả về (ví dụ: aiResponse và productInfo)
+                    if (data.aiResponse) {
+                        addMessage(data.aiResponse, 'ai');  // Hiển thị phản hồi từ AI
+                    }
+                    if (data.productInfo) {
+                        addMessage(data.productInfo, 'html'); // Hiển thị thông tin sản phẩm
+                    }
+                    // Nếu có yêu cầu chọn size và số lượng, yêu cầu người dùng nhập thông tin
+                    if (data.sizeAndQuantityRequired) {
+                        askSizeAndQuantity(data.productId); // Gửi câu hỏi về size và số lượng
+                    }
+                }, 400);
+            })
+
             .catch(error => {
                 console.error('Error:', error);
                 addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
             });
     }
+    let currentProductId = null;  // Biến lưu trữ productId khi hỏi
+    let currentProductVariant = null;  // Biến lưu trữ variant (màu sắc) khi hỏi
+
+// Hàm này hiển thị thông tin sản phẩm và yêu cầu người dùng chọn size, số lượng, và màu sắc
+    function addToCart(productId, productName, price) {
+        // Hiển thị câu hỏi về size, số lượng và màu sắc
+        const message = `Bạn đã chọn sản phẩm "${productName}" với giá ${price}. Vui lòng chọn size, màu sắc và số lượng.`;
+        addMessage(message, 'user');
+
+        // Gửi câu hỏi về size, màu sắc và số lượng
+        sendToAPI(`Bạn đã chọn sản phẩm "${productName}" (ID: ${productId}, giá: ${price}). Vui lòng hỏi tôi về size, màu sắc và số lượng.`);
+    }
+
+// Hàm này để hỏi người dùng về size, màu sắc và số lượng
+    function askSizeAndQuantity(productId, variants) {
+        // Lưu productId hiện tại để sau này sử dụng khi gửi dữ liệu
+        currentProductId = productId;
+
+        // Tạo câu hỏi về size, màu sắc và số lượng
+        const sizeQuestion = `Vui lòng chọn size cho sản phẩm.`;
+        const quantityQuestion = `Vui lòng nhập số lượng bạn muốn mua.`;
+        const colorQuestion = `Vui lòng chọn màu sắc cho sản phẩm. Các lựa chọn có sẵn: ${variants.join(", ")}.`;
+
+        // Hiển thị câu hỏi về size, màu sắc và số lượng
+        addMessage(sizeQuestion, 'ai');
+        addMessage(colorQuestion, 'ai');
+        addMessage(quantityQuestion, 'ai');
+    }
+
+    // Hàm này xử lý khi người dùng trả lời câu hỏi về size, màu sắc và số lượng
+    function handleUserResponse(userId) {
+        const size = getSizeInput(); // Hàm lấy input size
+        const color = getColorInput(); // Hàm lấy input màu sắc (giả sử bạn đã có hàm này)
+        const quantity = getQuantityInput(); // Hàm lấy input số lượng
+
+        // Kiểm tra xem productId và productVariant đã được lưu trữ hay chưa
+        if (currentProductId && color) {
+            // Gửi thông tin sản phẩm, size, màu sắc, số lượng và userId qua API
+            sendToAPI(`Sản phẩm ${currentProductId}, size: ${size}, màu: ${color}, số lượng: ${quantity}, người dùng: ${userId}`);
+
+            // Reset các biến sau khi đã gửi thông tin
+            currentProductId = null;
+            currentProductVariant = null;
+        } else {
+            console.error("Không tìm thấy productId hoặc màu sắc.");
+        }
+    }
+
+
+
 
     // Function to add a message to the chat
     function addMessage(text, sender) {
@@ -179,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     });
-
     // Focus input field when page loads
     userInput.focus();
 });
+

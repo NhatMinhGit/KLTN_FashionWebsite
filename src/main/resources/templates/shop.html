@@ -9,6 +9,8 @@
     <link rel="stylesheet" th:href="@{/css/user.css}">
     <link rel="stylesheet" th:href="@{/css/shop.css}">
     <link rel="stylesheet" th:href="@{/css/card.css}">
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <script th:src="@{/js/header.js}"></script>
 </head>
@@ -316,7 +318,19 @@
         </div>
     </div>
 
-
+    <div class="popup-container">
+        <button class="popup-button" id="mainPopupBtn">
+            ☰
+        </button>
+        <div class="popup-links" id="popupLinks">
+            <a href="https://www.facebook.com/" target="_blank" class="popup-link facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://zalo.me/" target="_blank" class="popup-link zalo">
+                <i class="fas fa-comment-dots"></i>
+            </a>
+        </div>
+    </div>
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
@@ -393,6 +407,6 @@
         updateProductCount();
     });
 </script>
-
+<script th:src="@{/js/popup.js}"></script>
 
 </html>
