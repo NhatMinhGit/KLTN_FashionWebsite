@@ -1,19 +1,21 @@
 package org.example.fashion_web.frontend.controller;
 
 import org.example.fashion_web.backend.dto.OrderItemDto;
-import org.example.fashion_web.backend.models.Image;
-import org.example.fashion_web.backend.models.Order;
-import org.example.fashion_web.backend.models.OrderItem;
-import org.example.fashion_web.backend.models.Voucher;
+import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.ImageRepository;
 import org.example.fashion_web.backend.repositories.OrderItemRepository;
 import org.example.fashion_web.backend.repositories.OrderRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
+import org.example.fashion_web.backend.services.FeedBackService;
 import org.example.fashion_web.backend.services.ImageService;
+import org.example.fashion_web.backend.services.OrderService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.example.fashion_web.backend.utils.CurrencyFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,15 +48,19 @@ public class UserOrderController {
     @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private FeedBackService feedBackService;
 
     @Autowired
     private ImageRepository imageRepository;
 
     @GetMapping("user/user-order")
-    public String userOrderIndex(Model model, Principal principal, @AuthenticationPrincipal CustomUserDetails userDetail) {
+    public String userOrderIndex(Model model,
+                                 @AuthenticationPrincipal CustomUserDetails userDetail) {
         List<Order> orders = orderRepository.findByUser_IdOrderByIdDesc(userDetail.getUser().getId());
-        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(userDetail.getUser().getId());
-
 
         model.addAttribute("currentPage", "orders");
         model.addAttribute("orders", orders);
@@ -66,20 +72,20 @@ public class UserOrderController {
 
     @GetMapping("user/user-order/{orderId}/items")
     @ResponseBody
-    public List<OrderItemDto> getOrderItems(@PathVariable Long orderId) {
+    public List<OrderItemDto> getOrderItems(@PathVariable Long orderId,
+                                            @AuthenticationPrincipal CustomUserDetails userDetail) {
         List<OrderItem> items = orderItemRepository.findByOrder_Id(orderId);
-        for (int i = 0; i < items.size(); i++) {
-            System.out.println(items.toString());
-        }
+        Long userId = userDetail.getUser().getId(); // Lấy ID người dùng hiện tại
 
         return items.stream().map(item -> {
             String productName = item.getProduct().getName();
             Optional<Image> imageOpt = imageRepository.findFirstByProductVariant_Id(item.getProduct().getId());
             String imageUrl = imageOpt.map(Image::getImageUri).orElse("/img/no-image.png");
-
             String priceFormatted = currencyFormatter.formatVND(item.getPricePerUnit());
-
-            return new OrderItemDto(productName, imageUrl, item.getQuantity(), priceFormatted);
+            Long productId = item.getProduct().getId();
+            // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
+            boolean hasReviewed = feedBackService.hasUserReviewedProduct(userId, productId);
+            return new OrderItemDto(productName, imageUrl, item.getQuantity(), priceFormatted, productId, hasReviewed);
         }).toList();
     }
 

@@ -14,6 +14,28 @@
     .status-shipped { color: #6610f2; font-weight: 500; }
     .status-completed { color: #198754; font-weight: 600; }
     .status-cancelled { color: #dc3545; font-weight: 500; }
+    .star-rating {
+      display: flex;
+      direction: rtl;
+      justify-content: flex-start;
+    }
+    .star-rating input {
+      display: none;
+    }
+    .star-rating label {
+      font-size: 1.5rem;
+      color: #ddd;
+      cursor: pointer;
+      margin: 0 2px;
+    }
+    .star-rating input:checked ~ label,
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+      color: #ffc107;
+    }
+    .text-muted {
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -25,7 +47,7 @@
       <div th:replace="~{fragments/sidebar-profile :: sidebar}"></div>
     </div>
     <div class="col-md-9">
-      <div class="container">
+      <div class="container-order">
         <h2 class="mb-4">My Orders</h2>
         <div class="accordion" id="orderAccordion">
           <div class="accordion-item" th:each="order : ${orders}">
@@ -87,6 +109,37 @@
   </div>
 </div>
 
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">Đánh giá sản phẩm</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reviewForm" method="post" class="mb-4 p-4 rounded shadow-sm bg-light">
+          <div class="mb-3">
+            <label class="form-label d-block mb-2 text-black">Đánh giá của bạn:</label>
+            <div class="star-rating">
+              <input type="radio" id="star5" name="rating" value="5" required><label for="star5">★</label>
+              <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+              <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+              <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+              <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+            </div>
+          </div>
+          <div class="mb-3 text-black">
+            <label for="commentContent" class="form-label">Bình luận của bạn:</label>
+            <textarea class="form-control" id="commentContent" name="comment" rows="3" placeholder="Nhập bình luận..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-success">Gửi bình luận</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const accordion = document.getElementById('orderAccordion');
@@ -100,29 +153,35 @@
       if (itemsContainer.dataset.loaded === 'true') return;
 
       fetch('/user/user-order/' + orderId + '/items')
-        .then(response => response.json())
-        .then(data => {
-          let html = '';
-          data.forEach(item => {
-            html += `
-              <div class="d-flex align-items-center mb-3">
-
-                <img src="${item.productImageUrl}" class="product-img me-3" alt="Product">
-                <div class="flex-grow-1">
-                  <h6 class="mb-1">${item.productName}</h6>
-                  <small>Quantity: ${item.quantity}</small><br>
-                  <small>Price: ${item.pricePerUnit}</small>
-                </div>
-                ${status === 'COMPLETED' ? `<a class="btn btn-outline-primary btn-sm" href="#">Review</a>` : ''}
-              </div>`;
-          });
-          itemsContainer.innerHTML = html;
-          itemsContainer.dataset.loaded = 'true';
-        })
-        .catch(err => {
-          console.error('Error loading items:', err);
-          itemsContainer.innerHTML = `<p class="text-danger">Lỗi tải sản phẩm: ${err.message}</p>`;
-        });
+              .then(response => response.json())
+              .then(data => {
+                let html = '';
+                data.forEach(item => {
+                  const productId = item.productId || 'unknown';
+                  html += `
+                <div class="d-flex align-items-center mb-3">
+                    <img src="${item.productImageUrl}" class="product-img me-3" alt="Product">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${item.productName}</h6>
+                        <small>Quantity: ${item.quantity}</small><br>
+                        <small>Price: ${item.pricePerUnit}</small>
+                    </div>
+                    ${
+                          status === 'COMPLETED' && productId !== 'unknown' ?
+                                  (item.hasReviewed ?
+                                                  `<span class="text-muted">Đã đánh giá</span>` :
+                                                  `<button class="btn btn-outline-primary btn-sm review-btn" data-bs-toggle="modal" data-bs-target="#reviewModal" data-product-id="${productId}">Review</button>`
+                                  ) : ''
+                  }
+                </div>`;
+                });
+                itemsContainer.innerHTML = html;
+                itemsContainer.dataset.loaded = 'true';
+              })
+              .catch(err => {
+                console.error('Error loading items:', err);
+                itemsContainer.innerHTML = `<p class="text-danger">Lỗi tải sản phẩm: ${err.message}</p>`;
+              });
     });
 
     document.addEventListener('click', function (e) {
@@ -134,17 +193,34 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         })
-        .then(res => {
-          if (res.ok) {
-            alert("Đã hủy đơn hàng thành công!");
-            location.reload();
-          } else {
-            return res.text().then(msg => { throw new Error(msg); });
-          }
-        })
-        .catch(err => {
-          alert("Lỗi khi hủy đơn hàng: " + err.message);
-        });
+                .then(res => {
+                  if (res.ok) {
+                    alert("Đã hủy đơn hàng thành công!");
+                    location.reload();
+                  } else {
+                    return res.text().then(msg => { throw new Error(msg); });
+                  }
+                })
+                .catch(err => {
+                  alert("Lỗi khi hủy đơn hàng: " + err.message);
+                });
+      }
+    });
+
+    // Handle Review button click
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('review-btn')) {
+        const productId = e.target.getAttribute('data-product-id');
+        const form = document.getElementById('reviewForm');
+        // Ghi log để kiểm tra
+        console.log('Product ID:', productId);
+        if (productId && productId !== 'undefined') {
+          form.action = `/user/product-detail/${productId}/comments`;
+        } else {
+          console.error('Product ID is undefined or invalid');
+          // Có thể hiển thị thông báo lỗi cho người dùng
+          alert('Không thể mở form đánh giá: ID sản phẩm không hợp lệ.');
+        }
       }
     });
   });

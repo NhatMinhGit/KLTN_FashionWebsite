@@ -13,4 +13,6 @@ public interface OrderService {
     List<BigDecimal> getRevenueByYear(int year);
 
     Map<Integer, BigDecimal> getRevenueByYears();
+
+    int getTotalOrdersCount();
 }

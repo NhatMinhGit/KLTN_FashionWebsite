@@ -27,4 +27,9 @@ public class FeedBackServiceImpl implements FeedBackService {
     public List<Feedback> findByProductIdOrderByCreateAtDesc(Long id) {
         return feedBackRepository.findByProductIdOrderByCreatedAtDesc(id);
     }
+
+    @Override
+    public boolean hasUserReviewedProduct(Long userId, Long productId) {
+        return feedBackRepository.existsByUserIdAndProductId(userId, productId);
+    }
 }

@@ -40,4 +40,9 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
+    @Override
+    public int getTotalOrdersCount() {
+        return orderRepository.findAll().size();
+    }
+
 }

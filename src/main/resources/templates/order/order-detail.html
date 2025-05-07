@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết đơn hàng</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <style>
+        .order-label {
+            font-weight: 600;
+            width: 200px;
+        }
+        .order-value {
+            font-weight: 400;
+        }
+        .order-detail-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .btn-space {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Chi tiết đơn hàng #<span th:text="${order.id}"></span></h4>
+        </div>
+        <div class="card-body">
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Khách hàng:</div>
+                <div class="col-md-9 order-value" th:text="${order.user.name}">Nguyễn Văn A</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Ngày đặt:</div>
+                <div class="col-md-9 order-value" th:text="${order.orderDate}">2025-05-07</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Địa chỉ giao hàng:</div>
+                <div class="col-md-9 order-value" th:text="${order.shippingAddress}">123 Đường ABC</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Tổng tiền:</div>
+                <div class="col-md-9 order-value" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' ₫'">100.000 ₫</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Phương thức thanh toán:</div>
+                <div class="col-md-9 order-value" th:text="${order.paymentMethod}">VNPAY</div>
+            </div>
+            <div class="row order-detail-row mb-4">
+                <div class="col-md-3 order-label">Trạng thái:</div>
+                <div class="col-md-9 order-value" th:text="${order.status}">PAID</div>
+            </div>
+
+            <div class="d-flex justify-content-start">
+                <form th:action="@{/admin/order/approve/{id}(id=${order.id})}" method="post"
+                      th:if="${order.status.name() == 'PAID' or order.status.name() == 'PENDING'}">
+                    <button type="submit" class="btn btn-success btn-space">
+                        <i class="fas fa-check-circle"></i> Duyệt đơn hàng
+                    </button>
+                </form>
+                <a class="btn btn-secondary" th:href="@{/admin/order}">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

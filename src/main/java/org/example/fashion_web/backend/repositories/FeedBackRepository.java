@@ -13,4 +13,5 @@ public interface FeedBackRepository extends JpaRepository<Feedback,Long> {
 
     List<Feedback> findByProductIdOrderByCreatedAtDesc(Long id);
 
+    boolean existsByUserIdAndProductId(Long userId, Long productId);
 }

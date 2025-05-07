@@ -28,7 +28,7 @@ public class Order {
     @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
-    @Column(name = "order_status")
+    @Column(name = "order_status", nullable = false)
     private OrderStatusType status;
 
     @Column(name = "shipping_address", columnDefinition = "TEXT")
