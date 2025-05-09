@@ -10,14 +10,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
+<div class="wrapper">
     <!-- Sidebar -->
     <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
 
     <!-- Page Content -->
-    <div class="container-fluid p-4">
+    <div class="main-panel p-4">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
-            <h1 class="h2">Doanh số theo từng năm</h1>
+            <h1 class="fw-bold mb-3">Doanh số theo từng năm</h1>
             <div class="btn-toolbar">
                 <div class="btn-group me-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -30,7 +30,7 @@
         <canvas id="myChartYears" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
 
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
-            <h1 class="h2">Doanh số trong năm</h1>
+            <h1 class="fw-bold mb-3">Doanh số trong năm</h1>
             <div class="btn-toolbar">
                 <div class="btn-group me-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -55,7 +55,7 @@
         <canvas id="myChartYear" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
 
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
-            <h1 class="h2">Doanh số sản phẩm bán chạy trong 30 ngày qua</h1>
+            <h1 class="fw-bold mb-3">Doanh số sản phẩm bán chạy trong 30 ngày qua</h1>
             <div class="btn-toolbar">
                 <div class="btn-group me-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -103,7 +103,7 @@
         <canvas id="myChartProducts" class="w-100" style="height: auto; max-height: 150px; width: 100%"></canvas>
 
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom mb-4 pb-2">
-            <h1 class="h2">Doanh số theo danh mục </h1>
+            <h1 class="fw-bold mb-3">Doanh số theo danh mục </h1>
             <div class="btn-toolbar">
                 <div class="btn-group me-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
