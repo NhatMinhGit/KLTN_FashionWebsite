@@ -2,6 +2,7 @@ package org.example.fashion_web.backend.services;
 
 import org.example.fashion_web.backend.models.Size;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,8 +21,16 @@ public interface SizeService {
 
     Optional<Size> findByProductVariantIdAndSizeName(Long id, String name);
 
+    Optional<Size> getSizeIdByName(String name);
+
+    void updateStockQuantity(Long variantId,String sizeName,int quantity);
+
+
     void increaseStock(Long productSizeId, int amount);
 
     boolean decreaseStock(Long productSizeId, int amount);
 
+    Integer getTotalStock();
+
+    BigDecimal getStockValue();
 }

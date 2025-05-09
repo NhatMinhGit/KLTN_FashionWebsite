@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tài khoản khách hàng</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/products.js}"></script>
+</head>
+
+<body>
+<div class="wrapper">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+    <!-- Content -->
+    <div class="main-panel p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="fw-bold mb-3">Quản lý sản phẩm</h1>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
+                <span sec:authorize="isAuthenticated">
+                    <a class="text-decoration-none text-dark cursor-pointer btn btn-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </span>
+            </div>
+        </div>
+        <!-- Thanh tìm kiếm -->
+        <div class="mb-3 d-flex">
+            <input type="text" id="searchKeywordAdmin" class="form-control me-2" placeholder="Nhập từ khóa">
+            <button class="btn btn-primary" onclick="searchProducts()">Tìm kiếm</button>
+        </div>
+
+        <div class="mb-3 d-flex">
+            <a th:href="@{/admin/products/add}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-lg"></i> Thêm sản phẩm mới
+            </a>
+            <a th:href="@{/admin/products/announce-warehouse}" class="btn btn-secondary">
+                <i class="bi bi-plus-lg"></i> Báo cáo kho
+            </a>
+        </div>
+        <!-- Bảng danh sách sản phẩm -->
+        <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="userTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Danh mục</th>
+                <th>Giá</th>
+                <th>Nhãn hàng</th>
+                <!--                <th>Số lượng tồn</th>-->
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${productPage}">
+                <td th:text="${product.getId()}">1</td>
+                <td th:text="${product.getName()}">Áo sơ mi tay dài</td>
+                <td th:text="${product.getCategory().getName()}">Áo sơ mi</td>
+                <td th:text="${product.getPrice()}">250.000 VND</td>
+                <td th:text="${product.getBrand().getName()}">Nhãn hàng</td>
+                <td>
+                    <a th:href="@{/admin/warehouse/import-product/{id}(id=${product.id})}" class="btn btn-success">
+                        <i class="bi bi-plus-lg"></i> Nhập kho
+                    </a>
+                    <a th:href="@{/admin/warehouse/export-product/{id}(id=${product.id})}" class="btn btn-warning">
+                        <i class="bi bi-box-arrow-up"></i> Xuất kho
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <!-- Phân trang -->
+        <nav aria-label="Page navigation">
+            <div class="pagination-container">
+                <ul class="pagination justify-content-center">
+                    <!-- Nút "Trước" -->
+                    <li class="page-item" th:classappend="${productPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="${productPage.first} ? '#' : @{/admin/product(page=${productPage.number - 1}, size=${productPage.size})}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Các số trang -->
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}"
+                        th:classappend="${i == productPage.number} ? 'active' : ''">
+                        <a class="page-link" th:href="@{/admin/product(page=${i}, size=${productPage.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+
+                    <!-- Nút "Sau" -->
+                    <li class="page-item" th:classappend="${!productPage.hasNext()} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="${!productPage.hasNext()} ? '#' : @{/admin/product(page=${productPage.number + 1}, size=${productPage.size})}"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+</div>

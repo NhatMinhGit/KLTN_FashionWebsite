@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nhập kho</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Nhập kho</h1>
+    <!-- Hiển thị thông báo lỗi nếu có -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Form thêm sản phẩm -->
+    <form th:action="@{/admin/warehouse/import-product/{id}(id=${warehouseForm.productId})}" th:object="${warehouseForm}" method="post" enctype="multipart/form-data">
+        <!-- Thông tin sản phẩm -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <strong>Thông Tin Sản Phẩm</strong> (Vui lòng nhập không dấu)
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Tên sản phẩm -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tên sản phẩm:</label>
+                        <p class="form-control-plaintext" th:text="${product.name}"></p>
+                    </div>
+                    <!-- Giá sản phẩm -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Giá sản phẩm:</label>
+                        <p class="form-control-plaintext" th:text="${product.price}"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- Mô tả sản phẩm -->
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Mô tả sản phẩm:</label>
+                        <p class="form-control-plaintext" th:text="${product.description}"></p>
+                    </div>
+                </div>
+<!--                <div class="row">-->
+<!--                    &lt;!&ndash; Danh mục &ndash;&gt;-->
+<!--                    <div class="col-md-6 mb-3">-->
+<!--                        <label class="form-label">Danh mục:</label>-->
+<!--                        <p class="form-control-plaintext" th:text="${product.categoryName}"></p>-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash; Nhãn hàng &ndash;&gt;-->
+<!--                    <div class="col-md-6 mb-3">-->
+<!--                        <label class="form-label">Nhãn hàng:</label>-->
+<!--                        <p class="form-control-plaintext" th:text="${product.brandName}"></p>-->
+<!--                    </div>-->
+<!--                </div>-->
+            </div>
+        </div>
+        <div th:each="variant, stat : ${productVariants}">
+            <div class="card mb-4 position-relative" th:id="'variantCard_' + ${variant.id}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span th:text="'Màu sắc: ' + ${variant.color}"></span>
+                    <input type="hidden" th:name="variantIds" th:value="${variant.id}" />
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2" th:each="size : ${T(java.util.List).of('S','M','L','XL','XXL')}">
+                            <div class="mb-3">
+                                <!-- Label hiển thị size + số lượng tồn kho -->
+                                <label th:for="${'size_' + variant.id + '_' + size}"
+                                       th:text="${size} + ': ' + ${(variantSizeQuantities[variant.id] != null ? variantSizeQuantities[variant.id].get(size) : 0)}"
+                                       class="form-label">
+                                </label>
+
+                                <!-- Hiển thị giá nhập cho variant -->
+                                <input type="number"
+                                       th:id="${'unitPrice_' + variant.id}"
+                                       th:name="${'variantUnitPrices[' + variant.id + ']' }"
+                                       class="form-control"
+                                       min="0"
+                                       placeholder="Giá nhập">
+
+                                <!-- Input chỉ nhập số lượng muốn nhập thêm -->
+                                <input type="number" class="form-control"
+                                       th:id="${'size_' + variant.id + '_' + size}"
+                                       th:name="${'variantSizes[' + variant.id + '][' + size + ']'}"
+                                       value="0"
+                                       min="0"
+                                       placeholder="Nhập thêm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- Thêm kích cỡ & số lượng -->
+        <div id="variantContainer"></div>
+
+        <button type="button" id="addSizeButton" class="btn btn-primary">Thêm Kích Cỡ & Số Lượng</button>
+
+        <!-- Button submit và hủy -->
+        <button type="submit" class="btn btn-primary">Nhập kho</button>
+        <a th:href="@{/admin/warehouse}" class="btn btn-secondary ms-2">Hủy</a>
+    </form>
+</div>
+
+<script>
+    document.getElementById("addSizeButton").addEventListener("click", function() {
+        // Lấy phần tử container nơi bạn muốn thêm các bảng mới
+        var variantContainer = document.getElementById("variantContainer");
+
+        // Tạo một div mới để chứa bảng variant
+        var variantDiv = document.createElement("div");
+        variantDiv.classList.add("card", "mb-4");
+
+        // Tạo header cho bảng variant
+        var variantHeader = document.createElement("div");
+        variantHeader.classList.add("card-header");
+        variantHeader.innerText = "Kích Cỡ & Số Lượng - Variant " + (variantContainer.children.length + 1);
+
+        // Tạo body cho bảng variant
+        var variantBody = document.createElement("div");
+        variantBody.classList.add("card-body");
+
+        // Tạo một hàng (row) để chứa các cột size và số lượng
+        var rowDiv = document.createElement("div");
+        rowDiv.classList.add("row");
+
+        // Tạo dropdown chọn màu
+        var colorColDiv = document.createElement("div");
+        colorColDiv.classList.add("col-md-2");
+        var colorDiv = document.createElement("div");
+        colorDiv.classList.add("mb-3");
+        var colorLabel = document.createElement("label");
+        colorLabel.classList.add("form-label");
+        colorLabel.setAttribute("for", "color");
+        colorLabel.innerText = "Màu sắc";
+        var colorSelect = document.createElement("select");
+        colorSelect.classList.add("form-control");
+        colorSelect.name = "color";
+        colorSelect.id = "color";
+        ["Red", "Blue", "Green", "Black", "White"].forEach(function(color) {
+            var option = document.createElement("option");
+            option.value = color;
+            option.innerText = color;
+            colorSelect.appendChild(option);
+        });
+        colorDiv.appendChild(colorLabel);
+        colorDiv.appendChild(colorSelect);
+        colorColDiv.appendChild(colorDiv);
+        rowDiv.appendChild(colorColDiv);
+
+        // Các kích cỡ như S, M, L, XL, XXL
+        var sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+
+        sizes.forEach(function(size) {
+            var colDiv = document.createElement("div");
+            colDiv.classList.add("col-md-2");
+
+            var mb3Div = document.createElement("div");
+            mb3Div.classList.add("mb-3");
+
+            var label = document.createElement("label");
+            label.setAttribute("for", "size_" + size);
+            label.classList.add("form-label");
+            label.innerText = size;
+
+            var input = document.createElement("input");
+            input.type = "number";
+            input.classList.add("form-control");
+            input.id = "size_" + size;
+            input.name = "sizeQuantities[" + size + "]";
+            input.min = "0";
+            input.placeholder = "0";
+
+            mb3Div.appendChild(label);
+            mb3Div.appendChild(input);
+            colDiv.appendChild(mb3Div);
+            rowDiv.appendChild(colDiv);
+        });
+        // Tạo input giá nhập
+        var priceDiv = document.createElement("div");
+        priceDiv.classList.add("mb-3");
+
+        var priceLabel = document.createElement("label");
+        priceLabel.setAttribute("for", "importPrice");
+        priceLabel.classList.add("form-label");
+        priceLabel.innerText = "Giá nhập";
+
+        var priceInput = document.createElement("input");
+        priceInput.type = "number";
+        priceInput.classList.add("form-control");
+        priceInput.id = "importPrice";
+        priceInput.name = "importPrice";
+        priceInput.min = "0";
+        priceInput.step = "1000";
+        priceInput.placeholder = "0";
+
+        priceDiv.appendChild(priceLabel);
+        priceDiv.appendChild(priceInput);
+
+        // Thêm input giá nhập vào body
+        variantBody.appendChild(priceDiv);
+        variantBody.appendChild(rowDiv);
+        variantDiv.appendChild(variantHeader);
+        variantDiv.appendChild(variantBody);
+
+        // Thêm bảng mới vào container
+        variantContainer.appendChild(variantDiv);
+    });
+
+</script>
+</body>
+</html>

@@ -31,7 +31,10 @@ ext {
 }
 
 dependencies {
+	implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.20'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+	implementation 'org.apache.poi:poi:5.2.3'
+	implementation 'org.apache.poi:poi-ooxml:5.2.3'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'
 	implementation 'org.json:json:20250107'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.0'  // Use the appropriate version
