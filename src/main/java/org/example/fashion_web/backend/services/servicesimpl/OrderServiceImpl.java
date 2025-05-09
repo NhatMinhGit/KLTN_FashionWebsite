@@ -1,5 +1,6 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
+import org.example.fashion_web.backend.dto.OrderStatusDto;
 import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.repositories.OrderRepository;
 import org.example.fashion_web.backend.services.OrderService;
@@ -44,5 +45,42 @@ public class OrderServiceImpl implements OrderService {
     public int getTotalOrdersCount() {
         return orderRepository.findAll().size();
     }
+
+    @Override
+    public List<OrderStatusDto> getOrderStatusData(int year, int month) {
+        List<Object[]> results = orderRepository.findPaymentStatusCountByYearAndMonth(year, month);
+
+        List<OrderStatusDto> orderStatusDtos = new ArrayList<>();
+        for (Object[] result : results) {
+            String paymentStatus = String.valueOf(result[0]); // đảm bảo lấy ra dưới dạng String
+
+            // Xử lý đổi tên status
+            String displayStatus;
+            if ("0".equals(paymentStatus)) {
+                displayStatus = "Chưa thanh toán";
+            } else if ("1".equals(paymentStatus)) {
+                displayStatus = "Đã thanh toán";
+            } else {
+                displayStatus = "Không rõ";
+            }
+
+            Number countNumber = (Number) result[1];
+            int count = countNumber.intValue();
+
+            orderStatusDtos.add(new OrderStatusDto(displayStatus, count));
+        }
+        return orderStatusDtos;
+    }
+
+
+    public int getOrdersToday() {
+        return orderRepository.countOrdersToday();
+    }
+
+    public int getOrdersThisMonth() {
+        return orderRepository.countOrdersThisMonth();
+    }
+
+
 
 }

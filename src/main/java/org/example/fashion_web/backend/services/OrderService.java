@@ -1,7 +1,7 @@
 package org.example.fashion_web.backend.services;
 
+import org.example.fashion_web.backend.dto.OrderStatusDto;
 import org.example.fashion_web.backend.models.Order;
-import org.example.fashion_web.backend.models.OrderItem;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,4 +15,11 @@ public interface OrderService {
     Map<Integer, BigDecimal> getRevenueByYears();
 
     int getTotalOrdersCount();
+
+    List<OrderStatusDto> getOrderStatusData(int year, int month);
+
+    int getOrdersToday();
+
+    int getOrdersThisMonth();
+
 }

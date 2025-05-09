@@ -15,4 +15,5 @@ public interface OrderItemService {
 
     List<CategoryRevenueDto> getTop10CategoriesByRevenue(LocalDate monthStart, LocalDate monthEnd);
 
+    List<ProductRevenueDto> getTopLow10ProductsByRevenue(LocalDate monthStart, LocalDate monthEnd);
 }

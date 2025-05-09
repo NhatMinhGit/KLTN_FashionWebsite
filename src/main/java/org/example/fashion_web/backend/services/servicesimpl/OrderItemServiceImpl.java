@@ -47,6 +47,13 @@ public class OrderItemServiceImpl implements OrderItemService {
         return result.size() > 10 ? result.subList(0, 10) : result;
     }
 
+    @Override
+    public List<ProductRevenueDto> getTopLow10ProductsByRevenue(LocalDate monthStart, LocalDate monthEnd) {
+        List<ProductRevenueDto> result = orderItemRepository.findTopProductsByLowestRevenue(monthStart, monthEnd);
+
+        // Giới hạn kết quả chỉ lấy 10 sản phẩm có doanh thu cao nhất
+        return result.size() > 10 ? result.subList(0, 10) : result;
+    }
 
 
 }
