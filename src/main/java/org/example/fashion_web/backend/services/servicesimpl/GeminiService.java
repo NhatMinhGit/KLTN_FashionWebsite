@@ -79,6 +79,8 @@ public class GeminiService {
 
     @Autowired
     private CartRepository cartRepository;
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
     private final WebClient webClient = WebClient.builder().build();
 

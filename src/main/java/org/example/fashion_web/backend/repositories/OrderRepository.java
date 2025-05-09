@@ -1,9 +1,6 @@
 package org.example.fashion_web.backend.repositories;
 
-import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.Order;
-import org.example.fashion_web.backend.models.Product;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -37,4 +33,26 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByOrderByIdDesc(Pageable pageable);
 
 
+    // Truy vấn với SQL thuần túy cho các câu truy có null
+//    @Query(value = "SELECT p.payment_status AS paymentStatus, COUNT(o.order_id) AS count " +
+//            "FROM payment p " +
+//            "LEFT JOIN orders o ON o.order_id = p.order_id " +
+//            "WHERE YEAR(p.payment_date) = :year " +
+//            "AND MONTH(p.payment_date) = :month " +
+//            "GROUP BY p.payment_status", nativeQuery = true)
+//    List<Object[]> findPaymentStatusCountByYearAndMonth(@Param("year") int year, @Param("month") int month);
+    @Query(value = "SELECT p.payment_status AS paymentStatus, COUNT(o.order_id) AS count " +
+            "FROM payment p " +
+            "LEFT JOIN orders o ON o.order_id = p.order_id " +
+            "WHERE YEAR(p.payment_date) = :year " +
+            "AND (:month = 0 OR MONTH(p.payment_date) = :month) " +
+            "GROUP BY p.payment_status", nativeQuery = true)
+    List<Object[]> findPaymentStatusCountByYearAndMonth(@Param("year") int year, @Param("month") int month);
+
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE DATE(o.createdAt) = CURRENT_DATE")
+    Integer countOrdersToday();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE MONTH(o.createdAt) = MONTH(CURRENT_DATE) AND YEAR(o.createdAt) = YEAR(CURRENT_DATE)")
+    Integer countOrdersThisMonth();
 }
