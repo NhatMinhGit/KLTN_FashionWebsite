@@ -92,15 +92,6 @@ public class GeminiController {
             response = geminiService.checkTopProductsRevenueForUser(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         }
-//        else if (isProductSizeAndQuantityQuery(message)) {
-//            // Trích xuất thông tin size và số lượng từ message
-//            String size = extractSizeFromMessage(message);
-//            int quantity = extractQuantityFromMessage(message);
-//
-//            // Xử lý theo size và quantity
-//            response = geminiService.addToCart(user.getId(), productId, size, color, quantity);
-//            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-//        }
         else {
             response = geminiService.chatWithAI(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
@@ -153,6 +144,15 @@ public class GeminiController {
                 lowerCaseMessage.contains("còn hàng không") ||
                 lowerCaseMessage.contains("có hàng không") ||
                 lowerCaseMessage.contains("số lượng");
+
+    }
+    private boolean isHint(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
+        return lowerCaseMessage.contains("gợi ý") ||
+                lowerCaseMessage.contains("gợi ý sản phẩm");
 
     }
 

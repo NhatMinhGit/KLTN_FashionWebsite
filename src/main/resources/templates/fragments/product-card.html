@@ -1,20 +1,10 @@
-<link rel="stylesheet" th:href="@{/css/card.css}">
+<!--<link rel="stylesheet" th:href="@{/css/card.css}">-->
+<!--<script th:src="@{/js/card-js.js}"></script>-->
 <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
 <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
-<script th:src="@{/js/card-js.js}"></script>
 <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 
     <div th:fragment="productCardFragment(product)">
-        <!-- Nội dung sản phẩm -->
-<!--        <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">-->
-<!--            <a th:href="@{/user/product-detail/{id}(id=${product.id})}">-->
-<!--                <div th:each="variant, iterStat : ${product.variants}">-->
-<!--                    <div th:each="imageUri : ${productVariantImages[product.id][variant.id]}" th:if="${iterStat.index < 2}">-->
-<!--                        <img th:src="${imageUri}" th:alt="${variant.color}" class="product-image" />-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </a>-->
-<!--        </div>-->
         <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
             <a th:href="@{/user/product-detail/{id}(id=${product.id})}">
                 <div class="image-slider">

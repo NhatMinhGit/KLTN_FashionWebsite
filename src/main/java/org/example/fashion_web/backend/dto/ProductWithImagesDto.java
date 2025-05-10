@@ -23,4 +23,5 @@ public class ProductWithImagesDto {
     private List<ProductVariantDto> productVariants;
     private BigDecimal effectivePrice;  // Thêm thuộc tính này
     private Integer productDiscount;    // Thêm thuộc tính này
+    private BigDecimal sales;
 }

@@ -133,17 +133,6 @@ public class UserController {
             product.setEffectivePrice(effectivePrice);
         }
 
-
-
-        // Trong phương thức @GetMapping("/user")
-        List<Product> preSaleProducts = products.stream()
-                .filter(p -> p.getEffectivePrice().compareTo(p.getPrice()) < 0)
-                .sorted(Comparator.comparing(Product::getEffectivePrice))
-                .limit(10)
-                .collect(Collectors.toList());
-
-        model.addAttribute("preSaleProducts", preSaleProducts);
-
         List<User> userList = userRepository.findAll();
         model.addAttribute("userList", userList);
         Map<Long, Integer> discountPercents = new HashMap<>();
@@ -157,7 +146,6 @@ public class UserController {
             }
         }
         model.addAttribute("discountPercents", discountPercents);
-
 
         // Lấy danh sách ảnh chung cho từng sản phẩm
         Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
@@ -179,7 +167,55 @@ public class UserController {
         // Gửi danh sách ảnh theo productId vào model
         model.addAttribute("productVariantImages", productVariantImages);
 
+        List<Product> deepDiscountProducts = products.stream()
+                .filter(p -> discountPercents.get(p.getId()) >= 10) // Giảm từ 30% trở lên
+                .sorted(Comparator.comparing((Product p) -> discountPercents.get(p.getId())).reversed())
+                .collect(Collectors.toList());
+        model.addAttribute("deepDiscountProducts", deepDiscountProducts);
 
+
+//        // Trong phương thức @GetMapping("/user")
+//        List<Product> preSaleProducts = products.stream()
+//                .filter(p -> p.getEffectivePrice().compareTo(p.getPrice()) < 0)
+//                .sorted(Comparator.comparing(Product::getEffectivePrice))
+//                .limit(10)
+//                .collect(Collectors.toList());
+//        for (Product preSaleProduct : preSaleProducts) {
+//            List<ProductVariant> variants = productVariantService.findAllByProductId(preSaleProduct.getId());
+//            preSaleProduct.setVariants(variants);
+//        }
+//        model.addAttribute("preSaleProducts", preSaleProducts);
+//        Map<Long, Integer> discountPreSalePercents = new HashMap<>();
+//        for (Product product : preSaleProducts) {
+//            if (product.getEffectivePrice() != null && product.getEffectivePrice().compareTo(product.getPrice()) < 0) {
+//                BigDecimal discount = product.getPrice().subtract(product.getEffectivePrice());
+//                BigDecimal percent = discount.divide(product.getPrice(), 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+//                discountPreSalePercents.put(product.getId(), percent.intValue());
+//            } else {
+//                discountPreSalePercents.put(product.getId(), 0);
+//            }
+//        }
+//        model.addAttribute("discountPreSalePercents", discountPreSalePercents);
+//
+//        // Lấy danh sách ảnh chung cho từng sản phẩm
+//        Map<Long, Map<Long, List<String>>> productVariantPreSaleImages = new HashMap<>();
+//
+//        for (Product preSaleProduct : preSaleProducts) {
+//            List<ProductVariant> variants = productVariantService.findAllByProductId(preSaleProduct.getId());
+//            Map<Long, List<String>> variantPreSaleImageMap = new HashMap<>();
+//
+//            for (ProductVariant preSaleVariant : variants) {
+//                List<Image> images = imageService.findImagesByProductVariantId(preSaleVariant.getId());
+//                List<String> imageUrls = images.stream()
+//                        .map(Image::getImageUri)
+//                        .collect(Collectors.toList());
+//                variantPreSaleImageMap.put(preSaleVariant.getId(), imageUrls);
+//            }
+//
+//            productVariantPreSaleImages.put(preSaleProduct.getId(), variantPreSaleImageMap);
+//        }
+//        // Gửi danh sách ảnh theo productId vào model
+//        model.addAttribute("productVariantPreSaleImages", productVariantPreSaleImages);
         return "user";
     }
 
