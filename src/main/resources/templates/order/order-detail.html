@@ -58,11 +58,17 @@
                 <form th:action="@{/admin/order/approve/{id}(id=${order.id})}" method="post"
                       th:if="${order.status.name() == 'PAID' or order.status.name() == 'PENDING'}">
                     <button type="submit" class="btn btn-success btn-space">
-                        <i class="fas fa-check-circle"></i> Duyệt đơn hàng
+                        <i class="fas fa-check-circle"></i>
+                        <p>Duyệt đơn hàng</p>
                     </button>
                 </form>
                 <a class="btn btn-secondary" th:href="@{/admin/order}">
-                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                    <i class="fas fa-arrow-left"></i>
+                    <p>Quay lại danh sách</p>
+                </a>
+                <a class="btn btn-secondary" th:href="@{/admin/order/export-invoice-pdf/{id}(id=${order.id})}">
+                    <i class="fas fa-arrow-left"></i>
+                    <p>Xuất hóa đơn</p>
                 </a>
             </div>
         </div>
