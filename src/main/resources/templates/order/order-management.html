@@ -61,7 +61,7 @@
                 <td th:text="${order.id}">1</td>
                 <td th:text="${order.user.name}">Nguyễn Văn A</td>
                 <td th:text="${order.orderDate}">2025-05-07</td>
-                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' ₫'">100.000 ₫</td>
+                <td th:text="${@currencyFormatter.formatVND(order.totalPrice)}">100.000 ₫</td>
                 <td th:text="${order.status}">PENDING</td>
                 <td>
                     <a class="btn btn-primary btn-sm"
