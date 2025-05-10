@@ -31,13 +31,14 @@
     </style>
 </head>
 <body>
-<div class="d-flex" id="wrapper">
+
+<div class="wrapper">
 
     <!-- Sidebar -->
     <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
 
     <!-- Page Content -->
-    <div class="container-fluid p-4">
+    <div class="main-panel p-4">
         <div class="container-fluid p-2">
             <div class="row mb-2">
                 <!-- Tổng kho + Giá trị kho -->
@@ -102,10 +103,9 @@
 <!--            </div>-->
 <!--        </div>-->
 
-
         <div id="chartYearsContainer" class="d-flex flex-column border-bottom mb-4 pb-2">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2">
-                <h1 class="h2">Doanh số theo từng năm</h1>
+                <h1 class="fw-bold mb-3">Doanh số theo từng năm</h1>
                 <div class="btn-toolbar">
                     <div class="btn-group me-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -146,6 +146,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- Biểu đồ năm nằm trong container -->
             <div class="w-100 mt-3">
                 <canvas id="myChartYear"></canvas>
@@ -154,8 +155,7 @@
 
         <div id="chartProductsContainer" class="d-flex flex-column border-bottom mb-4 pb-2">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2">
-
-                <h1 class="h2">Doanh số sản phẩm bán chạy trong tháng qua</h1>
+                <h1 class="fw-bold mb-3">Doanh số sản phẩm bán chạy trong tháng qua</h1>
                 <div class="btn-toolbar">
                     <div class="btn-group me-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -258,7 +258,7 @@
 
         <div id="chartCategoriesContainer" class="d-flex flex-column border-bottom mb-4 pb-2">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2">
-                <h1 class="h2">Doanh số theo danh mục</h1>
+                <h1 class="fw-bold mb-3">Doanh số theo danh mục</h1>
                 <div class="btn-toolbar">
                     <div class="btn-group me-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>

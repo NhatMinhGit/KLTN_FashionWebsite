@@ -1,31 +1,108 @@
 <div th:fragment="sidebar-admin">
-    <div class="bg-dark text-white p-3" id="sidebar-wrapper" style="width: 250px; height: 100vh;">
-        <h2 class="text-center">Admin</h2>
-        <ul class="list-unstyled">
-            <li class="my-3"><a th:href="@{/admin/product}" class="text-white text-decoration-none"><i class="fas fa-box"></i> Sản
-                phẩm</a>
-            </li>
-            <li class="my-3"><a th:href="@{/admin/discount}" class="text-white text-decoration-none"><i class="fas fa-list"></i> Hạ
-                giá</a></li>
-            <li class="my-3"><a th:href="@{/admin/voucher}" class="text-white text-decoration-none"><i class="fas fa-tags"></i> Khuyến
-                mãi</a></li>
-            <li class="my-3"><a th:href="@{/admin/account}" class="text-white text-decoration-none"><i class="fas fa-users"></i> Tài khoản người
-                dùng</a></li>
-            <li class="my-3"><a th:href="@{/admin/order}" class="text-white text-decoration-none"><i
-                    class="fas fa-shopping-cart"></i> Đơn
-                hàng</a></li>
-            <li class="my-3"><a th:href="@{/admin/statistic}" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i>
-                Thống kê</a>
-            </li>
-            <li class="my-3"><a th:href="@{/admin/datatree}" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i>
-                Cây dữ liệu</a>
-            </li>
-            <li class="my-3"><a th:href="@{/admin/warehouse}" class="text-white text-decoration-none"><i class="fas fa-chart-line"></i>
-                Cây dữ liệu</a>
-            </li>
-            <li class="my-3"><a th:href="@{/admin/chatbot}" class="text-white text-decoration-none">
-                <i class="fas fa-comments"></i> Chatbot</a>
-            </li>
-        </ul>
+    <!-- CSS Files -->
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/assets/css/plugins.min.css}" />
+    <link rel="stylesheet" th:href="@{/assets/css/kaiadmin.min.css}" />
+    <link rel="icon" th:href="@{/assets/img/kaiadmin/favicon.ico}" type="image/x-icon" />
+    <div class="sidebar sidebar-style-2" data-background-color="dark">
+        <div class="sidebar-logo">
+            <!-- Logo Header -->
+            <div class="logo-header" data-background-color="dark">
+                <a th:href="@{/admin}" class="logo">
+                    <img src="/assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand"
+                         height="20" />
+<!--                    <h3 class="p-3 m-2">MNT Fashion - Admin</h3>-->
+                </a>
+                <div class="nav-toggle">
+                    <button class="btn btn-toggle toggle-sidebar">
+                        <i class="gg-menu-right"></i>
+                    </button>
+                    <button class="btn btn-toggle sidenav-toggler">
+                        <i class="gg-menu-left"></i>
+                    </button>
+                </div>
+                <button class="topbar-toggler more">
+                    <i class="gg-more-vertical-alt"></i>
+                </button>
+            </div>
+            <!-- End Logo Header -->
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+            <div class="sidebar-content">
+                <ul class="nav nav-secondary">
+                    <li class="nav-item">
+                        <a th:href="@{/admin}">
+                            <i class="fas fa-desktop"></i>
+                            <p>Dashboard</p>
+                        </a>
+                    </li>
+                    <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                        <h4 class="text-section">Danh mục quản lý</h4>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/product}" class="text-white text-decoration-none">
+                            <i class="fas fa-box"></i>
+                            <p>Sản phẩm</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/discount}" class="text-white text-decoration-none">
+                            <i class="fas fa-arrow-down"></i>
+                            <p>Hạ giá</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/voucher}" class="text-white text-decoration-none">
+                            <i class="fas fa-tags"></i>
+                            <p>Khuyến mãi</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/account}" class="text-white text-decoration-none">
+                            <i class="fas fa-users"></i>
+                            <p>Tài khoản người dùng</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/order}" class="text-white text-decoration-none">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Đơn hàng</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/statistic}" class="text-white text-decoration-none">
+                            <i class="fas fa-chart-line"></i>
+                            <p>Thống kê</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/warehouse}" class="text-white text-decoration-none">
+                            <i class="fas fa-warehouse"></i>
+                            <p>Quản lý kho</p>
+                        </a>
+                    </li>
+                    <li class="nav-item"><a th:href="@{/admin/datatree}" class="text-white text-decoration-none">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Cây dữ liệu</p></a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/admin/chatbot}" class="text-white text-decoration-none">
+                            <i class="fas fa-comments"></i>
+                            <p>Chatbot</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
+    <script th:src="@{/assets/js/core/jquery-3.7.1.min.js}"></script>
+    <script th:src="@{/assets/js/core/popper.min.js}"></script>
+    <script th:src="@{/assets/js/core/bootstrap.min.js}"></script>
+    <!-- Kaiadmin JS -->
+    <script th:src="@{/assets/js/kaiadmin.min.js}"></script>
+    <!-- jQuery Scrollbar -->
+    <script th:src="@{/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js}"></script>
 </div>

@@ -12,13 +12,13 @@
 </head>
 
 <body>
-<div class="d-flex" id="wrapper">
+<div class="wrapper">
     <!-- Sidebar -->
     <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
     <!-- Content -->
-    <div class="container-fluid p-4">
+    <div class="main-panel p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Quản lý sản phẩm</h1>
+            <h1 class="fw-bold mb-3">Quản lý sản phẩm</h1>
             <div class="d-flex align-items-center">
                 <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
                 <span sec:authorize="isAuthenticated">
@@ -33,15 +33,17 @@
             <input type="text" id="searchKeywordAdmin" class="form-control me-2" placeholder="Nhập từ khóa">
             <button class="btn btn-primary" onclick="searchProducts()">Tìm kiếm</button>
         </div>
-        <!-- Bảng danh sách sản phẩm -->
-        <a th:href="@{/admin/products/add}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Thêm sản phẩm mới
-        </a>
-        <a th:href="@{/admin/products/announce-warehouse}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Báo cáo kho
-        </a>
 
-        <table class="table table-bordered" id="userTable">
+        <div class="mb-3 d-flex">
+            <a th:href="@{/admin/products/add}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-lg"></i> Thêm sản phẩm mới
+            </a>
+            <a th:href="@{/admin/products/announce-warehouse}" class="btn btn-secondary">
+                <i class="bi bi-plus-lg"></i> Báo cáo kho
+            </a>
+        </div>
+        <!-- Bảng danh sách sản phẩm -->
+        <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="userTable">
             <thead>
             <tr>
                 <th>ID</th>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'MyFont', sans-serif;
+            margin: 40px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .info, .footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<h1>MNT Fashion Shop - Hóa Đơn Bán Hàng</h1>
+
+<div class="info">
+    <p><strong>Khách hàng:</strong> <span th:text="${customerName}"></span></p>
+    <p><strong>Số điện thoại:</strong> <span th:text="${phoneNumber}"></span></p>
+    <p><strong>Ngày mua hàng:</strong> <span th:text="${purchaseDate}"></span></p>
+    <p><strong>Địa chỉ giao hàng:</strong> <span th:text="${shippingAddress}"></span></p>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Tên sản phẩm</th>
+        <th>Số lượng</th>
+        <th>Đơn giá (VNĐ)</th>
+        <th>Thành tiền (VNĐ)</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${items}">
+        <td th:text="${item.product.name} + ' | Size:' + ${item.size.sizeName}"></td>
+        <td th:text="${item.quantity}"></td>
+        <td th:text="${#numbers.formatDecimal(item.pricePerUnit, 0, 'COMMA', 2, 'POINT')} + ' đ'"></td>
+        <td th:text="${#numbers.formatDecimal(item.pricePerUnit * item.quantity, 0, 'COMMA', 2, 'POINT')} + ' đ'"></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="right info">
+    <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 2, 'POINT')} + ' đ'"></span>
+</div>
+
+<div class="footer">
+    <p>Cảm ơn quý khách đã mua sắm tại MNT Fashion Shop!</p>
+</div>
+
+</body>
+</html>

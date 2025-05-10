@@ -13,14 +13,14 @@
 
 <body>
 
-<div class="d-flex" id="wrapper">
+<div class="wrapper">
     <!-- Sidebar -->
-    <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
+    <div th:replace="~{fragments/sidebar-adminn :: sidebar-admin}"></div>
 
     <!-- Nội dung chính -->
-    <div class="container-fluid p-4">
+    <div class="main-panel p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Quản lý mã giảm giá</h1>
+            <h1 class="fw-bold mb-3">Quản lý mã giảm giá</h1>
             <div class="d-flex align-items-center">
                 <span class="me-3 text-dark">
                     <i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]
@@ -40,12 +40,14 @@
         </div>
 
         <!-- Nút thêm mới -->
-        <a th:href="@{/admin/discount/add}" class="btn btn-success mb-3">
-            <i class="bi bi-plus-lg"></i> Thêm mã giảm giá mới
-        </a>
+        <div class="mb-3 d-flex">
+            <a th:href="@{/admin/discount/add}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-lg"></i> Thêm mã giảm giá mới
+            </a>
+        </div>
 
         <!-- Bảng danh sách mã giảm giá -->
-        <table class="table table-bordered" id="discountTable">
+        <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="discountTable">
             <thead>
             <tr>
                 <th>ID</th>
