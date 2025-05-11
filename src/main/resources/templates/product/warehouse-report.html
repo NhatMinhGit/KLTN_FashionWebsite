@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Báo cáo kho</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .table thead th {
+            background-color: #34495e;
+            color: #ffffff;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .table tbody tr:hover {
+            background-color: #e0f7fa;
+            transition: background-color 0.3s ease;
+        }
+
+        .table tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: left;
+        }
+
+        .variant-block {
+            background-color: #e9ecef;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+        }
+
+        .variant-block strong {
+            color: #0056b3;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .variant-block ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .variant-block ul li {
+            margin-bottom: 3px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+        }
+
+        .product-image {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 5px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="text-center text-primary">Báo cáo kho sản phẩm</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+            <tr>
+                <th>Mã SP</th>
+                <th>Tên sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Thương hiệu</th>
+                <th>Biến thể & Tồn kho</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td th:text="${product.id}" class="text-center">1</td>
+                <td th:text="${product.name}">Tên sản phẩm</td>
+                <td th:text="${product.category.name}">Tên danh mục</td>
+                <td th:text="${product.brand.name}">Tên thương hiệu</td>
+                <td>
+                    <div th:each="variant : ${productVariants[product.id]}" class="variant-block">
+                        <strong th:text="'Màu: ' + ${variant.color}">Màu: Đỏ</strong>
+                        <ul>
+                            <li th:each="entry : ${productVariantSizeQuantities[product.id][variant.id].entrySet()}"
+                                th:text="${entry.key + ' - ' + entry.value + ' ' + (entry.value > 1 ? ' sản phẩm' : ' sản phẩm')}">
+                                Size M - 10 sản phẩm
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mb-3 d-flex justify-content-between">
+        <button class="btn btn-outline-primary d-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-sm"
+                onclick="window.print()">
+            <i class="fas fa-print"></i>
+            <span>In báo cáo</span>
+        </button>
+    </div>
+</div>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

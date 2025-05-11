@@ -106,7 +106,22 @@
                     </div>
                 </nav>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" style="overflow-y: auto;">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="startDate" class="form-label">Ngày bắt đầu:</label>
+                        <input type="date" id="startDate" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="endDate" class="form-label">Ngày kết thúc:</label>
+                        <input type="date" id="endDate" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <button id="filterByDate" class="btn btn-primary mt-3">
+                            <i class="bi bi-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
                 <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="transactionTable">
                     <thead>
                     <tr>
@@ -123,7 +138,7 @@
                         <td th:text="${transactionGroup.getNote()}">Nhập áo sơ mi tay dài</td>
                         <td th:text="${transactionGroup.getTransactionType()}">Import/Export</td>
                         <td th:text="${transactionGroup.getCreatedBy()}">Minh</td>
-                        <td th:text="${transactionGroup.getCreatedAt()}">Thời gian</td>
+                        <td th:text="${#temporals.format(transactionGroup.getCreatedAt(), 'yyyy-MM-dd')}">Thời gian</td>
                         <td th:text="${transactionGroup.getTotalAmount()}">250.000 VND</td>
                         <td>
                             <a th:href="@{/admin/warehouse/transaction-detail/{id}(id=${transactionGroup.getGroupId()})}" class="btn btn-success">
@@ -137,3 +152,46 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const filterButton = document.getElementById('filterByDate');
+        const table = document.getElementById('transactionTable');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        filterButton.addEventListener('click', function() {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            for (let i = 0; i < rows.length; i++) {
+                const dateCell = rows[i].getElementsByTagName('td')[3]; // Ngày tạo is the 4th column (index 3)
+                const dateText = dateCell.textContent.trim(); // Get the text and remove extra spaces
+                const transactionDate = parseDate(dateText);
+
+                if ((!startDate || new Date(startDate) <= transactionDate) &&
+                    (!endDate || new Date(endDate) >= transactionDate)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        });
+
+        // Helper function to parse the date string
+        function parseDate(dateString) {
+            // Check if the dateString is empty or undefined
+            if (!dateString) {
+                return new Date(0); // Return a default date (e.g., Unix epoch) or handle as appropriate for your logic
+            }
+            // The format is now YYYY-MM-DD
+            const dateParts = dateString.split('-');
+            if (dateParts.length !== 3) {
+                return new Date(0);
+            }
+            return new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
+        }
+    });
+</script>
+</body>
+</html>

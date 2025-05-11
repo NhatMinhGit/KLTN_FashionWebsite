@@ -79,6 +79,7 @@ public class WarehouseManageController {
         if (totalProducts > 10) {
             Pageable pageable = PageRequest.of(page, size);
             Page<Product> productPage = productService.getAllProducts(pageable);
+
             model.addAttribute("productPage", productPage);
             model.addAttribute("currentPage", page);
             model.addAttribute("pageSize", size);
@@ -91,6 +92,34 @@ public class WarehouseManageController {
             return "product/warehouse-management";
         }
     }
+    @GetMapping("/admin/products/announce-warehouse")
+    public String announceWarehouse(Model model) {
+        List<Product> products = productService.getAllProducts();
+        Map<Long, List<ProductVariant>> productVariants = new HashMap<>();
+        Map<Long, Map<Long, Map<String, Integer>>> productVariantSizeQuantities = new HashMap<>();
+
+        for (Product product : products) {
+            List<ProductVariant> variants = product.getVariants();
+            productVariants.put(product.getId(), variants);
+
+            Map<Long, Map<String, Integer>> variantSizeMap = new HashMap<>();
+            for (ProductVariant variant : variants) {
+                List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                Map<String, Integer> sizeQuantities = new HashMap<>();
+                for (Size size : sizes) {
+                    sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
+                }
+                variantSizeMap.put(variant.getId(), sizeQuantities);
+            }
+            productVariantSizeQuantities.put(product.getId(), variantSizeMap);
+        }
+
+        model.addAttribute("productVariants", productVariants);
+        model.addAttribute("productVariantSizeQuantities", productVariantSizeQuantities);
+        model.addAttribute("products", products);
+        return "product/warehouse-report";
+    }
+
     @GetMapping("/admin/warehouse/transaction-detail/{id}")
     public String loadTransactionGroupForm(@PathVariable("id") Long groupId, Model model) {
         // Lấy TransactionGroup theo ID
@@ -370,31 +399,3 @@ public class WarehouseManageController {
     }
 
 }
-
-
-
-//    @GetMapping("/admin/warehouse/export-product/{id}")
-//    public String showExportProductForm(@PathVariable("id") Long id, Model model) {
-//        Product product = productService.getProductById(id)
-//                .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm không tồn tại với ID: " + id));
-//
-//        List<ProductVariant> productVariants = productVariantService.findAllByProductId(product.getId());
-//        Map<Long, Map<String, Integer>> variantSizeQuantities = new HashMap<>();
-//
-//        for (ProductVariant variant : productVariants) {
-//            List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
-//            Map<String, Integer> sizeQuantities = new HashMap<>();
-//            for (Size size : sizes) {
-//                sizeQuantities.put(size.getSizeName(), size.getStockQuantity());
-//            }
-//            variantSizeQuantities.put(variant.getId(), sizeQuantities);
-//        }
-//
-//        model.addAttribute("product", product);
-//        model.addAttribute("productVariants", productVariants);
-//        model.addAttribute("variantSizeQuantities", variantSizeQuantities);
-//
-//        return "product/export-product";  // giao diện xuất kho
-//    }
-//
-//}
