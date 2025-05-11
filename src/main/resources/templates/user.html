@@ -162,7 +162,57 @@
         <a th:href="@{/user/shop}" class="btn">Mua ngay</a>
     </div>
 </div>
+<div class="container mt-5">
+<!--    <hr class="featurette-divider">-->
+    <h2 class="text-center mb-4">🔥 Sản Phẩm Giảm Giá Sâu 🔥</h2>
 
+    <div id="discountCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+
+            <div th:each="groupStat : ${#numbers.sequence(0, deepDiscountProducts.size() - 1, 4)}"
+                 th:class="'carousel-item ' + (${groupStat == 0} ? 'active' : '')">
+                <div class="row">
+                    <div th:each="innerProduct, innerStat : ${deepDiscountProducts}"
+                         th:if="${innerStat.index >= groupStat and innerStat.index < groupStat + 4}"
+                         class="col-md-3 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <img th:src="@{${productVariantImages[innerProduct.id]?.values()?.iterator()?.next()?.get(0)}}"
+                                 class="card-img-top" id="product-images" th:alt="${innerProduct.name}" style="height: 250px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title"
+                                    th:text="${innerProduct.name}"
+                                    th:attr="data-bs-toggle='tooltip', title=${innerProduct.name}">
+                                </h5>
+                                <p class="product-price mb-2">
+                                    <span class="text-danger fw-bold"
+                                          th:text="${@currencyFormatter.formatVND(innerProduct.effectivePrice)}">
+                                    </span>
+                                    <del class="ms-2 text-muted fs-6"
+                                         th:text="${@currencyFormatter.formatVND(innerProduct.price)}">
+                                    </del>
+                                    <span class="badge bg-danger ms-2"
+                                          th:text="'-' + ${discountPercents[innerProduct.id]} + '%'">
+                                    </span>
+                                </p>
+                                <a th:href="@{/user/product-detail/{id}(id=${innerProduct.id})}" class="btn btn-primary mt-auto">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#discountCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+            <span class="visually-hidden">Trước</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#discountCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+            <span class="visually-hidden">Tiếp</span>
+        </button>
+    </div>
+</div>
     <div class="container">
         <!-- Dịch vụ -->
         <div class="service-section">
@@ -183,57 +233,7 @@
             </div>
         </div>
     </div>
-<div class="container mt-5">
-    <hr class="featurette-divider">
-    <h2 class="text-center mb-4">🔥 Sản Phẩm Giảm Giá Sâu 🔥</h2>
 
-    <div id="discountCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-
-            <div th:each="groupStat : ${#numbers.sequence(0, deepDiscountProducts.size() - 1, 4)}"
-                 th:class="'carousel-item ' + (${groupStat == 0} ? 'active' : '')">
-                <div class="row">
-                    <div th:each="innerProduct, innerStat : ${deepDiscountProducts}"
-                         th:if="${innerStat.index >= groupStat and innerStat.index < groupStat + 4}"
-                         class="col-md-3 mb-3">
-                        <div class="card h-100 shadow-sm">
-                            <img th:src="@{${productVariantImages[innerProduct.id]?.values()?.iterator()?.next()?.get(0)}}"
-                                 class="card-img-top" th:alt="${innerProduct.name}" style="height: 250px; object-fit: cover;">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title"
-                                    th:text="${innerProduct.name}"
-                                    th:attr="data-bs-toggle='tooltip', title=${innerProduct.name}">
-                                </h5>
-                                <p class="card-text mb-2">
-                                    <span class="text-danger fw-bold"
-                                          th:text="${#numbers.formatDecimal(innerProduct.effectivePrice,1,'POINT',2,'COMMA')} + '₫'">
-                                    </span>
-                                    <del class="ms-2"
-                                         th:text="${#numbers.formatDecimal(innerProduct.price,1,'POINT',2,'COMMA')} + '₫'">
-                                    </del>
-                                    <span class="badge bg-danger ms-2"
-                                          th:text="'-' + ${discountPercents[innerProduct.id]} + '%'">
-                                    </span>
-                                </p>
-                                <a th:href="@{/user/product-detail/{id}(id=${innerProduct.id})}" class="btn btn-primary mt-auto">Xem chi tiết</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <button class="carousel-control-prev" type="button" data-bs-target="#discountCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-            <span class="visually-hidden">Trước</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#discountCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-            <span class="visually-hidden">Tiếp</span>
-        </button>
-    </div>
-</div>
 
 
 

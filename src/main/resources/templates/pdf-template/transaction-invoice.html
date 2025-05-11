@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'MyFont', sans-serif;
+            margin: 40px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .info, .footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .right {
+            text-align: right;
+        }
+        .signature {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 14px;
+            width: 100%;
+        }
+        .signature .block {
+            width: 45%;
+            text-align: center;
+        }
+        .signature .line {
+            border-top: 1px solid #000;
+            margin-top: 60px;
+            width: 100%;
+        }
+
+
+        .created-date {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: right;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>MNT Fashion Shop - Hóa Đơn Giao Dịch</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>Nội dung giao dịch</th>
+        <th>Ngày tạo</th>
+        <th>Số tiền (VNĐ)</th>
+        <th>Số lượng</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="transaction : ${transactions}">
+        <td th:text="${transaction.getNote()}"></td>
+        <td th:text="${#temporals.format(transaction.getTransactionDate(), 'dd/MM/yyyy')}"></td>
+        <td th:text="${#numbers.formatDecimal(transaction.getUnitPrice(), 0, 'COMMA', 2, 'POINT')} + ' đ'"></td>
+        <td th:text="${transaction.getQuantity()}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="right info">
+    <p><strong>Tổng giao dịch:</strong>
+        <span th:text="${#numbers.formatDecimal(transactionGroup.totalAmount, 0, 'COMMA', 2, 'POINT')} + ' đ'"></span>
+    </p>
+</div>
+
+<div class="created-date">
+    <p><strong>Ngày giờ tạo đơn:</strong>
+        <span th:text="${#temporals.format(transactionGroup.getCreatedAt(), 'dd/MM/yyyy HH:mm')}"></span>
+    </p>
+</div>
+
+
+<div style="width: 100%; margin-top: 50px; text-align: center;">
+    <table style="font-size: 14px; border: none; width: 90%; margin: 0 auto;">
+        <tr>
+            <td style="border: none; text-align: center; padding-right: 10%;">
+                <strong>Người lập hóa đơn</strong>
+            </td>
+            <td style="border: none; text-align: center; padding-left: 10%;">
+                <strong>Khách hàng</strong>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 80px; padding-bottom: 40px; border: none; text-align: center; padding-right: 10%;">
+                (Ký và ghi rõ họ tên)
+            </td>
+            <td style="padding-top: 80px; padding-bottom: 40px; border: none; text-align: center; padding-left: 10%;">
+                (Ký và ghi rõ họ tên)
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+
+
+
+
+<div class="footer">
+    <p>Cảm ơn quý khách đã giao dịch với MNT Fashion Shop!</p>
+</div>
+
+</body>
+</html>

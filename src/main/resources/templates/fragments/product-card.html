@@ -22,13 +22,16 @@
 
         <p class="product-price">
             <span th:if="${product.effectivePrice != null and product.effectivePrice < product.price}">
-                <span class="original-price text-muted text-decoration-line-through"
-                      th:text="${@currencyFormatter.formatVND(product.price)}">
-                </span>
-                <span class="discounted-price text-black fw-bold ms-2"
+                <span class="discounted-price text-danger fw-bold ms-2"
                       th:text="${@currencyFormatter.formatVND(product.effectivePrice)}">
                 </span>
-                <span class="discount-percentage text-danger fw-bold ms-2"
+<!--                <span class="original-price text-muted text-decoration-line-through"-->
+<!--                      th:text="${@currencyFormatter.formatVND(product.price)}">-->
+<!--                </span>-->
+                <del class="ms-2"
+                     th:text="${@currencyFormatter.formatVND(product.price)}">
+                </del>
+                <span class="discount-percentage badge bg-danger fw-bold ms-2"
                       th:text="'- ' + ${product.productDiscount} + '%'">
                 </span>
             </span>

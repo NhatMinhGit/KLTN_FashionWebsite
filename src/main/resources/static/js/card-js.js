@@ -1,14 +1,14 @@
 function startSlideshow(container) {
     let slider = container.querySelector(".image-slider");
     if (slider) {
-        slider.style.transform = "translateX(-25%)";
+        slider.style.transform = "translateX(-50%)";
     }
 }
 
 function stopSlideshow(container) {
     let slider = container.querySelector(".image-slider");
     if (slider) {
-        slider.style.transform = "translateX(-12.5%)";
+        slider.style.transform = "translateX(0%)";
     }
 }
 // Thêm các sự kiện hover để mở rộng tên và mô tả sản phẩm
