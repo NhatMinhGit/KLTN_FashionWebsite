@@ -74,8 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Send to API and get response
         sendToAPI(query);
     }
-
-    // Function to send message to API
     function sendToAPI(message) {
         // Show loading indicator
         const loadingId = showLoadingIndicator();
@@ -89,22 +87,86 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                return response.text(); //Nếu backend trả về plain text
+                return response.json(); // Chuyển dữ liệu trả về thành JSON
             })
             .then(data => {
+                console.log(data); // Log the full response to check its structure
+
                 setTimeout(() => {
                     removeLoadingIndicator(loadingId); // Xoá spinner
-                    addMessage(data, 'ai');            // Hiển thị phản hồi từ AI
+
+                    // Kiểm tra dữ liệu từ API trả về (ví dụ: aiResponse và productInfo)
+                    if (data.aiResponse) {
+                        addMessage(data.aiResponse, 'ai');  // Hiển thị phản hồi từ AI
+                    } else {
+                        console.log('No aiResponse in the data'); // Debugging message
+                    }
+
+                    if (data.productInfo) {
+                        addMessage(data.productInfo, 'html'); // Hiển thị thông tin sản phẩm
+                    } else {
+                        console.log('No productInfo in the data'); // Debugging message
+                    }
+
+                    // Nếu có yêu cầu chọn size và số lượng, yêu cầu người dùng nhập thông tin
+                    if (data.sizeAndQuantityRequired) {
+                        askSizeAndQuantity(data.productId); // Gửi câu hỏi về size và số lượng
+                    } else {
+                        console.log('No sizeAndQuantityRequired in the data'); // Debugging message
+                    }
                 }, 400);
             })
+
             .catch(error => {
                 console.error('Error:', error);
-                removeLoadingIndicator(loadingId);
                 addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
             });
-        //
     }
+    // Function to send message to API
+    // function sendToAPI(message) {
+    //     // Show loading indicator
+    //     const loadingId = showLoadingIndicator();
+    //
+    //     fetch(`/admin/chat?message=${encodeURIComponent(message)}`, {
+    //         method: 'GET',
+    //         headers: { 'Content-Type': 'application/json' }
+    //     })
+    //
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error(`HTTP error! Status: ${response.status}`);
+    //             }
+    //             return response.text(); //Nếu backend trả về plain text
+    //         })
+    //         .then(data => {
+    //             setTimeout(() => {
+    //                 removeLoadingIndicator(loadingId); // Xoá spinner
+    //                 addMessage(data, 'ai');            // Hiển thị phản hồi từ AI
+    //             }, 400);
+    //         })
+    //         .catch(error => {
+    //             console.error('Error:', error);
+    //             removeLoadingIndicator(loadingId);
+    //             addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
+    //         });
+    //     //
+    // }
 
+    // Hàm này để hỏi người dùng về size, màu sắc và số lượng
+    function askSizeAndQuantity(productId, variants) {
+        // Lưu productId hiện tại để sau này sử dụng khi gửi dữ liệu
+        currentProductId = productId;
+
+        // Tạo câu hỏi về size, màu sắc và số lượng
+        const sizeQuestion = `Vui lòng chọn size cho sản phẩm.`;
+        const quantityQuestion = `Vui lòng nhập số lượng bạn muốn mua.`;
+        const colorQuestion = `Vui lòng chọn màu sắc cho sản phẩm. Các lựa chọn có sẵn: ${variants.join(", ")}.`;
+
+        // Hiển thị câu hỏi về size, màu sắc và số lượng
+        addMessage(sizeQuestion, 'ai');
+        addMessage(colorQuestion, 'ai');
+        addMessage(quantityQuestion, 'ai');
+    }
     // Function to add a message to the chat
     function addMessage(text, sender) {
         const messageDiv = document.createElement('div');
@@ -137,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Scroll to bottom of messages
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+
 
     // Function to show loading indicator
     function showLoadingIndicator() {

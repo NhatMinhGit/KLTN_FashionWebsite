@@ -57,191 +57,167 @@ public class GeminiController {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private ChatbotSessionService chatbotSessionService;
+
 
     @GetMapping("/chat")
-    public ResponseEntity<String> chat(@RequestParam String message, Principal principal, Model model, HttpSession session) {
+    public ResponseEntity<String> chat(@RequestParam String message, Principal principal) {
         String response;
         String userName = principal.getName();
         User user = userService.findByEmail(userName);
+
+        if (user == null) {
+            return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
+        }
+
         Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
-        System.out.println("Chatbot ID: " + (chatbot != null ? chatbot.getId() : "null"));
-        System.out.println("Id người dùng save vào chatlog " + user.getId());
-
-        // Kiểm tra nếu người dùng hỏi về số lượng hàng tồn
-        if (isStockQuery(message)) {
-            response = geminiService.checkStock(message);
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        } else if (isPriceAndCategory(message)) {
-            response = geminiService.checkPriceAndCategory(message);
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        } else if (isPrice(message)) {
-            response = geminiService.checkPriceAndCategory(message);
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        }
-        else if (isServiceRecords(message)) {
-            response = geminiService.loadServiceLog(user.getId());
-        }
-        else if (isRefundPolicy(message)){
-            response = geminiService.refundPolicyForUser();
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        }
-        else if (isFAQS(message)){
-            response = geminiService.faqShowForUser();
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        } else if (isBESTSELLERS(message)) {
-            response = geminiService.checkTopProductsRevenueForUser(message);
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
-        }
-        else {
-            response = geminiService.chatWithAI(message);
-            geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
+        if (chatbot == null) {
+            return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
         }
 
+        ChatbotSession session = chatbotSessionService.startOrGetActiveSession(chatbot, user.getId());
+
+        // Lưu message người dùng gửi
+        geminiService.saveConversation(session, "USER", message, "text", null, null);
+
+        // Trích xuất intent và entities
+        Map<String, String> extractedData = extractIntentAndEntities(message);
+        String intent = extractedData.get("intent");
+        String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
+
+        // Kiểm tra và xử lý theo intent
+        switch (intent) {
+            case "stock_query":
+                response = geminiService.checkStock(message);
+                break;
+//            case "price_query":
+//                response = geminiService.checkPriceAndCategory(message);
+//                break;
+            case "refund_policy":
+                response = geminiService.refundPolicyForUser();
+                break;
+            case "faqs":
+                response = geminiService.faqShowForUser();
+                break;
+            case "bestsellers":
+                response = geminiService.checkTopProductsRevenueForUser(message);
+                break;
+            default:
+                response = geminiService.chatWithAI(message);
+                break;
+        }
+
+        // Lưu phản hồi từ chatbot
+        geminiService.saveConversation(session, "BOT", response, "text", intent, entities);
 
         return ResponseEntity.ok(response);
     }
-    private boolean isServiceRecords(String message) {
-        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+
+    // Hàm xác định intent từ câu hỏi
+    // Hàm trích xuất intent và entities từ câu hỏi
+    private Map<String, String> extractIntentAndEntities(String message) {
+        Map<String, String> result = new HashMap<>();
         String lowerCaseMessage = message.toLowerCase();
 
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("service record") ||
-                lowerCaseMessage.contains("service records") ||
-                lowerCaseMessage.contains("record");
-    }
-    // Ví dụ phương thức kiểm tra thông điệp chứa thông tin về size và số lượng
-    private boolean isProductSizeAndQuantityQuery(String message) {
-        return message.matches(".*(size|kích thước).*\\d+.*(số lượng|mua).*\\d+.*");
-    }
-
-    // Trích xuất thông tin size từ thông điệp
-    private String extractSizeFromMessage(String message) {
-        // Giả sử thông điệp có cấu trúc như "size: M" hoặc "kích thước: L"
-        if (message.contains("size")) {
-            // Sử dụng regex hoặc phương pháp khác để trích xuất size
-            return message.replaceAll(".*(size|kích thước):\\s*(\\w+).*", "$2");
+        // Kiểm tra intent
+        if (isStockQuery(lowerCaseMessage)) {
+            result.put("intent", "stock_query");
+        } else if (isPrice(lowerCaseMessage)) {
+            result.put("intent", "price_query");
+        } else if (isRefundPolicy(lowerCaseMessage)) {
+            result.put("intent", "refund_policy");
+        } else if (isFAQS(lowerCaseMessage)) {
+            result.put("intent", "faq");
+        } else if (isBESTSELLERS(lowerCaseMessage)) {
+            result.put("intent", "bestsellers");
+        } else {
+            result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
-        return null;
+
+        // Trích xuất các thực thể (entities) từ câu hỏi (có thể mở rộng thêm)
+        result.putAll(extractEntities(lowerCaseMessage));
+
+        return result;
     }
 
-    // Trích xuất số lượng từ thông điệp
-    private int extractQuantityFromMessage(String message) {
-        // Ví dụ: trích xuất số lượng như "2 sản phẩm" hoặc "Mua 3"
-        Pattern pattern = Pattern.compile("(\\d+)\\s*(sản phẩm|cái|mua)");
-        Matcher matcher = pattern.matcher(message);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(1));
+
+    // Hàm trích xuất entities từ câu hỏi
+    private Map<String, String> extractEntities(String message) {
+        Map<String, String> entities = new HashMap<>();
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Trích xuất loại sản phẩm (category) từ câu hỏi
+        if (lowerCaseMessage.contains("áo")) {
+            entities.put("product_category", "áo");
         }
-        return 0; // Nếu không tìm thấy, trả về số lượng mặc định
+        if (lowerCaseMessage.contains("quần")) {
+            entities.put("product_category", "quần");
+        }
+
+        // Trích xuất giá từ câu hỏi (ví dụ: "500 nghìn", "3 triệu")
+        Pattern pricePattern = Pattern.compile(".*\\d+\\s*(k|nghìn|triệu).*");
+        Matcher priceMatcher = pricePattern.matcher(lowerCaseMessage);
+        if (priceMatcher.matches()) {
+            entities.put("price", priceMatcher.group(0)); // Thực thể giá trị
+        }
+
+        // Trích xuất size nếu có
+        if (lowerCaseMessage.contains("size m")) {
+            entities.put("size", "M");
+        }
+
+        // Trích xuất tháng (ví dụ: tháng 5, tháng 11)
+        Pattern monthPattern = Pattern.compile("(tháng\\s*(\\d{1,2}))|(\\b(0?[1-9]|1[0-2])\\b)");
+        Matcher monthMatcher = monthPattern.matcher(lowerCaseMessage);
+        if (monthMatcher.find()) {
+            String month = monthMatcher.group(2) != null ? monthMatcher.group(2) : monthMatcher.group(1);
+            entities.put("month", month.replaceAll("[^\\d]", ""));
+        }
+
+        // Trích xuất năm (ví dụ: năm 2025, năm 2020)
+        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})|(\\b20\\d{2}\\b)");
+        Matcher yearMatcher = yearPattern.matcher(lowerCaseMessage);
+        if (yearMatcher.find()) {
+            String year = yearMatcher.group(1) != null ? yearMatcher.group(1) : yearMatcher.group(2);
+            entities.put("year", year);
+        }
+
+        return entities;
     }
 
+
+    // Các phương thức kiểm tra như trước
     private boolean isStockQuery(String message) {
-        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("còn không") ||
-                lowerCaseMessage.contains("còn hàng không") ||
-                lowerCaseMessage.contains("có hàng không") ||
-                lowerCaseMessage.contains("số lượng");
-
-    }
-    private boolean isHint(String message) {
-        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("gợi ý") ||
-                lowerCaseMessage.contains("gợi ý sản phẩm");
-
-    }
-
-    private boolean isBESTSELLERS(String message) {
-        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("best sellers") ||
-                lowerCaseMessage.contains("bán chạy") ||
-                lowerCaseMessage.contains("được yêu thích") ||
-                lowerCaseMessage.contains("trending");
-    }
-    private boolean isRefundPolicy(String message) {
-        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("refund policy") ||
-                lowerCaseMessage.contains("hoàn phí") ||
-                lowerCaseMessage.contains("chính sách hoàn phí") ||
-                lowerCaseMessage.contains("chính sách đổi trả") ||
-                lowerCaseMessage.contains("refund");
-    }
-    private boolean isFAQS(String message) {
-        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return  lowerCaseMessage.contains("faqs") ||
-                lowerCaseMessage.contains("thắc mắc") ||
-                lowerCaseMessage.contains("sử dụng") ||
-                lowerCaseMessage.contains("hướng dẫn") ||
-                lowerCaseMessage.contains("hướng dẫn sử dụng");
-    }
-
-    private boolean isOrderRequest(String message) {
-        String lowerCaseMessage = message.toLowerCase();
-        return lowerCaseMessage.startsWith("đặt hàng") ||
-                lowerCaseMessage.startsWith("mua") ||
-                lowerCaseMessage.contains("tôi muốn mua") ||
-                lowerCaseMessage.contains("tôi muốn đặt");
+        return containsKeywords(message, "còn không", "còn hàng không", "có hàng không", "số lượng");
     }
 
     private boolean isPrice(String message) {
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Danh sách từ khóa liên quan đến giá
-        return lowerCaseMessage.contains("giá") ||
-                lowerCaseMessage.contains("bao nhiêu tiền") ||
-                lowerCaseMessage.contains("khoảng") ||
-                lowerCaseMessage.contains("tầm") ||
-                lowerCaseMessage.contains("từ") ||
-                lowerCaseMessage.contains("tới") ||
-                lowerCaseMessage.contains("dưới") ||
-                lowerCaseMessage.matches(".*\\d+.*k.*") || // ví dụ: 500k
-                lowerCaseMessage.matches(".*\\d+.*nghìn.*"); // ví dụ: 200 nghìn
+        return containsKeywords(message, "giá", "bao nhiêu tiền", "khoảng", "tầm", "từ", "tới", "dưới") ||
+                message.toLowerCase().matches(".*\\d+.*k.*") ||
+                message.toLowerCase().matches(".*\\d+.*nghìn.*");
     }
 
-    private boolean isPriceAndCategory(String message) {
+    private boolean isRefundPolicy(String message) {
+        return containsKeywords(message, "refund policy", "hoàn phí", "chính sách hoàn phí", "chính sách đổi trả", "refund");
+    }
+
+    private boolean isFAQS(String message) {
+        return containsKeywords(message, "faqs", "thắc mắc", "sử dụng", "hướng dẫn", "hướng dẫn sử dụng");
+    }
+
+    private boolean isBESTSELLERS(String message) {
+        return containsKeywords(message, "best sellers", "bán chạy", "được yêu thích", "trending");
+    }
+
+    private boolean containsKeywords(String message, String... keywords) {
         String lowerCaseMessage = message.toLowerCase();
-
-        // Danh sách từ khóa liên quan đến giá
-        boolean containsPriceKeywords =
-                lowerCaseMessage.contains("giá") ||
-                        lowerCaseMessage.contains("bao nhiêu tiền") ||
-                        lowerCaseMessage.contains("khoảng") ||
-                        lowerCaseMessage.contains("tầm") ||
-                        lowerCaseMessage.contains("từ") ||
-                        lowerCaseMessage.contains("tới") ||
-                        lowerCaseMessage.contains("dưới") ||
-                        lowerCaseMessage.matches(".*\\d+.*k.*") || // ví dụ: 500k
-                        lowerCaseMessage.matches(".*\\d+.*nghìn.*"); // ví dụ: 200 nghìn
-
-        // Chuẩn hóa message
-        String normalizedMessage = message.toLowerCase().replaceAll("\\s+", "");
-
-        // Từ khóa liên quan đến danh mục sản phẩm
-        String[] categoriesName = {
-                "áonam", "quầnnam", "sơmi", "coffee", "tết", "routinesquad", "áolennam",
-                "quầnnỉnam", "áothun", "áonỉ", "jean", "short", "polo", "áokhoác", "quầntây",
-                "độlót", "sơmi", "áovest", "kaki", "phụkiện", "tanktop", "jogger"
-        };
-
-        // Kiểm tra có chứa danh mục không
-        boolean containsCategory = Arrays.stream(categoriesName)
-                .anyMatch(normalizedMessage::contains);
-
-        return containsPriceKeywords && containsCategory;
+        for (String keyword : keywords) {
+            if (lowerCaseMessage.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
