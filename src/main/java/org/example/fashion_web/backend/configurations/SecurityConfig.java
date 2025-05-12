@@ -41,7 +41,10 @@ public class SecurityConfig {
                                 .requestMatchers("/add").hasAuthority("ADMIN")
                                 .requestMatchers("/edit").hasAuthority("ADMIN")
                                 .requestMatchers("/user-page").hasAuthority("USER")
-                                .requestMatchers("/", "/admin/chat", "/ws", "/registration", "/login", "/user", "/products", "/refresh-token", "/css/**", "/js/**", "/pics/**", "/pics/logo/**","/fontawesome-6.7.1/**").permitAll()
+                                .requestMatchers("/", "/admin/chat", "/ws", "/registration", "/login",
+                                        "/user", "/products", "/refresh-token", "/css/**", "/js/**", "/pics/**",
+                                        "/pics/logo/**","/fontawesome-6.7.1/**", "/about",
+                                        "/user/shop/search").permitAll()
                         .anyRequest().authenticated())
 
                 .formLogin(form -> form.loginPage("/login").loginProcessingUrl("/login")

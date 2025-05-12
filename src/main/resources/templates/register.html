@@ -18,7 +18,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 750px;
+            height: 700px;
         }
 
         .register-box {
@@ -28,27 +28,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             width: 400px;
             text-align: center;
-        }
-
-        .social-login {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .social-btn {
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            border: 1px solid #ddd;
         }
 
         .text-divider {
@@ -112,12 +91,7 @@
         <h3 class="fw-bold my-3">ĐĂNG KÝ</h3>
         <p>Bạn đã có tài khoản? <a th:href="@{/login}" class="text-primary">Đăng nhập</a></p>
 
-        <div class="social-login">
-            <button class="social-btn"><i class="fab fa-facebook-f text-primary"></i></button>
-            <button class="social-btn"><i class="fab fa-google text-danger"></i></button>
-        </div>
-
-        <p class="text-divider">or sign up with email</p>
+        <p class="text-divider">or sign up here</p>
 
         <form th:action="@{/registration}" method="post" role="form" th:object="${register_user}" onsubmit="return validatePasswords()">
             <!-- Họ và tên -->
