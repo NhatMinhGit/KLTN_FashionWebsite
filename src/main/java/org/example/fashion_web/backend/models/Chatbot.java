@@ -4,27 +4,29 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "Chatbot")
+@Table(name = "chatbot")
 public class Chatbot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chatbot_id")
-    private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private User user;
+    private Long chatbotId;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "timestamp", nullable = false)
-    private Timestamp timestamp;
+    @Column(name = "user_id")
+    private Integer userId;
+
+    @Column(name = "status", columnDefinition = "VARCHAR(50) DEFAULT 'active'")
+    private String status = "active";
+
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
 
 }
