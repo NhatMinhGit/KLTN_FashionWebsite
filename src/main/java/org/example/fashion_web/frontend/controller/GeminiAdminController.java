@@ -58,14 +58,14 @@ public class GeminiAdminController {
             response = geminiService.checkYearlyRenvenue(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         } else if (isOptimalBussinessPlan(message)) {
-            response =  "<b>1. Nhập thêm các sản phẩm bán chạy như </b>:<br>" + geminiService.checkTopProductsRenvenue(message)
+            response =  "<b>1. Nhập thêm các sản phẩm bán chạy như </b>:<br>" + geminiService.checkTopProductsRevenueForUser(message)
                     +   "<br><b>2. Nhập thêm các sản phẩm tiềm năng theo mùa và sự kiện</b>:<br>"
                     +   "Thời trang theo mùa: <br>" + geminiService.getVietnamWeatherSuggestion(message) + "<br>"
                     +   "Thời trang sự kiện: <br>" + geminiService.getVietnamEventSuggestion(message)
             ;
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         } else if (isBESTSELLERS(message)) {
-            response = geminiService.checkTopProductsRenvenue(message);
+            response = geminiService.checkTopProductsRevenueForUser(message);
             geminiService.saveConversation(user.getId(), "Người dùng: " + message + "\nBot: " + response);
         } else {
             response = geminiService.chatWithAI(message);

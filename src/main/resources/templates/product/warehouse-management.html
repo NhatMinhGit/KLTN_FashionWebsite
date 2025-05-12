@@ -42,68 +42,156 @@
                 <i class="bi bi-plus-lg"></i> Báo cáo kho
             </a>
         </div>
-        <!-- Bảng danh sách sản phẩm -->
-        <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="userTable">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tên</th>
-                <th>Danh mục</th>
-                <th>Giá</th>
-                <th>Nhãn hàng</th>
-                <!--                <th>Số lượng tồn</th>-->
-                <th>Hành động</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="product : ${productPage}">
-                <td th:text="${product.getId()}">1</td>
-                <td th:text="${product.getName()}">Áo sơ mi tay dài</td>
-                <td th:text="${product.getCategory().getName()}">Áo sơ mi</td>
-                <td th:text="${product.getPrice()}">250.000 VND</td>
-                <td th:text="${product.getBrand().getName()}">Nhãn hàng</td>
-                <td>
-                    <a th:href="@{/admin/warehouse/import-product/{id}(id=${product.id})}" class="btn btn-success">
-                        <i class="bi bi-plus-lg"></i> Nhập kho
-                    </a>
-                    <a th:href="@{/admin/warehouse/export-product/{id}(id=${product.id})}" class="btn btn-warning">
-                        <i class="bi bi-box-arrow-up"></i> Xuất kho
-                    </a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <!-- Phân trang -->
-        <nav aria-label="Page navigation">
-            <div class="pagination-container">
-                <ul class="pagination justify-content-center">
-                    <!-- Nút "Trước" -->
-                    <li class="page-item" th:classappend="${productPage.first} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="${productPage.first} ? '#' : @{/admin/product(page=${productPage.number - 1}, size=${productPage.size})}"
-                           aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <!-- Bảng danh sách sản phẩm -->
+                <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="userTable">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên</th>
+                        <th>Danh mục</th>
+                        <th>Giá</th>
+                        <th>Nhãn hàng</th>
+                        <th>Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="product : ${productPage}">
+                        <td th:text="${product.getId()}">1</td>
+                        <td th:text="${product.getName()}">Áo sơ mi tay dài</td>
+                        <td th:text="${product.getCategory().getName()}">Áo sơ mi</td>
+                        <td th:text="${product.getPrice()}">250.000 VND</td>
+                        <td th:text="${product.getBrand().getName()}">Nhãn hàng</td>
+                        <td>
+                            <a th:href="@{/admin/warehouse/import-product/{id}(id=${product.id})}" class="btn btn-success">
+                                <i class="bi bi-plus-lg"></i> Nhập kho
+                            </a>
+                            <a th:href="@{/admin/warehouse/export-product/{id}(id=${product.id})}" class="btn btn-warning">
+                                <i class="bi bi-box-arrow-up"></i> Xuất kho
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <!-- Phân trang -->
+                <nav aria-label="Page navigation">
+                    <div class="pagination-container">
+                        <ul class="pagination justify-content-center">
+                            <!-- Nút "Trước" -->
+                            <li class="page-item" th:classappend="${productPage.first} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="${productPage.first} ? '#' : @{/admin/warehouse(page=${productPage.number - 1}, size=${productPage.size})}"
+                                   aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
 
-                    <!-- Các số trang -->
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}"
-                        th:classappend="${i == productPage.number} ? 'active' : ''">
-                        <a class="page-link" th:href="@{/admin/product(page=${i}, size=${productPage.size})}"
-                           th:text="${i + 1}"></a>
-                    </li>
+                            <!-- Các số trang -->
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}"
+                                th:classappend="${i == productPage.number} ? 'active' : ''">
+                                <a class="page-link" th:href="@{/admin/warehouse(page=${i}, size=${productPage.size})}"
+                                   th:text="${i + 1}"></a>
+                            </li>
 
-                    <!-- Nút "Sau" -->
-                    <li class="page-item" th:classappend="${!productPage.hasNext()} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="${!productPage.hasNext()} ? '#' : @{/admin/product(page=${productPage.number + 1}, size=${productPage.size})}"
-                           aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
+                            <!-- Nút "Sau" -->
+                            <li class="page-item" th:classappend="${!productPage.hasNext()} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="${!productPage.hasNext()} ? '#' : @{/admin/warehouse(page=${productPage.number + 1}, size=${productPage.size})}"
+                                   aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
             </div>
-        </nav>
+            <div class="col-md-6" style="overflow-y: auto;">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="startDate" class="form-label">Ngày bắt đầu:</label>
+                        <input type="date" id="startDate" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="endDate" class="form-label">Ngày kết thúc:</label>
+                        <input type="date" id="endDate" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <button id="filterByDate" class="btn btn-primary mt-3">
+                            <i class="bi bi-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+                <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="transactionTable">
+                    <thead>
+                    <tr>
+                        <th>Note</th>
+                        <th>Thao tác</th>
+                        <th>Tạo bởi</th>
+                        <th>Ngày tạo</th>
+                        <th>Tổng giá trị</th>
+                        <th>Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="transactionGroup : ${transactionGroups}">
+                        <td th:text="${transactionGroup.getNote()}">Nhập áo sơ mi tay dài</td>
+                        <td th:text="${transactionGroup.getTransactionType()}">Import/Export</td>
+                        <td th:text="${transactionGroup.getCreatedBy()}">Minh</td>
+                        <td th:text="${#temporals.format(transactionGroup.getCreatedAt(), 'yyyy-MM-dd')}">Thời gian</td>
+                        <td th:text="${transactionGroup.getTotalAmount()}">250.000 VND</td>
+                        <td>
+                            <a th:href="@{/admin/warehouse/transaction-detail/{id}(id=${transactionGroup.getGroupId()})}" class="btn btn-success">
+                                <i class="bi bi-plus-lg"></i> Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const filterButton = document.getElementById('filterByDate');
+        const table = document.getElementById('transactionTable');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        filterButton.addEventListener('click', function() {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            for (let i = 0; i < rows.length; i++) {
+                const dateCell = rows[i].getElementsByTagName('td')[3]; // Ngày tạo is the 4th column (index 3)
+                const dateText = dateCell.textContent.trim(); // Get the text and remove extra spaces
+                const transactionDate = parseDate(dateText);
+
+                if ((!startDate || new Date(startDate) <= transactionDate) &&
+                    (!endDate || new Date(endDate) >= transactionDate)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        });
+
+        // Helper function to parse the date string
+        function parseDate(dateString) {
+            // Check if the dateString is empty or undefined
+            if (!dateString) {
+                return new Date(0); // Return a default date (e.g., Unix epoch) or handle as appropriate for your logic
+            }
+            // The format is now YYYY-MM-DD
+            const dateParts = dateString.split('-');
+            if (dateParts.length !== 3) {
+                return new Date(0);
+            }
+            return new Date(dateParts[0], parseInt(dateParts[1]) - 1, dateParts[2]);
+        }
+    });
+</script>
+</body>
+</html>

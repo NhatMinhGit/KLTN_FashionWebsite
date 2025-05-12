@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết đơn hàng</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+
+    <style>
+        .order-label {
+            font-weight: 600;
+            width: 200px;
+        }
+        .order-value {
+            font-weight: 400;
+        }
+        .order-detail-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .btn-space {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Chi tiết giao dịch #<span th:text="${transactionGroup.getGroupId()}"></span></h4>
+        </div>
+        <div class="card-body">
+            <!-- Thông tin chung -->
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Ghi chú:</div>
+                <div class="col-md-9 order-value" th:text="${transactionGroup.note}">Nhập kho áo sơ mi</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Loại giao dịch:</div>
+                <div class="col-md-9 order-value" th:text="${transactionGroup.transactionType}">IMPORT</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Người tạo:</div>
+                <div class="col-md-9 order-value" th:text="${transactionGroup.createdBy}">Minh</div>
+            </div>
+            <div class="row order-detail-row">
+                <div class="col-md-3 order-label">Ngày tạo:</div>
+                <div class="col-md-9 order-value" th:text="${transactionGroup.createdAt}">2025-05-07</div>
+            </div>
+            <div class="row order-detail-row mb-4">
+                <div class="col-md-3 order-label">Tổng giá trị:</div>
+                <div class="col-md-9 order-value" th:text="${#numbers.formatDecimal(transactionGroup.totalAmount, 0, 'COMMA', 2, 'POINT')} + ' ₫'">250.000 ₫</div>
+            </div>
+
+            <!-- Bảng danh sách transaction -->
+            <h5 class="mt-4">Danh sách sản phẩm trong giao dịch:</h5>
+            <table class="table table-bordered mt-3">
+                <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Tổng</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="transaction : ${transactionGroup.getTransactions()}">
+                    <td th:text="${transaction.note}">Áo sơ mi tay dài</td>
+                    <td th:text="${transaction.quantity}">10</td>
+                    <td th:text="${#numbers.formatDecimal(transaction.getUnitPrice(), 0, 'COMMA', 2, 'POINT')} + ' ₫'">250.000 ₫</td>
+                    <td th:text="${#numbers.formatDecimal(transaction.getUnitPrice() * transaction.quantity, 0, 'COMMA', 2, 'POINT')} + ' ₫'">2.500.000 ₫</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Nút -->
+            <div class="d-flex justify-content-start mt-4">
+                <a class="btn btn-secondary btn-space" th:href="@{/admin/warehouse}">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <a class="btn btn-secondary" th:href="@{/admin/warehouse/export-invoice/{id}(id=${transactionGroup.getGroupId()})}">
+                    <i class="fas fa-file-export"></i> Xuất hóa đơn
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

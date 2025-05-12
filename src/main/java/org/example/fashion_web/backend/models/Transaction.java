@@ -24,6 +24,11 @@ public class Transaction {
     @Column(name = "size_id", nullable = false)
     private Long sizeId;
 
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private TransactionGroup transactionGroup;
+
+
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
@@ -40,7 +45,5 @@ public class Transaction {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
-    public enum TransactionType {
-        IMPORT, EXPORT
-    }
+
 }

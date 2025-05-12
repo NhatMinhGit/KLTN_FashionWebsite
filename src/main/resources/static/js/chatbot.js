@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
             });
     }
+    // Function to send message to API
     let currentProductId = null;  // Biến lưu trữ productId khi hỏi
     let currentProductVariant = null;  // Biến lưu trữ variant (màu sắc) khi hỏi
 
@@ -161,28 +162,45 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessage(colorQuestion, 'ai');
         addMessage(quantityQuestion, 'ai');
     }
+    // Function to send message to API
+    function sendToAPI(message) {
+        // Show loading indicator
+        const loadingId = showLoadingIndicator();
 
-    // Hàm này xử lý khi người dùng trả lời câu hỏi về size, màu sắc và số lượng
-    function handleUserResponse(userId) {
-        const size = getSizeInput(); // Hàm lấy input size
-        const color = getColorInput(); // Hàm lấy input màu sắc (giả sử bạn đã có hàm này)
-        const quantity = getQuantityInput(); // Hàm lấy input số lượng
+        fetch(`/user/chat?message=${encodeURIComponent(message)}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
 
-        // Kiểm tra xem productId và productVariant đã được lưu trữ hay chưa
-        if (currentProductId && color) {
-            // Gửi thông tin sản phẩm, size, màu sắc, số lượng và userId qua API
-            sendToAPI(`Sản phẩm ${currentProductId}, size: ${size}, màu: ${color}, số lượng: ${quantity}, người dùng: ${userId}`);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json(); // Chuyển dữ liệu trả về thành JSON
+            })
+            .then(data => {
+                setTimeout(() => {
+                    removeLoadingIndicator(loadingId); // Xoá spinner
 
-            // Reset các biến sau khi đã gửi thông tin
-            currentProductId = null;
-            currentProductVariant = null;
-        } else {
-            console.error("Không tìm thấy productId hoặc màu sắc.");
-        }
+                    // Kiểm tra dữ liệu từ API trả về (ví dụ: aiResponse và productInfo)
+                    if (data.aiResponse) {
+                        addMessage(data.aiResponse, 'ai');  // Hiển thị phản hồi từ AI
+                    }
+                    if (data.productInfo) {
+                        addMessage(data.productInfo, 'html'); // Hiển thị thông tin sản phẩm
+                    }
+                    // Nếu có yêu cầu chọn size và số lượng, yêu cầu người dùng nhập thông tin
+                    if (data.sizeAndQuantityRequired) {
+                        askSizeAndQuantity(data.productId); // Gửi câu hỏi về size và số lượng
+                    }
+                }, 400);
+            })
+
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
+            });
     }
-
-
-
 
     // Function to add a message to the chat
     function addMessage(text, sender) {
@@ -216,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Scroll to bottom of messages
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+
 
     // Function to show loading indicator
     function showLoadingIndicator() {

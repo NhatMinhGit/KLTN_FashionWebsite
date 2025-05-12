@@ -226,7 +226,11 @@ public class GeminiService {
             // Gộp aiResponse và productInfo thành JSON trả về
             Map<String, String> result = new HashMap<>();
             result.put("aiResponse", aiResponse);
-            result.put("productInfo", productInfo);
+
+            if (!relatedProducts.isEmpty() && productInfo != null && !productInfo.isBlank()) {
+                result.put("productInfo", productInfo);
+            }
+
 
             return new ObjectMapper().writeValueAsString(result);
 
@@ -239,121 +243,78 @@ public class GeminiService {
         }
     }
 
+//    private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
+//        return relatedProducts.stream()
+//                .map(p -> {
+//                    Long productId = p.getId();
+//                    Long variantId = p.getVariants().get(0).getId(); // Giả sử lấy ảnh của variant đầu tiên
+//                    List<String> imageUrls = productVariantImages.getOrDefault(productId, new HashMap<>())
+//                            .getOrDefault(variantId, Collections.emptyList());
+//
+//                    String productImage = (imageUrls.isEmpty())
+//                            ? "https://via.placeholder.com/80?text=No+Image"
+//                            : imageUrls.get(0);
+//
+//                    String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
+//
+//                    // Thêm sự kiện click vào phần tử sản phẩm để chuyển hướng tới trang chi tiết sản phẩm
+//                    String productOnClick = "onclick='window.location.href=\"product-detail/" + productId + "\"'";
+//
+//                    // Tạo phần thông tin sản phẩm
+//                    return "<div style='border:1px solid #ccc; border-radius:8px; padding:10px; margin-bottom:10px;' " + productOnClick + ">"
+//                            + "<div style='display:flex; flex-direction: column; align-items: flex-start; margin-bottom:8px;'>"
+//                            + "<div style='margin-bottom:12px;'><img src='" + productImage + "' style='border-radius:8px;' alt='" + p.getName() + "' width='80' height='80'></div>"
+//                            + "<div><h6 style='color:#6c757d; margin:0;'>" + p.getCategory().getName() + "</h6>"
+//                            + "<h6 style='margin:0;'>" + p.getName() + "</h6></div>"
+//                            + "</div>"
+//                            + "<p style='font-weight:bold;'>" + priceHtml + "</p>"
+//                            + "</div>";
+//
+//                })
+//                .collect(Collectors.joining("\n"));
+//    }
     private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
-        if (relatedProducts.isEmpty()) {
-            return "Em chưa tìm thấy sản phẩm chính xác, nhưng anh/chị có thể tham khảo thêm các mẫu tương tự không ạ?";
-        }
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<div style='display:flex; flex-wrap:wrap; gap:10px;'>");
 
-        return relatedProducts.stream()
-                .map(p -> {
-                    Long productId = p.getId();
-                    Long variantId = p.getVariants().get(0).getId(); // Giả sử lấy ảnh của variant đầu tiên
-                    List<String> imageUrls = productVariantImages.getOrDefault(productId, new HashMap<>())
-                            .getOrDefault(variantId, Collections.emptyList());
+        relatedProducts.forEach(p -> {
+            Long productId = p.getId();
+            Long variantId = p.getVariants().get(0).getId();
+            List<String> imageUrls = productVariantImages.getOrDefault(productId, new HashMap<>())
+                    .getOrDefault(variantId, Collections.emptyList());
 
-                    String productImage = (imageUrls.isEmpty())
-                            ? "https://via.placeholder.com/80?text=No+Image"
-                            : imageUrls.get(0);
+            String productImage = (imageUrls.isEmpty())
+                    ? "https://via.placeholder.com/80?text=No+Image"
+                    : imageUrls.get(0);
 
-                    String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
+            String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
+            String productOnClick = "onclick='window.location.href=\"product-detail/" + productId + "\"'";
 
-                    // Thêm sự kiện click vào phần tử sản phẩm để chuyển hướng tới trang chi tiết sản phẩm
-                    String productOnClick = "onclick='window.location.href=\"product-detail/" + productId + "\"'";
-// Gọi hàm JS addToCart(productId)
-//                    String priceHtmlWithoutCurrency = priceHtml.replace(" đ", "");  // Loại bỏ " đ" khỏi giá
-//
-//
-//                    // Xử lý các ký tự đặc biệt trong tên sản phẩm và giá, tránh lỗi cú pháp
-//                    String productOnClick = "onclick=\"addToCart(" + productId + ", '" + escapeJavaScript(p.getName()) + "', " + escapeJavaScript(priceHtmlWithoutCurrency) + ")\"";
+            // Thêm CSS animation inline
+            String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:150px; cursor:pointer; "
+                    + "transition: transform 0.3s, box-shadow 0.3s; "
+                    + "display:inline-block;";
 
-                    // Tạo phần thông tin sản phẩm
-                    return "<div style='border:1px solid #ccc; border-radius:8px; padding:10px; margin-bottom:10px;' " + productOnClick + ">"
-                            + "<div style='display:flex; flex-direction: column; align-items: flex-start; margin-bottom:8px;'>"
-                            + "<div style='margin-bottom:12px;'><img src='" + productImage + "' style='border-radius:8px;' alt='" + p.getName() + "' width='80' height='80'></div>"
-                            + "<div><h6 style='color:#6c757d; margin:0;'>" + p.getCategory().getName() + "</h6>"
-                            + "<h6 style='margin:0;'>" + p.getName() + "</h6></div>"
-                            + "</div>"
-                            + "<p style='font-weight:bold;'>" + priceHtml + "</p>"
-                            + "</div>";
+            String cardHoverStyle = "this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';";
+            String cardUnhoverStyle = "this.style.transform='scale(1)'; this.style.boxShadow='none';";
 
-                })
-                .collect(Collectors.joining("\n"));
-    }
-    public String escapeJavaScript(String input) {
-        if (input == null) {
-            return "";
-        }
-        // Thoát các ký tự đặc biệt trong chuỗi
-        return input.replace("\"", "\\\"").replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+            htmlBuilder.append("<div style='").append(cardStyle).append("' ")
+                    .append(productOnClick)
+                    .append(" onmouseover=\"").append(cardHoverStyle).append("\" ")
+                    .append(" onmouseout=\"").append(cardUnhoverStyle).append("\">")
+                    .append("<div style='text-align:center; margin-bottom:8px;'>")
+                    .append("<img src='").append(productImage).append("' style='border-radius:8px;' alt='").append(p.getName()).append("' width='80' height='80'>")
+                    .append("</div><div style='text-align:center;'>")
+                    .append("<h6 style='color:#6c757d; margin:0; font-size:12px;'>").append(p.getCategory().getName()).append("</h6>")
+                    .append("<h6 style='margin:0; font-size:14px;'>").append(p.getName()).append("</h6>")
+                    .append("<p style='font-weight:bold; margin:0; font-size:14px;'>").append(priceHtml).append("</p>")
+                    .append("</div></div>");
+        });
+
+        htmlBuilder.append("</div>");
+        return htmlBuilder.toString();
     }
 
-    public String addToCart(Long userId, Long productId, String size, String color, int quantity) {
-        // Lấy thông tin người dùng
-        User user = userService.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Lấy sản phẩm theo productId
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        // Lấy thông tin variant (màu sắc hoặc các thuộc tính khác)
-        ProductVariant productVariant = productVariantRepository.findByProductIdAndColor(productId, color);
-        if (productVariant == null) {
-            return "Không có sản phẩm với màu sắc này.";
-        }
-
-        // Lấy sản phẩm theo size (có thể có các phương thức khác nhau tùy theo mô hình cơ sở dữ liệu)
-        Optional<Size> productSize = sizeService.findByProductVariantIdAndSizeName(productVariant.getId(), size);
-        if (productSize == null) {
-            return "Không có sản phẩm với kích thước này.";
-        }
-
-        // Kiểm tra nếu giỏ hàng của người dùng đã tồn tại
-        Cart cart = cartRepository.findByUserId(user.getId());
-        if (cart == null) {
-            cart = new Cart();
-            cart.setUser(user);
-            cartRepository.save(cart); // Tạo mới giỏ hàng
-        }
-
-        // Kiểm tra nếu sản phẩm đã có trong giỏ hàng
-        CartItems cartItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().equals(product) &&
-                        item.getSize().equals(productSize) &&
-                        item.getVariant().equals(productVariant))
-                .findFirst().orElse(null);
-
-        if (cartItem != null) {
-            // Nếu sản phẩm đã có trong giỏ hàng, cập nhật số lượng
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
-        } else {
-            // Nếu sản phẩm chưa có trong giỏ hàng, tạo mới CartItem
-            cartItem = new CartItems();
-            cartItem.setProduct(product);
-            cartItem.setSize(productSize.get());
-            cartItem.setVariant(productVariant);
-            cartItem.setQuantity(quantity);
-            cartItem.setCart(cart); // Lưu cartItem vào giỏ hàng
-            cart.getCartItems().add(cartItem);
-        }
-
-        // Lưu lại giỏ hàng
-        cartRepository.save(cart);
-
-        return "Sản phẩm đã được thêm vào giỏ hàng.";
-    }
-
-    public String getGeminiResponse(String message) {
-        String response;
-        if (message.toLowerCase().contains("sản phẩm")) {
-            response = searchProducts(message);
-        } else if (message.toLowerCase().contains("tồn kho")) {
-            response = checkStock(message);
-        } else {
-            response = "Xin lỗi, tôi chưa hiểu câu hỏi. Bạn có thể hỏi về sản phẩm hoặc tồn kho.";
-        }
-        return response;
-    }
 
     public String searchProducts(String message) {
         List<Product> products = productRepository.findByNameContaining(message);
@@ -452,52 +413,84 @@ public class GeminiService {
         // Trả về kết quả
         return "Dạ, doanh thu tổng của cả năm " + yearToCheck + " là " + data + " VNĐ";
     }
-    public String checkTopProductsRenvenue(String message) {
-        // Chuẩn hóa câu hỏi
-        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
+//    public String checkTopProductsRevenueForUser(String message) {
+//        // Chuẩn hóa câu hỏi
+//        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
+//
+//        // Mặc định lấy tháng và năm hiện tại
+//        LocalDate now = LocalDate.now();
+//        int monthToCheck = now.getMonthValue();
+//        int yearToCheck = now.getYear();
+//
+//        // Regex tìm "tháng x" và "năm xxxx"
+//        Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
+//        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
+//
+//        Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
+//        Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
+//
+//        if (monthMatcher.find()) {
+//            monthToCheck = Integer.parseInt(monthMatcher.group(1));
+//        }
+//
+//        if (yearMatcher.find()) {
+//            yearToCheck = Integer.parseInt(yearMatcher.group(1));
+//        }
+//
+//        LocalDate monthStart = LocalDate.of(yearToCheck, monthToCheck, 1);
+//        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+//
+//        List<ProductRevenueDto> data = orderItemRepository.findTopProductsByRevenue(monthStart, monthEnd);
+//
+//        if (data == null || data.isEmpty()) {
+//            Map<String, String> result = new HashMap<>();
+//            result.put("aiResponse", "Dạ, không có dữ liệu sản phẩm bán chạy trong tháng " + monthToCheck + "/" + yearToCheck + " ạ.");
+//            result.put("productInfo", "");
+//            try {
+//                return new ObjectMapper().writeValueAsString(result);
+//            } catch (JsonProcessingException e) {
+//                return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+//            }
+//        }
+//
+//        StringBuilder response = new StringBuilder("Danh sách top sản phẩm bán chạy tháng " + monthToCheck + "/" + yearToCheck + " là:\n");
+//        List<Product> relatedProduct = productRepository.findAllById(data.get().ge);
+//        // Chuyển đổi ProductRevenueDto sang Product
+//        List<Product> relatedProducts = data.stream()
+//                .map(dto -> {
+//                    Product p = new Product();
+//                    p.setId(dto.getId());
+//                    p.setName(dto.getName());
+//                    p.setPrice(dto.getPrice());
+//                    p.setCategory(dto.getCategory());
+//                    p.setVariants(dto.getProductVariants());
+//                    return p;
+//                })
+//                .collect(Collectors.toList());
+//
+//        // Giả sử bạn có sẵn map productVariantImages đã chuẩn bị trước từ service/repository khác
+//        Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+//
+//        // Tạo productInfo HTML
+//        String productInfoHtml = generateProductInfo(relatedProducts, productVariantImages);
+//
+//        // Tạo response AI text
+//        for (int i = 0; i < data.size(); i++) {
+//            ProductRevenueDto dto = data.get(i);
+//            response.append((i + 1)).append(". ").append(dto.getName()).append(" - Doanh thu: ").append(dto.getSales()).append(" VNĐ\n");
+//        }
+//
+//        Map<String, String> result = new HashMap<>();
+//        result.put("aiResponse", response.toString());
+//        result.put("productInfo", productInfoHtml);
+//
+//        try {
+//            return new ObjectMapper().writeValueAsString(result);
+//        } catch (JsonProcessingException e) {
+//            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+//        }
+//    }
 
-        // Mặc định lấy tháng và năm hiện tại
-        LocalDate now = LocalDate.now();
-        int monthToCheck = now.getMonthValue();
-        int yearToCheck = now.getYear();
-
-        // Regex tìm "tháng x" và "năm xxxx"
-        Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
-        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
-
-        Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
-        Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
-
-        // Nếu người dùng nhập tháng cụ thể
-        if (monthMatcher.find()) {
-            monthToCheck = Integer.parseInt(monthMatcher.group(1));
-        }
-
-        // Nếu người dùng nhập năm cụ thể
-        if (yearMatcher.find()) {
-            yearToCheck = Integer.parseInt(yearMatcher.group(1));
-        }
-
-        // Tính khoảng thời gian đầu và cuối tháng
-        LocalDate monthStart = LocalDate.of(yearToCheck, monthToCheck, 1);
-        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
-
-        // Lấy danh sách top sản phẩm từ DB
-        List<ProductRevenueDto> data = orderItemRepository.findTopProductsByRevenue(monthStart, monthEnd);
-
-        if (data == null || data.isEmpty()) {
-            return "Dạ, không có dữ liệu sản phẩm bán chạy trong tháng " + monthToCheck + "/" + yearToCheck + " ạ.";
-        }
-
-        // Tạo phản hồi
-        StringBuilder response = new StringBuilder("Danh sách top sản phẩm bán chạy tháng " + monthToCheck + "/" + yearToCheck + " là:\n");
-        for (int i = 0; i < data.size(); i++) {
-            ProductRevenueDto dto = data.get(i);
-            response.append((i + 1) + ". " + dto.getName() + " - Doanh thu: " + dto.getSales() + " VNĐ\n");
-        }
-
-        return response.toString();
-    }
     public String checkTopProductsRevenueForUser(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
@@ -514,29 +507,23 @@ public class GeminiService {
         Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
         Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
 
-        // Nếu người dùng nhập tháng cụ thể
         if (monthMatcher.find()) {
             monthToCheck = Integer.parseInt(monthMatcher.group(1));
         }
 
-        // Nếu người dùng nhập năm cụ thể
         if (yearMatcher.find()) {
             yearToCheck = Integer.parseInt(yearMatcher.group(1));
         }
 
-        // Tính khoảng thời gian đầu và cuối tháng
         LocalDate monthStart = LocalDate.of(yearToCheck, monthToCheck, 1);
         LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
 
-        // Lấy danh sách top sản phẩm từ DB
         List<ProductRevenueDto> data = orderItemRepository.findTopProductsByRevenue(monthStart, monthEnd);
 
-        // Nếu không có dữ liệu, trả về phản hồi JSON
         if (data == null || data.isEmpty()) {
             Map<String, String> result = new HashMap<>();
             result.put("aiResponse", "Dạ, không có dữ liệu sản phẩm bán chạy trong tháng " + monthToCheck + "/" + yearToCheck + " ạ.");
             result.put("productInfo", "");
-
             try {
                 return new ObjectMapper().writeValueAsString(result);
             } catch (JsonProcessingException e) {
@@ -544,19 +531,42 @@ public class GeminiService {
             }
         }
 
-        // Tạo thông tin sản phẩm
-        StringBuilder response = new StringBuilder("Danh sách top sản phẩm bán chạy tháng " + monthToCheck + "/" + yearToCheck + " là:\n");
-        StringBuilder productInfo = new StringBuilder();
+        // Lấy danh sách ID từ DTO
+        List<Long> productIds = data.stream()
+                .map(ProductRevenueDto::getId)
+                .collect(Collectors.toList());
+
+        // Lấy sản phẩm từ DB
+        List<Product> productsFromDb = productRepository.findAllById(productIds);
+
+        // Map id → Product để dễ tra cứu
+        Map<Long, Product> productMap = productsFromDb.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        // Chuẩn bị danh sách Product có đầy đủ dữ liệu (bắt theo thứ tự DTO)
+        List<Product> relatedProducts = data.stream()
+                .map(dto -> productMap.get(dto.getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Chuẩn bị map productVariantImages
+        Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+
+        // Tạo productInfo HTML
+        String productInfoHtml = generateProductInfo(relatedProducts, productVariantImages);
+
+        // Tạo response AI text
+        StringBuilder response = new StringBuilder("Danh sách top sản phẩm bán chạy tháng " + monthToCheck + "/" + yearToCheck + " là:<br>");
         for (int i = 0; i < data.size(); i++) {
             ProductRevenueDto dto = data.get(i);
-            response.append((i + 1) + ". " + dto.getName() + " - Doanh thu: " + dto.getSales() + " VNĐ\n");
-            productInfo.append("<p>" + (i + 1) + ". " + dto.getName() + " - Doanh thu: " + dto.getSales() + " VNĐ</p>");
+            response.append((i + 1)).append(". ").append(dto.getName()).append(" - Doanh thu: ").append(dto.getSales()).append(" VNĐ<br>");
         }
 
-        // Tạo phản hồi cho người dùng
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", response.toString());
-        result.put("productInfo", productInfo.toString());
+        if (!relatedProducts.isEmpty() && productInfoHtml != null && !productInfoHtml.isBlank()) {
+            result.put("productInfo", productInfoHtml);
+        }
 
         try {
             return new ObjectMapper().writeValueAsString(result);
@@ -564,6 +574,39 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+    private Map<Long, Map<Long, List<String>>> prepareProductVariantImages(List<Product> products) {
+        Map<Long, Map<Long, List<String>>> result = new HashMap<>();
+
+        for (Product product : products) {
+            Map<Long, List<String>> variantImagesMap = new HashMap<>();
+            boolean productImageSet = false;
+
+            if (product.getVariants() != null) {
+                for (ProductVariant variant : product.getVariants()) {
+                    List<String> imageUrls = new ArrayList<>();
+                    List<Image> variantImages = imageService.findImagesByProductVariantId(variant.getId());
+
+                    if (variantImages != null && !variantImages.isEmpty()) {
+                        imageUrls.add(variantImages.get(0).getImageUri());  // Lấy hình đầu tiên
+                        variantImagesMap.put(variant.getId(), imageUrls);
+
+                        if (!productImageSet) {
+                            // Đặt hình đại diện cho product là hình đầu tiên tìm được từ variant
+                            result.put(product.getId(), Map.of(variant.getId(), imageUrls));
+                            productImageSet = true;
+                        }
+                    }
+                }
+            }
+
+            // Nếu không tìm thấy hình từ variant nào, vẫn thêm product vào map (với map rỗng)
+            result.putIfAbsent(product.getId(), variantImagesMap);
+        }
+
+        return result;
+    }
+
+
 
 
 

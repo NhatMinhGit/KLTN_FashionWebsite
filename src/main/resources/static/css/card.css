@@ -1,27 +1,168 @@
+/*!* Ẩn các sản phẩm không cần thiết *!*/
+/*.product-card.hidden {*/
+/*    opacity: 0;*/
+/*    visibility: hidden; !* Ẩn sản phẩm *!*/
+/*    height: 0; !* Đảm bảo sản phẩm không chiếm không gian *!*/
+/*    border: none; !* Loại bỏ border nếu cần *!*/
+/*}*/
+
+/*!* Đặt các thẻ sản phẩm ban đầu ẩn đi *!*/
+/*.product-card {*/
+/*    display: block; !* Hiển thị sản phẩm ban đầu *!*/
+/*    transition: opacity 0.3s ease, transform 0.3s ease;*/
+/*    border: 1px solid #ddd; !* Thêm đường viền nhẹ cho card *!*/
+/*    border-radius: 8px;*/
+/*    padding: 15px;*/
+/*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
+/*    overflow: hidden;*/
+/*    background-color: white;*/
+/*}*/
+/*!* Card đang được hover nổi lên *!*/
+/*.product-card.faded {*/
+/*    opacity: 0.4;*/
+/*    filter: brightness(0.8);*/
+/*    transition: opacity 0.3s ease, filter 0.3s ease;*/
+/*}*/
+
+/*.product-card.hovered {*/
+/*    z-index: 10;*/
+/*    opacity: 1;*/
+/*    filter: brightness(1.05);*/
+/*    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);*/
+/*    transform: scale(1.03);*/
+/*}*/
+
+/*!* Chứa ảnh sản phẩm *!*/
+/*.product-images {*/
+/*    position: relative;*/
+/*    width: 100%;*/
+/*    height: 250px;*/
+/*    display: flex;*/
+/*    justify-content: center; !* Căn giữa ảnh theo chiều ngang *!*/
+/*    align-items: center; !* Căn giữa ảnh theo chiều dọc *!*/
+/*    overflow: hidden;*/
+/*    border-radius: 8px;*/
+/*}*/
+
+
+/*!* Liên kết bao quanh ảnh *!*/
+/*.product-images a {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*}*/
+/*.image-slider {*/
+/*    display: flex;*/
+/*    width: 200%;  !* Vì có 2 ảnh *!*/
+/*    transition: transform 0.5s ease;*/
+/*}*/
+/*.image-slider img {*/
+/*    width: 50%;*/
+/*    flex-shrink: 0;*/
+/*}*/
+/*!* Các ảnh sản phẩm *!*/
+/*.product-image {*/
+/*    position: absolute;*/
+/*    top: 0;*/
+/*    left: 0;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*    object-fit: cover;*/
+/*    opacity: 0;*/
+/*    transition: opacity 1s ease-in-out; !* mượt hơn *!*/
+/*}*/
+
+/*!* Ảnh đầu tiên luôn hiển thị *!*/
+/*.product-image:first-child {*/
+/*    opacity: 1;*/
+/*}*/
+
+/*!* Hiệu ứng giá gốc *!*/
+/*.original-price {*/
+/*    font-size: 0.9rem;*/
+/*    opacity: 0.6;*/
+/*}*/
+
+/*!* Hiển thị giá sau giảm *!*/
+/*.discounted-price {*/
+/*    font-size: 1.1rem;*/
+/*    font-weight: bold;*/
+/*    color: #d9534f;*/
+/*}*/
+
+/*!* Tiêu đề và mô tả sản phẩm *!*/
+/*.product-title, .product-description {*/
+/*    overflow: hidden;*/
+/*    text-overflow: ellipsis;*/
+/*    white-space: nowrap; !* Chỉ hiển thị 1 dòng *!*/
+/*    color: black;*/
+/*    max-width: 200px; !* Điều chỉnh chiều rộng nếu cần *!*/
+/*}*/
+
+/*!* Hover để mở rộng mô tả *!*/
+/*.product-title:hover, .product-description:hover {*/
+/*    white-space: normal; !* Hiển thị đầy đủ khi hover *!*/
+/*    max-width: none; !* Tự động mở rộng khi hover *!*/
+/*    padding: 5px; !* Tùy chỉnh khoảng cách khi hover *!*/
+/*    background-color: #f8f9fa; !* Thêm nền nhẹ khi hover *!*/
+/*}*/
+
+/*.product-images:hover .product-image {*/
+/*    opacity: 0;*/
+/*}*/
+
+/*.product-images:hover .product-image:nth-child(2) {*/
+/*    opacity: 1;*/
+/*}*/
+
+/*!* Hiển thị thông tin giá và mô tả rõ ràng *!*/
+/*.product-price {*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    margin-top: 10px;*/
+/*}*/
+
+/*.product-price span {*/
+/*    font-size: 1rem;*/
+/*}*/
+
+/*.product-description {*/
+/*    color: #6c757d;*/
+/*    font-size: 0.9rem;*/
+/*    margin-top: 10px;*/
+/*}*/
 /* Ẩn các sản phẩm không cần thiết */
 .product-card.hidden {
     opacity: 0;
-    visibility: hidden; /* Ẩn sản phẩm */
-    height: 0; /* Đảm bảo sản phẩm không chiếm không gian */
-    border: none; /* Loại bỏ border nếu cần */
+    visibility: hidden;
+    height: 0;
+    border: none;
+    margin: 0;
+    padding: 0;
 }
 
-/* Đặt các thẻ sản phẩm ban đầu ẩn đi */
+/* Card sản phẩm */
 .product-card {
-    display: block; /* Hiển thị sản phẩm ban đầu */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    border: 1px solid #ddd; /* Thêm đường viền nhẹ cho card */
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     background-color: white;
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
 }
-/* Card đang được hover nổi lên */
+
+/* Card khi mờ hoặc hover */
 .product-card.faded {
     opacity: 0.4;
     filter: brightness(0.8);
-    transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
 .product-card.hovered {
@@ -32,95 +173,67 @@
     transform: scale(1.03);
 }
 
-/* Chứa ảnh sản phẩm */
+/* Container ảnh sản phẩm */
 .product-images {
     position: relative;
     width: 100%;
     height: 250px;
-    display: flex;
-    justify-content: center; /* Căn giữa ảnh theo chiều ngang */
-    align-items: center; /* Căn giữa ảnh theo chiều dọc */
     overflow: hidden;
     border-radius: 8px;
 }
 
-
-/* Liên kết bao quanh ảnh */
-.product-images a {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
+/* Slider chứa các ảnh */
 .image-slider {
     display: flex;
-    width: 200%;  /* Vì có 2 ảnh */
+    width: 200%;  /* 2 ảnh */
+    height: 100%;
     transition: transform 0.5s ease;
 }
-/* Các ảnh sản phẩm */
-.product-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+
+/* Mỗi ảnh trong slider */
+.image-slider img {
+    width: 50%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
-    transition: opacity 1s ease-in-out; /* mượt hơn */
+    flex-shrink: 0;
 }
 
-/* Ảnh đầu tiên luôn hiển thị */
-.product-image:first-child {
-    opacity: 1;
-}
-
-/* Hiệu ứng giá gốc */
+/* Giá gốc và giảm giá */
 .original-price {
     font-size: 0.9rem;
     opacity: 0.6;
+    text-decoration: line-through;
 }
 
-/* Hiển thị giá sau giảm */
 .discounted-price {
     font-size: 1.1rem;
     font-weight: bold;
     color: #d9534f;
 }
 
-/* Tiêu đề và mô tả sản phẩm */
-.product-title, .product-description {
+/* Tiêu đề và mô tả */
+.product-title,
+.product-description {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap; /* Chỉ hiển thị 1 dòng */
+    white-space: nowrap;
     color: black;
-    max-width: 200px; /* Điều chỉnh chiều rộng nếu cần */
+    max-width: 100%;
 }
 
-/* Hover để mở rộng mô tả */
-.product-title:hover, .product-description:hover {
-    white-space: normal; /* Hiển thị đầy đủ khi hover */
-    max-width: none; /* Tự động mở rộng khi hover */
-    padding: 5px; /* Tùy chỉnh khoảng cách khi hover */
-    background-color: #f8f9fa; /* Thêm nền nhẹ khi hover */
+.product-title:hover,
+.product-description:hover {
+    white-space: normal;
+    background-color: #f8f9fa;
+    padding: 5px;
 }
 
-.product-images:hover .product-image {
-    opacity: 0;
-}
-
-.product-images:hover .product-image:nth-child(2) {
-    opacity: 1;
-}
-
-/* Hiển thị thông tin giá và mô tả rõ ràng */
+/* Giá + mô tả */
 .product-price {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 10px;
-}
-
-.product-price span {
-    font-size: 1rem;
 }
 
 .product-description {
