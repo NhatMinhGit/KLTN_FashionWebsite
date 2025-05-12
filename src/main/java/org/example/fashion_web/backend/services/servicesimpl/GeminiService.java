@@ -22,7 +22,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,9 +47,6 @@ public class GeminiService {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
-    private OrderRepository orderService;
-
-    @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
@@ -58,6 +54,9 @@ public class GeminiService {
 
     @Autowired
     private ChatbotRepository chatbotRepository;
+
+    @Autowired
+    private ChatbotMessageRepository chatbotMessageRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -85,93 +84,21 @@ public class GeminiService {
     private final WebClient webClient = WebClient.builder().build();
 
 
-//    public String chatWithAI(String message) {
-//        // Chuẩn hóa câu hỏi
-//        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").trim();
-//
-//        // Truy vấn sản phẩm liên quan đến câu hỏi
-//        List<Product> relatedProducts = productRepository.findByNameContaining(normalizedMessage);
-//
-//        // Lấy danh sách ảnh chung cho từng sản phẩm
-//        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-//
-//        for (Product product : relatedProducts) {
-//            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-//            Map<Long, List<String>> variantImageMap = new HashMap<>();
-//
-//            for (ProductVariant variant : variants) {
-//                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-//                List<String> imageUrls = images.stream()
-//                        .map(Image::getImageUri)
-//                        .collect(Collectors.toList());
-//                variantImageMap.put(variant.getId(), imageUrls);
-//            }
-//
-//            productVariantImages.put(product.getId(), variantImageMap);
-//        }
-//
-//        // Tạo thông tin sản phẩm
-//        String productInfo = generateProductInfo(relatedProducts, productVariantImages);
-//
-//
-//        // Tạo câu hỏi gửi đến AI cùng với dữ liệu từ database
-//        String prompt = "Người dùng hỏi: '" + message + "'.\n\nDữ liệu từ hệ thống:\n" + productInfo + "\n\nHãy phản hồi thông minh dựa trên thông tin có sẵn.";
-//
-//        String url = GEMINI_API_URL + "?key=" + geminiConfig.getApiKey();
-//
-//        // Tạo JSON yêu cầu
-//        Map<String, Object> requestBody = Map.of(
-//                "contents", List.of(
-//                        Map.of("parts", List.of(Map.of("text", prompt)))
-//                )
-//        );
-//
-//        try {
-//            String response = webClient.post()
-//                    .uri(url)
-//                    .contentType(MediaType.APPLICATION_JSON)
-//                    .bodyValue(requestBody)
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//
-//            System.out.println("Phản hồi từ Gemini API (raw): " + response);
-//            JSONObject jsonResponse = new JSONObject(response);
-//
-//            if (jsonResponse.has("candidates")) {
-//                return jsonResponse
-//                        .getJSONArray("candidates")
-//                        .getJSONObject(0)
-//                        .getJSONObject("content")
-//                        .getJSONArray("parts")
-//                        .getJSONObject(0)
-//                        .getString("text");
-//            } else {
-//                return "API không trả về phản hồi hợp lệ!";
-//            }
-//
-//        } catch (WebClientResponseException e) {
-//            System.err.println("Lỗi từ Gemini API: " + e.getResponseBodyAsString());
-//            return "Lỗi từ Gemini API: " + e.getResponseBodyAsString();
-//        } catch (Exception e) {
-//            System.err.println("Lỗi hệ thống: " + e.getMessage());
-//            return "Lỗi hệ thống: " + e.getMessage();
-//        }
-//    }
     public String chatWithAI(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").trim();
 
         // Truy vấn sản phẩm liên quan đến câu hỏi
         List<Product> relatedProducts = productRepository.findByNameContaining(normalizedMessage);
+        if (relatedProducts.isEmpty()) {
+            return "{\"error\": \"Không tìm thấy sản phẩm nào liên quan.\"}";
+        }
 
         // Lấy danh sách ảnh chung cho từng sản phẩm
         Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-
         for (Product product : relatedProducts) {
             List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
             Map<Long, List<String>> variantImageMap = new HashMap<>();
-
             for (ProductVariant variant : variants) {
                 List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
                 List<String> imageUrls = images.stream()
@@ -179,7 +106,6 @@ public class GeminiService {
                         .collect(Collectors.toList());
                 variantImageMap.put(variant.getId(), imageUrls);
             }
-
             productVariantImages.put(product.getId(), variantImageMap);
         }
 
@@ -207,9 +133,8 @@ public class GeminiService {
                     .bodyToMono(String.class)
                     .block();
 
-            System.out.println("Phản hồi từ Gemini API (raw): " + response);
+            // Kiểm tra phản hồi từ Gemini API
             JSONObject jsonResponse = new JSONObject(response);
-
             String aiResponse;
             if (jsonResponse.has("candidates")) {
                 aiResponse = jsonResponse
@@ -231,48 +156,16 @@ public class GeminiService {
                 result.put("productInfo", productInfo);
             }
 
-
             return new ObjectMapper().writeValueAsString(result);
 
         } catch (WebClientResponseException e) {
-            System.err.println("Lỗi từ Gemini API: " + e.getResponseBodyAsString());
             return "{\"error\": \"Lỗi từ Gemini API: " + e.getResponseBodyAsString() + "\"}";
         } catch (Exception e) {
-            System.err.println("Lỗi hệ thống: " + e.getMessage());
             return "{\"error\": \"Lỗi hệ thống: " + e.getMessage() + "\"}";
         }
     }
 
-//    private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
-//        return relatedProducts.stream()
-//                .map(p -> {
-//                    Long productId = p.getId();
-//                    Long variantId = p.getVariants().get(0).getId(); // Giả sử lấy ảnh của variant đầu tiên
-//                    List<String> imageUrls = productVariantImages.getOrDefault(productId, new HashMap<>())
-//                            .getOrDefault(variantId, Collections.emptyList());
-//
-//                    String productImage = (imageUrls.isEmpty())
-//                            ? "https://via.placeholder.com/80?text=No+Image"
-//                            : imageUrls.get(0);
-//
-//                    String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
-//
-//                    // Thêm sự kiện click vào phần tử sản phẩm để chuyển hướng tới trang chi tiết sản phẩm
-//                    String productOnClick = "onclick='window.location.href=\"product-detail/" + productId + "\"'";
-//
-//                    // Tạo phần thông tin sản phẩm
-//                    return "<div style='border:1px solid #ccc; border-radius:8px; padding:10px; margin-bottom:10px;' " + productOnClick + ">"
-//                            + "<div style='display:flex; flex-direction: column; align-items: flex-start; margin-bottom:8px;'>"
-//                            + "<div style='margin-bottom:12px;'><img src='" + productImage + "' style='border-radius:8px;' alt='" + p.getName() + "' width='80' height='80'></div>"
-//                            + "<div><h6 style='color:#6c757d; margin:0;'>" + p.getCategory().getName() + "</h6>"
-//                            + "<h6 style='margin:0;'>" + p.getName() + "</h6></div>"
-//                            + "</div>"
-//                            + "<p style='font-weight:bold;'>" + priceHtml + "</p>"
-//                            + "</div>";
-//
-//                })
-//                .collect(Collectors.joining("\n"));
-//    }
+
     private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<div style='display:flex; flex-wrap:wrap; gap:10px;'>");
@@ -331,27 +224,52 @@ public class GeminiService {
                 .filter(p -> normalizedMessage.toLowerCase().contains(p.getName().toLowerCase()))
                 .collect(Collectors.toList());
 
-        // Kiểm tra sản phẩm trong database
+        // Nếu không tìm thấy sản phẩm
+        if (relatedProducts.isEmpty()) {
+            Map<String, String> result = new HashMap<>();
+            result.put("aiResponse", "Dạ, em không tìm thấy sản phẩm nào khớp với yêu cầu.");
+            result.put("productInfo", "");
+            try {
+                return new ObjectMapper().writeValueAsString(result);
+            } catch (JsonProcessingException e) {
+                return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+            }
+        }
+
+        // Lấy hình ảnh sản phẩm
         Optional<Image> relatedProductImage = imageRepository.findAll()
                 .stream()
                 .filter(i -> normalizedMessage.toLowerCase().contains(i.getProductVariant().getProduct().getName().toLowerCase()))
                 .findFirst();
 
-        // Định dạng giá tiền
-        DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
-
-        // Tạo nội dung phản hồi
-        Product firstProduct = relatedProducts.get(0); // lấy sản phẩm đầu tiên
+        // Lấy thông tin sản phẩm
+        Product firstProduct = relatedProducts.get(0);
         String productName = firstProduct.getName();
-        String productPrice = firstProduct.getPrice() != null ? new DecimalFormat("#,### VNĐ").format(firstProduct.getPrice()) : "Chưa có giá";
-        String imageUrl = relatedProductImage.map(Image::getImageUri).orElse("Không có hình ảnh");
+        String productPrice = firstProduct.getPrice() != null
+                ? new DecimalFormat("#,### VNĐ").format(firstProduct.getPrice())
+                : "Chưa có giá";
+        String imageUrl = relatedProductImage.map(Image::getImageUri).orElse("");
 
-        // Tạo phản hồi trả về
-        return "Dạ, em tìm thấy sản phẩm:<br>" +
-                "<b>Tên:</b> " + productName + "<br>" +
-                "<b>Giá:</b> " + productPrice + "<br>" +
-                "<img src='" + imageUrl + "' width='200' />";
+        // Chuẩn bị JSON phản hồi
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", "Dạ, em tìm thấy sản phẩm bên dưới ạ:");
+
+        // Tạo nội dung HTML mô tả sản phẩm
+        String productInfo = "<b>Tên:</b> " + productName + "<br>" +
+                "<b>Giá:</b> " + productPrice + "<br>";
+        if (!imageUrl.isBlank()) {
+            productInfo += "<img src='" + imageUrl + "' width='200' />";
+        }
+
+        result.put("productInfo", productInfo);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
     }
+
     public String checkMonthlyRenvenue(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
@@ -380,25 +298,38 @@ public class GeminiService {
 
         // Lấy doanh thu từ DB
         BigDecimal data = orderRepository.getMonthlyRevenue(yearToCheck, monthToCheck);
-
         if (data == null) data = BigDecimal.ZERO;
 
-        // Trả về kết quả
-        return "Dạ, doanh thu tháng " + monthToCheck + "/" + yearToCheck + " là " + data + " VNĐ";
+        // Định dạng doanh thu
+        DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
+        String formattedRevenue = formatter.format(data);
+
+        // Tạo phản hồi JSON
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", "Dạ, doanh thu tháng " + monthToCheck + "/" + yearToCheck + " là " + formattedRevenue);
+        result.put("month", String.valueOf(monthToCheck));
+        result.put("year", String.valueOf(yearToCheck));
+        result.put("revenue", formattedRevenue);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
+        }
     }
+
 
     public String checkYearlyRenvenue(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
-        // Mặc định lấy tháng và năm hiện tại
+        // Mặc định lấy năm hiện tại
         LocalDate now = LocalDate.now();
         int yearToCheck = now.getYear();
 
         // Regex tìm "năm xxxx"
         Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
         Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
-
 
         // Nếu người dùng nhập năm cụ thể
         if (yearMatcher.find()) {
@@ -407,89 +338,24 @@ public class GeminiService {
 
         // Lấy doanh thu từ DB
         BigDecimal data = orderRepository.getYearlyRevenue(yearToCheck);
-
         if (data == null) data = BigDecimal.ZERO;
 
-        // Trả về kết quả
-        return "Dạ, doanh thu tổng của cả năm " + yearToCheck + " là " + data + " VNĐ";
+        // Định dạng doanh thu
+        DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
+        String formattedRevenue = formatter.format(data);
+
+        // Tạo phản hồi JSON
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", "Dạ, doanh thu tổng của cả năm " + yearToCheck + " là " + formattedRevenue);
+        result.put("year", String.valueOf(yearToCheck));
+        result.put("revenue", formattedRevenue);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
+        }
     }
-//    public String checkTopProductsRevenueForUser(String message) {
-//        // Chuẩn hóa câu hỏi
-//        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
-//
-//        // Mặc định lấy tháng và năm hiện tại
-//        LocalDate now = LocalDate.now();
-//        int monthToCheck = now.getMonthValue();
-//        int yearToCheck = now.getYear();
-//
-//        // Regex tìm "tháng x" và "năm xxxx"
-//        Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
-//        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
-//
-//        Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
-//        Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
-//
-//        if (monthMatcher.find()) {
-//            monthToCheck = Integer.parseInt(monthMatcher.group(1));
-//        }
-//
-//        if (yearMatcher.find()) {
-//            yearToCheck = Integer.parseInt(yearMatcher.group(1));
-//        }
-//
-//        LocalDate monthStart = LocalDate.of(yearToCheck, monthToCheck, 1);
-//        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
-//
-//        List<ProductRevenueDto> data = orderItemRepository.findTopProductsByRevenue(monthStart, monthEnd);
-//
-//        if (data == null || data.isEmpty()) {
-//            Map<String, String> result = new HashMap<>();
-//            result.put("aiResponse", "Dạ, không có dữ liệu sản phẩm bán chạy trong tháng " + monthToCheck + "/" + yearToCheck + " ạ.");
-//            result.put("productInfo", "");
-//            try {
-//                return new ObjectMapper().writeValueAsString(result);
-//            } catch (JsonProcessingException e) {
-//                return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
-//            }
-//        }
-//
-//        StringBuilder response = new StringBuilder("Danh sách top sản phẩm bán chạy tháng " + monthToCheck + "/" + yearToCheck + " là:\n");
-//        List<Product> relatedProduct = productRepository.findAllById(data.get().ge);
-//        // Chuyển đổi ProductRevenueDto sang Product
-//        List<Product> relatedProducts = data.stream()
-//                .map(dto -> {
-//                    Product p = new Product();
-//                    p.setId(dto.getId());
-//                    p.setName(dto.getName());
-//                    p.setPrice(dto.getPrice());
-//                    p.setCategory(dto.getCategory());
-//                    p.setVariants(dto.getProductVariants());
-//                    return p;
-//                })
-//                .collect(Collectors.toList());
-//
-//        // Giả sử bạn có sẵn map productVariantImages đã chuẩn bị trước từ service/repository khác
-//        Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
-//
-//        // Tạo productInfo HTML
-//        String productInfoHtml = generateProductInfo(relatedProducts, productVariantImages);
-//
-//        // Tạo response AI text
-//        for (int i = 0; i < data.size(); i++) {
-//            ProductRevenueDto dto = data.get(i);
-//            response.append((i + 1)).append(". ").append(dto.getName()).append(" - Doanh thu: ").append(dto.getSales()).append(" VNĐ\n");
-//        }
-//
-//        Map<String, String> result = new HashMap<>();
-//        result.put("aiResponse", response.toString());
-//        result.put("productInfo", productInfoHtml);
-//
-//        try {
-//            return new ObjectMapper().writeValueAsString(result);
-//        } catch (JsonProcessingException e) {
-//            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
-//        }
-//    }
 
     public String checkTopProductsRevenueForUser(String message) {
         // Chuẩn hóa câu hỏi
@@ -574,6 +440,82 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+    public String checkTopProductsRevenueForOptimalPlan(String message) {
+        // Chuẩn hóa câu hỏi
+        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
+
+        // Mặc định lấy tháng và năm hiện tại
+        LocalDate now = LocalDate.now();
+        int monthToCheck = now.getMonthValue();
+        int yearToCheck = now.getYear();
+
+        // Regex tìm "tháng x" và "năm xxxx"
+        Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
+        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
+
+        Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
+        Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
+
+        if (monthMatcher.find()) {
+            monthToCheck = Integer.parseInt(monthMatcher.group(1));
+        }
+
+        if (yearMatcher.find()) {
+            yearToCheck = Integer.parseInt(yearMatcher.group(1));
+        }
+
+        LocalDate monthStart = LocalDate.of(yearToCheck, monthToCheck, 1);
+        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+
+        List<ProductRevenueDto> data = orderItemRepository.findTopProductsByRevenue(monthStart, monthEnd);
+
+        if (data == null || data.isEmpty()) {
+            Map<String, String> result = new HashMap<>();
+            result.put("productInfo", "");
+            try {
+                return new ObjectMapper().writeValueAsString(result);
+            } catch (JsonProcessingException e) {
+                return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+            }
+        }
+
+        // Lấy danh sách ID từ DTO
+        List<Long> productIds = data.stream()
+                .map(ProductRevenueDto::getId)
+                .collect(Collectors.toList());
+
+        // Lấy sản phẩm từ DB
+        List<Product> productsFromDb = productRepository.findAllById(productIds);
+
+        // Map id → Product để dễ tra cứu
+        Map<Long, Product> productMap = productsFromDb.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        // Chuẩn bị danh sách Product có đầy đủ dữ liệu (bắt theo thứ tự DTO)
+        List<Product> relatedProducts = data.stream()
+                .map(dto -> productMap.get(dto.getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Chuẩn bị map productVariantImages
+        Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+
+        // Tạo productInfo HTML
+        String productInfoHtml = generateProductInfo(relatedProducts, productVariantImages);
+
+        // Tạo response AI text
+
+        Map<String, String> result = new HashMap<>();
+        if (!relatedProducts.isEmpty() && !productInfoHtml.isBlank()) {
+            result.put("productInfo", productInfoHtml);
+        }
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
     private Map<Long, Map<Long, List<String>>> prepareProductVariantImages(List<Product> products) {
         Map<Long, Map<Long, List<String>>> result = new HashMap<>();
 
@@ -610,45 +552,46 @@ public class GeminiService {
 
 
 
-    public void saveConversation(Long userId, String interactionLog) {
-            User user = userService.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+//    public void saveConversation(Long userId, String interactionLog) {
+//            User user = userService.findById(userId)
+//                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+//
+//            Chatbot chatbot = chatbotRepository.findByUserId(userId);
+//
+//            UserChatbot userChatbot = new UserChatbot();
+//            userChatbot.setUser(user);
+//            userChatbot.setChatbot(chatbot);
+//            userChatbot.setInteractionLog(interactionLog);
+//            userChatbot.setLastInteractionAt(LocalDateTime.now());
+//
+//            userChatbotRepository.save(userChatbot);
+//            System.out.println("Đã lưu đoạn hội thoại mới vào database.");
+//        }
+    public void saveConversation(ChatbotSession session, String senderType, String messageText, String messageType, String intent, String entities) {
+        ChatbotMessage message = new ChatbotMessage();
+        message.setChatbotSession(session);
+        message.setSenderType(senderType);
+        message.setMessageText(messageText);
+        message.setMessageType(messageType);
+        message.setIntent(intent);
+        message.setEntities(entities);
+        chatbotMessageRepository.save(message);
+    }
 
-            Chatbot chatbot = chatbotRepository.findByUserId(userId);
-
-            UserChatbot userChatbot = new UserChatbot();
-            userChatbot.setUser(user);
-            userChatbot.setChatbot(chatbot);
-            userChatbot.setInteractionLog(interactionLog);
-            userChatbot.setLastInteractionAt(LocalDateTime.now());
-
-            userChatbotRepository.save(userChatbot);
-            System.out.println("Đã lưu đoạn hội thoại mới vào database.");
-        }
 
     public String getVietnamEventSuggestion(String message) {
-        // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
-        // Mặc định lấy tháng và năm hiện tại
         LocalDate now = LocalDate.now();
         int monthToCheck = now.getMonthValue();
-        int yearToCheck = now.getYear();
 
-        // Regex tìm "tháng x"
         Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
-
         Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
-
-        // Nếu người dùng nhập tháng cụ thể
         if (monthMatcher.find()) {
             monthToCheck = Integer.parseInt(monthMatcher.group(1));
         }
 
-        // Tính khoảng thời gian đầu và cuối tháng
-        LocalDate monthStart = LocalDate.of(yearToCheck, monthToCheck, 1);
-
-        return switch (monthToCheck) {
+        String suggestion = switch (monthToCheck) {
             case 1, 2 -> "Gần Tết Nguyên Đán, nên tập trung áo dài, quần áo mới, đồ đi chơi Tết.";
             case 3 -> "Tháng có 8/3 – nên đẩy mạnh váy, đầm, phụ kiện nữ.";
             case 4, 5 -> "Chuẩn bị lễ 30/4 - 1/5, có thể tập trung thời trang du lịch, áo thun, kính mát.";
@@ -659,30 +602,33 @@ public class GeminiService {
             case 10 -> "Tháng có 20/10 – váy, đầm, túi xách là lựa chọn hàng đầu.";
             case 11 -> "Ngày Nhà giáo Việt Nam – đồ thanh lịch, áo dài, quà tặng.";
             case 12 -> "Chuẩn bị Noel – tập trung áo len, áo khoác, đồ đông.";
-            default -> "";
+            default -> "Không có sự kiện nổi bật.";
         };
-    }
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("month", monthToCheck);
+        response.put("suggestion", suggestion);
+
+        try {
+            return new ObjectMapper().writeValueAsString(response);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi JSON: " + e.getMessage() + "\"}";
+        }
+    }
     public String getVietnamWeatherSuggestion(String message) {
-        // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
-        // Mặc định lấy tháng và năm hiện tại
         LocalDate now = LocalDate.now();
         int monthToCheck = now.getMonthValue();
-        int yearToCheck = now.getYear();
 
-        // Regex tìm "tháng x"
         Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
         Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
         if (monthMatcher.find()) {
             monthToCheck = Integer.parseInt(monthMatcher.group(1));
         }
 
-        // Xác định mùa hiện tại
         String currentSeason = "";
         List<String> currentSuggestions = new ArrayList<>();
-
         String nextSeason = "";
         List<String> nextSuggestions = new ArrayList<>();
 
@@ -701,120 +647,124 @@ public class GeminiService {
             currentSuggestions = List.of("Cardigan", "Áo sơ mi dài tay", "Váy nhẹ", "Khăn lụa");
             nextSeason = "Mùa Đông";
             nextSuggestions = List.of("Áo khoác dày", "Áo len", "Khăn quàng cổ", "Giày boot");
-        } else { // tháng 12, 1
+        } else {
             currentSeason = "Mùa Đông";
             currentSuggestions = List.of("Áo khoác dày", "Áo len", "Khăn quàng cổ", "Giày boot");
             nextSeason = "Mùa Xuân";
             nextSuggestions = List.of("Áo khoác nhẹ", "Váy dài tay", "Áo sơ mi", "Giày búp bê");
         }
 
-        // Gợi ý trả về
-        return "Tháng " + monthToCheck + " là " + currentSeason + " – gợi ý: " +
-                String.join(", ", currentSuggestions) + ".<br>" +
-                "Bạn cũng có thể chuẩn bị sớm cho " + nextSeason + " – các mặt hàng như: " +
-                String.join(", ", nextSuggestions) + ".";
+        Map<String, Object> result = new HashMap<>();
+        result.put("month", monthToCheck);
+        result.put("currentSeason", currentSeason);
+        result.put("currentSuggestions", currentSuggestions);
+        result.put("nextSeason", nextSeason);
+        result.put("nextSuggestions", nextSuggestions);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
+        }
     }
 
 
-    public String checkPriceAndCategory(String message) {
-        String lowerCaseMessage = message.toLowerCase();
+//    public String checkPriceAndCategory(String message) {
+//        String lowerCaseMessage = message.toLowerCase();
+//
+//        // --- Bước 1: Tách giá ---
+//        Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu|tỷ)?", Pattern.CASE_INSENSITIVE);
+//        Matcher matcher = pattern.matcher(lowerCaseMessage);
+//
+//        List<Long> priceList = new ArrayList<>();
+//        while (matcher.find()) {
+//            try {
+//                String numberPart = matcher.group(1).replace(",", "").replace(".", "");
+//                String unit = matcher.group(2);
+//                long value = Long.parseLong(numberPart);
+//
+//                if (unit != null) {
+//                    switch (unit.toLowerCase()) {
+//                        case "k", "nghìn" -> value *= 1_000;
+//                        case "tr", "triệu" -> value *= 1_000_000;
+//                        case "tỷ" -> value *= 1_000_000_000;
+//                    }
+//                }
+//
+//                priceList.add(value);
+//            } catch (NumberFormatException ignored) {}
+//        }
+//
+//        // --- Bước 2: Xác định khoảng giá ---
+//        long minPrice = 0;
+//        long maxPrice = Long.MAX_VALUE;
+//
+//        if (priceList.size() == 1) {
+//            long basePrice = priceList.get(0);
+//            minPrice = Math.max(0, basePrice - 50_000);
+//            maxPrice = basePrice + 50_000;
+//        } else if (priceList.size() >= 2) {
+//            minPrice = Math.min(priceList.get(0), priceList.get(1));
+//            maxPrice = Math.max(priceList.get(0), priceList.get(1));
+//        }
+//
+//        // --- Bước 3: Kiểm tra danh mục ---
+//        List<Category> categories = categoryRepository.getAllByParentCategoryNotNull();
+//        Optional<String> matchedCategory = categories.stream()
+//                .map(cat -> cat.getName().toLowerCase())
+//                .filter(lowerCaseMessage::contains)
+//                .findFirst();
+//
+//        List<Product> products;
+//
+//        if (matchedCategory.isPresent()) {
+//            products = productRepository.findByPriceBetweenAndCategoryName(minPrice, maxPrice, matchedCategory.get());
+//        } else {
+//            products = productRepository.findByPriceBetween(minPrice, maxPrice);
+//        }
+//
+//        // --- Bước 4: Trả kết quả dạng JSON ---
+//        ObjectMapper mapper = new ObjectMapper();
+//        try {
+//            if (products.isEmpty()) {
+//                Map<String, String> notFound = Map.of("message", "Không tìm thấy sản phẩm nào phù hợp với yêu cầu.");
+//                return mapper.writeValueAsString(notFound);
+//            }
+//
+//            List<Product> resultList = products.stream()
+//                    .map(p -> new Product(p.getName(), p.getPrice()))
+//                    .toList();
+//
+//            return mapper.writeValueAsString(resultList);
+//        } catch (Exception e) {
+//            return "{\"error\": \"Lỗi xử lý JSON\"}";
+//        }
+//    }
 
-        // --- Bước 1: Tách giá ---
-        Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu)?");
-        Matcher matcher = pattern.matcher(lowerCaseMessage);
+    public String loadServiceLog(Long id) {
+        try {
+            // Lấy danh sách Service Log
+            List<UserChatbot> serviceLogs = userChatbotRepository.findAllByUserId(id);
 
-        List<Long> priceList = new ArrayList<>();
-        while (matcher.find()) {
-            String numberPart = matcher.group(1).replace(",", "").replace(".", "");
-            String unit = matcher.group(2);
-            long value = Long.parseLong(numberPart);
-
-            if (unit != null) {
-                switch (unit) {
-                    case "k":
-                    case "nghìn":
-                        value *= 1_000;
-                        break;
-                    case "tr":
-                    case "triệu":
-                        value *= 1_000_000;
-                        break;
-                }
+            // Kiểm tra nếu serviceLogs là null hoặc rỗng
+            if (serviceLogs == null || serviceLogs.isEmpty()) {
+                return "Không có dữ liệu dịch vụ cho người dùng này.";
             }
 
-            priceList.add(value);
+            // Tạo chuỗi kết quả
+            StringBuilder result = new StringBuilder();
+            for (UserChatbot log : serviceLogs) {
+                result.append("ID: ").append(log.getId()).append(", ")
+                        .append("Timestamp: ").append(log.getLastInteractionAt()).append(", ")
+                        .append("Interaction Log: ").append(log.getInteractionLog()).append("\n");
+            }
+
+            return result.toString();
+        } catch (Exception e) {
+            // Log lỗi ra log file (nên dùng logger thay vì e.printStackTrace trong thực tế)
+            e.printStackTrace();
+            return "Đã xảy ra lỗi khi tải dữ liệu dịch vụ: " + e.getMessage();
         }
-
-        // --- Bước 2: Xác định khoảng giá ---
-        long minPrice = 0;
-        long maxPrice = Long.MAX_VALUE;
-
-        if (priceList.size() == 1) {
-            long basePrice = priceList.get(0);
-            minPrice = Math.max(0, basePrice - 50_000);
-            maxPrice = basePrice + 50_000;
-        } else if (priceList.size() >= 2) {
-            minPrice = Math.min(priceList.get(0), priceList.get(1));
-            maxPrice = Math.max(priceList.get(0), priceList.get(1));
-        }
-
-        // --- Bước 3: Kiểm tra danh mục ---
-        List<Category> categories = categoryRepository.getAllByParentCategoryNotNull();
-        Optional<String> matchedCategory = categories.stream()
-                .map(cat -> cat.getName().toLowerCase())
-                .filter(lowerCaseMessage::contains)
-                .findFirst();
-
-        List<Product> products;
-
-        if (matchedCategory.isPresent()) {
-            // Nếu có danh mục -> lọc theo khoảng giá và danh mục
-            products = productRepository.findByPriceBetweenAndCategoryName(minPrice, maxPrice, matchedCategory.get());
-        } else {
-            // Nếu không có danh mục -> chỉ lọc theo giá
-            products = productRepository.findByPriceBetween(minPrice, maxPrice);
-        }
-
-        // --- Bước 4: Trả kết quả ---
-        if (products.isEmpty()) {
-            return "Không tìm thấy sản phẩm nào phù hợp với yêu cầu.";
-        }
-
-        StringBuilder result = new StringBuilder("<b>Các sản phẩm phù hợp:</b>");
-        for (Product product : products) {
-            result.append("<br> - ")
-                    .append(product.getName())
-                    .append(" (")
-                    .append(product.getPrice())
-                    .append(" VND)");
-        }
-
-        return result.toString().trim();
-    }
-    public String faqShowForStaff() {
-        return """
-    <div style="max-width: 700px; margin: auto;">
-    <h2>FAQ DÀNH CHO NHÂN VIÊN</h2>
-
-    <p><strong>1. Chính sách đổi trả được áp dụng thế nào?</strong><br>
-    Nhân viên cần kiểm tra điều kiện sản phẩm trước khi nhận đổi/trả: sản phẩm chưa qua sử dụng, còn tem, nhãn, bao bì và kèm hóa đơn mua hàng.</p>
-
-    <p><strong>2. Quy trình xử lý đơn hàng ra sao?</strong><br>
-    Khi nhận được đơn, nhân viên cần xác nhận tồn kho, chuẩn bị hàng, đóng gói đúng tiêu chuẩn và chuyển cho bộ phận giao hàng trong vòng <strong>24 giờ</strong>.</p>
-
-    <p><strong>3. Khi khách hàng khiếu nại, tôi phải làm gì?</strong><br>
-    Lắng nghe khách hàng, ghi nhận thông tin cụ thể và chuyển ngay đến bộ phận chăm sóc khách hàng hoặc quản lý để xử lý kịp thời.</p>
-
-    <p><strong>4. Ca làm việc và chấm công thế nào?</strong><br>
-    Nhân viên cần có mặt trước ca làm <strong>15 phút</strong>, chấm công đúng giờ và báo cáo cho quản lý nếu có vấn đề phát sinh.</p>
-
-    <p><strong>5. Mục tiêu doanh số của cửa hàng là gì?</strong><br>
-    Mục tiêu doanh số được cập nhật hàng tháng. Nhân viên có thể xem chi tiết tại bảng thông báo nội bộ hoặc hỏi quản lý ca.</p>
-
-    <p><strong>6. Tôi có thể liên hệ phòng nhân sự qua đâu?</strong><br>
-    Vui lòng liên hệ hotline nội bộ <strong>1900 5678</strong> hoặc email <strong>hr@mntfashion.vn</strong> để được hỗ trợ các vấn đề nhân sự.</p>
-    </div>
-    """;
     }
 
 
@@ -900,9 +850,43 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+    public String faqShowForStaff() {
+        String refundPolicyContent = """
+        <div style="max-width: 700px; margin: auto;">
+        <h2>FAQ DÀNH CHO NHÂN VIÊN</h2>
+    
+        <p><strong>1. Chính sách đổi trả được áp dụng thế nào?</strong><br>
+        Nhân viên cần kiểm tra điều kiện sản phẩm trước khi nhận đổi/trả: sản phẩm chưa qua sử dụng, còn tem, nhãn, bao bì và kèm hóa đơn mua hàng.</p>
+    
+        <p><strong>2. Quy trình xử lý đơn hàng ra sao?</strong><br>
+        Khi nhận được đơn, nhân viên cần xác nhận tồn kho, chuẩn bị hàng, đóng gói đúng tiêu chuẩn và chuyển cho bộ phận giao hàng trong vòng <strong>24 giờ</strong>.</p>
+    
+        <p><strong>3. Khi khách hàng khiếu nại, tôi phải làm gì?</strong><br>
+        Lắng nghe khách hàng, ghi nhận thông tin cụ thể và chuyển ngay đến bộ phận chăm sóc khách hàng hoặc quản lý để xử lý kịp thời.</p>
+    
+        <p><strong>4. Ca làm việc và chấm công thế nào?</strong><br>
+        Nhân viên cần có mặt trước ca làm <strong>15 phút</strong>, chấm công đúng giờ và báo cáo cho quản lý nếu có vấn đề phát sinh.</p>
+    
+        <p><strong>5. Mục tiêu doanh số của cửa hàng là gì?</strong><br>
+        Mục tiêu doanh số được cập nhật hàng tháng. Nhân viên có thể xem chi tiết tại bảng thông báo nội bộ hoặc hỏi quản lý ca.</p>
+    
+        <p><strong>6. Tôi có thể liên hệ phòng nhân sự qua đâu?</strong><br>
+        Vui lòng liên hệ hotline nội bộ <strong>1900 5678</strong> hoặc email <strong>hr@mntfashion.vn</strong> để được hỗ trợ các vấn đề nhân sự.</p>
+        </div>
+        """;
+        // Trả về nội dung câu hỏi thường gặp dưới dạng JSON
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", refundPolicyContent);
 
+        // Chuyển đổi map thành JSON và trả về
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
     public String refundPolicyForStaff() {
-        return """
+        String refundPolicyContent = """
     <div style="max-width: 700px; margin: auto;">
         <h2>CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM</h2>
         <p><strong>1. Thời hạn đổi/trả:</strong><br>
@@ -932,52 +916,19 @@ public class GeminiService {
         <p><strong>Lưu ý:</strong> Toàn bộ quy trình xử lý đổi/trả thường mất từ <strong>3–5 ngày làm việc</strong> kể từ khi chúng tôi nhận được sản phẩm gửi về.</p>
     </div>
     """;
-    }
+        // Trả về nội dung câu hỏi thường gặp dưới dạng JSON
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", refundPolicyContent);
 
-
-
-
-
-//    public String getConversationHistory(Long userId) {
-//        List<UserChatbot> history = userChatbotRepository.findTop5ByUserIdOrderByLastInteractionAtDesc(userId);
-//        return history.stream().map(UserChatbot::getInteractionLog).collect(Collectors.joining("\n"));
-//    }
-
-      // Gợi ý theo người dùng
-//    public String analyzeUserData(Long userId) {
-//        List<Product> purchasedProducts = orderRepository.findPurchasedProductsByUserId(userId);
-//        String dataSummary = purchasedProducts.stream().map(Product::getName).collect(Collectors.joining(", "));
-//
-//        String prompt = "Người dùng đã mua: " + dataSummary + ". Hãy gợi ý sản phẩm phù hợp.";
-//        return chatWithAI(prompt);
-//    }
-
-
-    public String loadServiceLog(Long id) {
+        // Chuyển đổi map thành JSON và trả về
         try {
-            // Lấy danh sách Service Log
-            List<UserChatbot> serviceLogs = userChatbotRepository.findAllByUserId(id);
-
-            // Kiểm tra nếu serviceLogs là null hoặc rỗng
-            if (serviceLogs == null || serviceLogs.isEmpty()) {
-                return "Không có dữ liệu dịch vụ cho người dùng này.";
-            }
-
-            // Tạo chuỗi kết quả
-            StringBuilder result = new StringBuilder();
-            for (UserChatbot log : serviceLogs) {
-                result.append("ID: ").append(log.getId()).append(", ")
-                        .append("Timestamp: ").append(log.getLastInteractionAt()).append(", ")
-                        .append("Interaction Log: ").append(log.getInteractionLog()).append("\n");
-            }
-
-            return result.toString();
-        } catch (Exception e) {
-            // Log lỗi ra log file (nên dùng logger thay vì e.printStackTrace trong thực tế)
-            e.printStackTrace();
-            return "Đã xảy ra lỗi khi tải dữ liệu dịch vụ: " + e.getMessage();
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
+
 
 
 }
