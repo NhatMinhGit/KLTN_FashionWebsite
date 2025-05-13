@@ -49,17 +49,145 @@
     <div class="col-md-9">
       <div class="container-order">
         <h2 class="mb-4">My Orders</h2>
-        <div class="accordion" id="orderAccordion">
-          <div class="accordion-item" th:each="order : ${orders}">
-            <h2 class="accordion-header" th:id="'heading' + ${order.id}">
-              <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      th:data-bs-target="'#collapse' + ${order.id}"
-                      th:data-order-id="${order.id}"
-                      th:data-status="${order.status.name()}"
-                      th:aria-controls="'collapse' + ${order.id}"
-                      aria-expanded="false">
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <button type="submit" class="btn btn-search pe-1 bg-light" style="border-radius: 0px">
+              <i class="fas fa-search search-icon"></i>
+            </button>
+          </div>
+          <input type="text" placeholder="Tìm kiếm theo mã hóa đơn" class="form-control">
+        </div>
+
+        <div class="row mt-4">
+          <ul class="nav nav-tabs" id="productTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="ordersAll-tab" data-bs-toggle="tab" data-bs-target="#ordersAll"
+                      type="button" role="tab" aria-controls="info" aria-selected="true">
+                Tất cả đơn hàng
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="paid-tab" data-bs-toggle="tab" data-bs-target="#paid"
+                      type="button" role="tab" aria-controls="info" aria-selected="false">
+                Đã thanh toán
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
+                      type="button" role="tab" aria-controls="comment" aria-selected="false">
+                Chờ xử lý
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="paying-tab" data-bs-toggle="tab" data-bs-target="#paying"
+                      type="button" role="tab" aria-controls="comment" aria-selected="false">
+                Đang thanh toán
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="shipped-tab" data-bs-toggle="tab" data-bs-target="#shipped"
+                      type="button" role="tab" aria-controls="comment" aria-selected="false">
+                Đang vận chuyển
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed"
+                      type="button" role="tab" aria-controls="comment" aria-selected="false">
+                Đã hoàn thành
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled"
+                      type="button" role="tab" aria-controls="comment" aria-selected="false">
+                Đã hủy
+              </button>
+            </li>
+          </ul>
+          <!-- Tab content -->
+          <div class="tab-content p-3 border border-top-0 bg-light" id="productTabContent">
+            <div class="tab-pane fade show active" id="ordersAll" role="tabpanel" aria-labelledby="ordersAll-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="ordersAccordion">
+                  <div th:if="${#lists.isEmpty(ordersAll)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersAll}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
+                            <span class="me-auto">
+                              <strong th:text="'Order #' + ${order.id}"></strong><br>
+                              <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                                <th:block th:switch="${order.status}">
+                                  <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                                  <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                                  <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                                  <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                                  <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                                  <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                                </th:block>
+                                <span th:text="${order.status.name()}"></span>
+                              </span>
+                            </span>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#ordersAccordion"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+                          <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                          </div>
+                        </div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="paid" role="tabpanel" aria-labelledby="paid-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="orderAccordionPaid">
+                  <div th:if="${#lists.isEmpty(ordersPaid)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersPaid}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
                 <span class="me-auto">
                   <strong th:text="'Order #' + ${order.id}"></strong><br>
                   <span th:class="'status-' + ${order.status.name().toLowerCase()}">
@@ -74,36 +202,381 @@
                     <span th:text="${order.status.name()}"></span>
                   </span>
                 </span>
-                <div class="ms-auto text-end">
-                  <strong>Total:</strong>
-                  <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
-                </div>
-              </button>
-            </h2>
-            <div class="accordion-collapse collapse"
-                 th:id="'collapse' + ${order.id}"
-                 th:attr="aria-labelledby='heading' + ${order.id}"
-                 data-bs-parent="#orderAccordion">
-              <div class="accordion-body">
-                <div class="mb-3">
-                  <strong>Địa chỉ giao hàng:</strong><br>
-                  <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
-                </div>
-                <hr>
-                <strong>Sản phẩm:</strong><br>
-                <div class="order-items" th:id="'items-' + ${order.id}">Loading...</div>
-                <div class="text-end mt-3">
-                  <button class="btn btn-danger btn-sm cancel-order-btn"
-                          th:id="'cancel-btn-' + ${order.id}"
-                          th:data-order-id="${order.id}"
-                          th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING'}">
-                    Hủy đơn
-                  </button>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#orderAccordionPaid"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
                 </div>
               </div>
             </div>
-          </div> <!-- end each -->
+            <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="orderAccordionPending">
+                  <div th:if="${#lists.isEmpty(ordersPending)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersPending}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
+                <span class="me-auto">
+                  <strong th:text="'Order #' + ${order.id}"></strong><br>
+                  <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                    <th:block th:switch="${order.status}">
+                      <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                      <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                      <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                      <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                      <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                      <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                    </th:block>
+                    <span th:text="${order.status.name()}"></span>
+                  </span>
+                </span>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#orderAccordionPending"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="paying" role="tabpanel" aria-labelledby="paying-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="orderAccordionPaying">
+                  <div th:if="${#lists.isEmpty(ordersPaying)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersPaying}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
+                <span class="me-auto">
+                  <strong th:text="'Order #' + ${order.id}"></strong><br>
+                  <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                    <th:block th:switch="${order.status}">
+                      <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                      <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                      <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                      <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                      <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                      <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                    </th:block>
+                    <span th:text="${order.status.name()}"></span>
+                  </span>
+                </span>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#orderAccordionPaying"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="shipped" role="tabpanel" aria-labelledby="shipped-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="orderAccordionShipped">
+                  <div th:if="${#lists.isEmpty(ordersShipped)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersShipped}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
+                <span class="me-auto">
+                  <strong th:text="'Order #' + ${order.id}"></strong><br>
+                  <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                    <th:block th:switch="${order.status}">
+                      <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                      <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                      <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                      <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                      <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                      <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                    </th:block>
+                    <span th:text="${order.status.name()}"></span>
+                  </span>
+                </span>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#orderAccordionShipped"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="orderAccordionCompleted">
+                  <div th:if="${#lists.isEmpty(ordersCompleted)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersCompleted}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
+                <span class="me-auto">
+                  <strong th:text="'Order #' + ${order.id}"></strong><br>
+                  <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                    <th:block th:switch="${order.status}">
+                      <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                      <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                      <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                      <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                      <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                      <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                    </th:block>
+                    <span th:text="${order.status.name()}"></span>
+                  </span>
+                </span>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#orderAccordionCompleted"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+              <div class="col-md-12">
+                <div class="accordion" id="orderAccordionCancelled">
+                  <div th:if="${#lists.isEmpty(ordersCancelled)}" class="text-center text-muted py-3">
+                    Không có đơn hàng nào trong mục này.
+                  </div>
+                  <div class="accordion-item" th:each="order : ${ordersCancelled}">
+                    <h2 class="accordion-header" th:id="'heading' + ${order.id}">
+                      <button class="accordion-button collapsed d-flex justify-content-between align-items-start"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              th:data-bs-target="'#collapse' + ${order.id}"
+                              th:data-order-id="${order.id}"
+                              th:data-status="${order.status.name()}"
+                              th:aria-controls="'collapse' + ${order.id}"
+                              aria-expanded="false">
+                <span class="me-auto">
+                  <strong th:text="'Order #' + ${order.id}"></strong><br>
+                  <span th:class="'status-' + ${order.status.name().toLowerCase()}">
+                    <th:block th:switch="${order.status}">
+                      <i class="fa-solid fa-spinner" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PENDING}"></i>
+                      <i class="fa-solid fa-clock" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAYING}"></i>
+                      <i class="fa-solid fa-credit-card" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).PAID}"></i>
+                      <i class="fa-solid fa-truck" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).SHIPPED}"></i>
+                      <i class="fa-solid fa-circle-check" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).COMPLETED}"></i>
+                      <i class="fa-solid fa-circle-xmark" th:case="${T(org.example.fashion_web.backend.models.Order.OrderStatusType).CANCELLED}"></i>
+                    </th:block>
+                    <span th:text="${order.status.name()}"></span>
+                  </span>
+                </span>
+                        <div class="ms-auto text-end">
+                          <strong>Total:</strong>
+                          <span th:text="${currencyFormatter.formatVND(order.totalPrice)}"></span>
+                        </div>
+                      </button>
+                    </h2>
+                    <div class="accordion-collapse collapse"
+                         th:id="'collapse' + ${order.id}"
+                         th:attr="aria-labelledby='heading' + ${order.id}"
+                         data-bs-parent="#orderAccordionCancelled"
+                         >
+                      <div class="accordion-body">
+                        <div class="mb-3">
+                          <strong>Địa chỉ giao hàng:</strong><br>
+                          <span th:text="${order.shippingAddress}">Địa chỉ mặc định</span>
+                        </div>
+                        <hr>
+                        <strong>Sản phẩm:</strong><br>
+                        <div class="order-items" th:id="'items-' + ${order.id}">
+  <div class="spinner-border spinner-border-sm" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
+                                  th:id="'cancel-btn-' + ${order.id}"
+                                  th:data-order-id="${order.id}"
+                                  th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
+                            Hủy đơn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div> <!-- end each -->
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -139,86 +612,151 @@
     </div>
   </div>
 </div>
-
+<!--Footer-->
+<div th:replace="~{fragments/footer :: footer}"></div>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const accordion = document.getElementById('orderAccordion');
+    // Khởi tạo tất cả các phần tử collapse
+    document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+      new bootstrap.Collapse(collapse, {
+        toggle: false,
+      });
+    });
 
-    accordion.addEventListener('show.bs.collapse', function (event) {
-      const button = event.target.previousElementSibling.querySelector('button');
+    const searchInput = document.querySelector('.input-group input');
+    searchInput.addEventListener('input', function () {
+      const keyword = this.value.toLowerCase();
+      document.querySelectorAll('.accordion-item').forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(keyword) ? '' : 'none';
+      });
+    });
+
+    // Xử lý sự kiện show.bs.collapse cho tất cả các accordion
+    document.addEventListener('show.bs.collapse', function (event) {
+      const collapse = event.target;
+      const button = collapse.previousElementSibling.querySelector('button');
       const orderId = button.getAttribute('data-order-id');
-      const itemsContainer = document.getElementById('items-' + orderId);
       const status = button.getAttribute('data-status');
+      const parentAccordion = collapse.closest('.accordion');
+      const parentAccordionId = parentAccordion.id;
 
-      if (itemsContainer.dataset.loaded === 'true') return;
+      // Chọn container order-items trong accordion hiện tại
+      const itemsContainer = parentAccordion.querySelector(`.order-items[id="items-${orderId}"]`);
 
+      if (!itemsContainer) {
+        console.error(`Không tìm thấy itemsContainer cho order ${orderId} trong accordion ${parentAccordionId}`);
+        return;
+      }
+
+      console.log(`Opening collapse for order ${orderId} in accordion ${parentAccordionId}, status: ${status}`);
+
+      if (itemsContainer.dataset.loaded === 'true') {
+        console.log(`Data for order ${orderId} already loaded in accordion ${parentAccordionId}`);
+        return;
+      }
+
+      console.log(`Fetching items for order ${orderId} in accordion ${parentAccordionId}`);
       fetch('/user/user-order/' + orderId + '/items')
-              .then(response => response.json())
+              .then(response => {
+                console.log(`Response status for order ${orderId}: ${response.status}`);
+                if (!response.ok) {
+                  throw new Error('Lỗi khi tải sản phẩm: ' + response.statusText);
+                }
+                return response.json();
+              })
               .then(data => {
+                console.log(`Received data for order ${orderId}:`, data);
                 let html = '';
-                data.forEach(item => {
-                  const productId = item.productId || 'unknown';
-                  html += `
-                <div class="d-flex align-items-center mb-3">
-                    <img src="${item.productImageUrl}" class="product-img me-3" alt="Product">
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">${item.productName}</h6>
-                        <small>Quantity: ${item.quantity}</small><br>
-                        <small>Price: ${item.pricePerUnit}</small>
-                    </div>
-                    ${
-                          status === 'COMPLETED' && productId !== 'unknown' ?
-                                  (item.hasReviewed ?
-                                                  `<span class="text-muted">Đã đánh giá</span>` :
-                                                  `<button class="btn btn-outline-primary btn-sm review-btn" data-bs-toggle="modal" data-bs-target="#reviewModal" data-product-id="${productId}">Review</button>`
-                                  ) : ''
-                  }
-                </div>`;
-                });
+                if (!data || data.length === 0) {
+                  html = '<p class="text-muted">Không có sản phẩm trong đơn hàng này.</p>';
+                } else {
+                  data.forEach(item => {
+                    const productId = item.productId || 'unknown';
+                    html += `
+              <div class="d-flex align-items-center mb-3">
+                <img src="${item.productImageUrl}" class="product-img me-3" alt="Product">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">${item.productName}</h6>
+                  <small>Quantity: ${item.quantity}</small><br>
+                  <small>Price: ${item.pricePerUnit}</small>
+                </div>
+                ${
+                            status === 'COMPLETED' && productId !== 'unknown'
+                                    ? item.hasReviewed
+                                            ? `<span class="text-muted">Đã đánh giá</span>`
+                                            : `<button class="btn btn-outline-primary btn-sm review-btn" data-bs-toggle="modal" data-bs-target="#reviewModal" data-product-id="${productId}">Review</button>`
+                                    : ''
+                    }
+              </div>`;
+                  });
+                }
                 itemsContainer.innerHTML = html;
                 itemsContainer.dataset.loaded = 'true';
+                console.log(`Loaded items for order ${orderId} in accordion ${parentAccordionId}`);
               })
               .catch(err => {
-                console.error('Error loading items:', err);
+                console.error(`Error loading items for order ${orderId}:`, err);
                 itemsContainer.innerHTML = `<p class="text-danger">Lỗi tải sản phẩm: ${err.message}</p>`;
               });
     });
 
+    // Xử lý khi tab được kích hoạt
+    document.querySelectorAll('.nav-tabs .nav-link').forEach(tab => {
+      tab.addEventListener('shown.bs.tab', function (event) {
+        const targetTab = event.target.getAttribute('data-bs-target');
+        console.log(`Tab activated: ${targetTab}`);
+        const activeTabPane = document.querySelector(targetTab);
+        const openCollapses = activeTabPane.querySelectorAll('.accordion-collapse.show');
+        openCollapses.forEach(openCollapse => {
+          const orderId = openCollapse.id.replace('collapse', '');
+          const parentAccordion = openCollapse.closest('.accordion');
+          const itemsContainer = parentAccordion.querySelector(`.order-items[id="items-${orderId}"]`);
+          if (itemsContainer && itemsContainer.dataset.loaded !== 'true') {
+            console.log(`Triggering load for open collapse in tab ${targetTab}, order ${orderId}`);
+            const event = new Event('show.bs.collapse');
+            openCollapse.dispatchEvent(event);
+          }
+        });
+      });
+    });
+
+    // Xử lý nút hủy đơn hàng
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('cancel-order-btn')) {
         const orderId = e.target.getAttribute('data-order-id');
-        if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng #" + orderId + " không?")) return;
+        if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng #' + orderId + ' không?')) return;
 
         fetch(`/user/user-order/${orderId}/cancel`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         })
                 .then(res => {
                   if (res.ok) {
-                    alert("Đã hủy đơn hàng thành công!");
+                    alert('Đã hủy đơn hàng thành công!');
                     location.reload();
                   } else {
-                    return res.text().then(msg => { throw new Error(msg); });
+                    return res.text().then(msg => {
+                      throw new Error(msg);
+                    });
                   }
                 })
                 .catch(err => {
-                  alert("Lỗi khi hủy đơn hàng: " + err.message);
+                  alert('Lỗi khi hủy đơn hàng: ' + err.message);
                 });
       }
     });
 
-    // Handle Review button click
+    // Xử lý nút Review
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('review-btn')) {
         const productId = e.target.getAttribute('data-product-id');
         const form = document.getElementById('reviewForm');
-        // Ghi log để kiểm tra
         console.log('Product ID:', productId);
         if (productId && productId !== 'undefined') {
           form.action = `/user/product-detail/${productId}/comments`;
         } else {
           console.error('Product ID is undefined or invalid');
-          // Có thể hiển thị thông báo lỗi cho người dùng
           alert('Không thể mở form đánh giá: ID sản phẩm không hợp lệ.');
         }
       }

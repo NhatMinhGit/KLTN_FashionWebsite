@@ -1,0 +1,130 @@
+<div th:fragment="header-admin" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <!-- CSS Files -->
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/assets/css/plugins.min.css}" />
+    <link rel="stylesheet" th:href="@{/assets/css/kaiadmin.min.css}" />
+    <link rel="icon" th:href="@{/assets/img/kaiadmin/favicon.ico}" type="image/x-icon" />
+    <style>
+        .bell-ring {
+            animation: ring 0.8s infinite;
+        }
+
+        @keyframes ring {
+            0% { transform: rotate(0); }
+            10% { transform: rotate(15deg); }
+            20% { transform: rotate(-15deg); }
+            30% { transform: rotate(10deg); }
+            40% { transform: rotate(-10deg); }
+            50% { transform: rotate(5deg); }
+            60% { transform: rotate(-5deg); }
+            70% { transform: rotate(2deg); }
+            80%, 100% { transform: rotate(0); }
+        }
+
+        #order-notification-info {
+            color: #fff;
+            background-color: #00890e;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+            white-space: nowrap;
+        }
+    </style>
+    <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+        <div class="container-fluid">
+            <nav class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex">
+                <div id="sidebar-notification-icon" style="color: gold; font-size: 20px; display: none;" onclick="handleBellClick()">
+                    <i class="fas fa-bell bell-ring" id="bell-icon"></i>
+                </div>
+                <div id="order-notification-info"></div>
+            </nav>
+
+            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                <li class="nav-item topbar-user dropdown hidden-caret">
+                    <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                        <div class="avatar-sm">
+                            <img src="/pics/default-avatar.jpg" alt="..." class="avatar-img rounded-circle">
+                        </div>
+                        <span class="profile-username">
+                            <span class="op-7">Hi,</span>
+                            <span class="fw-bold">[[${user.getFullname()}]]</span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user animated fadeIn">
+                        <div class="scroll-wrapper dropdown-user-scroll scrollbar-outer">
+                            <div class="dropdown-user-scroll scrollbar-outer scroll-content">
+                                <li>
+                                    <div class="user-box">
+                                        <div class="avatar-lg">
+                                            <img src="/pics/default-avatar.jpg" alt="image profile" class="avatar-img rounded">
+                                        </div>
+                                        <div class="u-text">
+                                            <h4>[[${user.getFullname()}]]</h4>
+                                            <p class="text-muted">[[${user.getFullname()}]]</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" th:href="@{/user}">Truy cập trang Home</a>
+                                    <div class="dropdown-divider"></div>
+                                    <span sec:authorize="isAuthenticated"><a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a></span>
+                                </li>
+                            </div>
+                        </div>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <script th:src="@{/assets/js/core/jquery-3.7.1.min.js}"></script>
+    <script th:src="@{/assets/js/core/popper.min.js}"></script>
+    <script th:src="@{/assets/js/core/bootstrap.min.js}"></script>
+    <script th:src="@{/assets/js/kaiadmin.min.js}"></script>
+    <script th:src="@{/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <!-- Audio Alert -->
+    <audio id="order-alert-sound" preload="auto">
+        <source src="/assets/audio/notification.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        function handleBellClick() {
+            const bell = $('#sidebar-notification-icon');
+            const bellIcon = $('#bell-icon');
+            bellIcon.removeClass('bell-ring');
+            bell.hide();
+            $('#order-notification-info').hide();
+            sessionStorage.setItem('lastOrderCount', '0');
+            window.location.href = '/admin/order';
+        }
+
+        function playSound() {
+            const sound = document.getElementById('order-alert-sound');
+            if (sound) {
+                sound.play().catch(e => console.log("Không thể phát âm thanh:", e));
+            }
+        }
+
+        const socket = new SockJS('/ws');
+        const stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/orders', function (message) {
+                const orders = JSON.parse(message.body);
+                if (orders.length > 0) {
+                    const prevCount = parseInt(sessionStorage.getItem('lastOrderCount') || '0', 10);
+                    if (orders.length !== prevCount) {
+                        $('#sidebar-notification-icon').show();
+                        $('#bell-icon').addClass('bell-ring');
+                        $('#order-notification-info').show().html(` Có ${orders.length} đơn hàng mới. Bấm để xem.`);
+                        sessionStorage.setItem('lastOrderCount', orders.length.toString());
+                        playSound();
+                    }
+                }
+            });
+        });
+    </script>
+</div>

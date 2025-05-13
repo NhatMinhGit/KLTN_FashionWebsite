@@ -23,16 +23,9 @@
     <div th:replace="~{fragments/sidebar-admin :: sidebar-admin}"></div>
     <!-- Content -->
     <div class="main-panel p-4">
+        <div th:replace="~{fragments/header-admin :: header-admin}"></div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fw-bold mb-3">Quản lý sản phẩm</h1>
-            <div class="d-flex align-items-center">
-                <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
-                <span sec:authorize="isAuthenticated">
-                    <a class="text-decoration-none text-dark cursor-pointer btn btn-danger" th:href="@{/logout}">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </span>
-            </div>
         </div>
         <!-- Thanh tìm kiếm -->
         <div class="mb-3 d-flex">

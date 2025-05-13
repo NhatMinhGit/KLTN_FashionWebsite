@@ -1,6 +1,7 @@
 package org.example.fashion_web.frontend.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.fashion_web.backend.dto.SimpleOrderDto;
 import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.models.OrderItem;
 import org.example.fashion_web.backend.models.User;
@@ -31,8 +32,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.security.Principal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Controller
 public class OrderManagementController {
     @Autowired
@@ -78,6 +82,19 @@ public class OrderManagementController {
         return "order/order-management-paging";
     }
 
+    @GetMapping("/admin/orders/new")
+    @ResponseBody
+    public List<SimpleOrderDto> getNewOrders() {
+        List<Order> newOrders = orderRepository.findByStatusIn(
+                List.of(Order.OrderStatusType.PENDING, Order.OrderStatusType.PAID)
+        );
+
+        return newOrders.stream().map(order -> {
+            String customerName = order.getUser().getName();
+            String createdAt = order.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"));
+            return new SimpleOrderDto(order.getId(), customerName, createdAt);
+        }).collect(Collectors.toList());
+    }
 
     @RequestMapping("/admin/order/detail/{id}")
     public String orderDetail(@PathVariable("id") Long id, Model model) {

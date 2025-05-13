@@ -19,18 +19,9 @@
 
     <!-- Nội dung chính -->
     <div class="main-panel p-4">
+        <div th:replace="~{fragments/header-admin :: header-admin}"></div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fw-bold mb-3">Quản lý mã giảm giá</h1>
-            <div class="d-flex align-items-center">
-                <span class="me-3 text-dark">
-                    <i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]
-                </span>
-                <span sec:authorize="isAuthenticated">
-                    <a class="btn btn-danger text-white" th:href="@{/logout}">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </span>
-            </div>
         </div>
 
         <!-- Thanh tìm kiếm -->

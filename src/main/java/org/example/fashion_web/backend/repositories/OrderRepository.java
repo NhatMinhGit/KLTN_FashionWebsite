@@ -1,6 +1,7 @@
 package org.example.fashion_web.backend.repositories;
 
 import org.example.fashion_web.backend.models.Order;
+import org.example.fashion_web.backend.models.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -55,4 +56,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COUNT(o) FROM Order o WHERE MONTH(o.createdAt) = MONTH(CURRENT_DATE) AND YEAR(o.createdAt) = YEAR(CURRENT_DATE)")
     Integer countOrdersThisMonth();
+
+    List<Order> findByStatusIn(List<Order.OrderStatusType> statuses);
+
+    List<Order> findByStatus(Order.OrderStatusType status);
+
+    boolean existsByUserAndStatus(User user, Order.OrderStatusType status);
 }

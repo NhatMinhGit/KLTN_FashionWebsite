@@ -39,22 +39,22 @@ public class AccountManagementController {
     @Autowired
     private UserRepository userRepository;
 
-    @RequestMapping("admin/account")
-    public String accountIndex(Model model, Principal principal) {
-        List<User> users = userRepository.findAll();
-        model.addAttribute("users", users);
-        if (principal != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            if (userDetails != null) {
-                model.addAttribute("user", userDetails);
-            } else {
-                model.addAttribute("user", new User()); // Tránh lỗi NullPointerException
-            }
-        }
-        return "account/index";
-    }
+//    @RequestMapping("admin/account")
+//    public String accountIndex(Model model, Principal principal) {
+//        List<User> users = userRepository.findAll();
+//        model.addAttribute("users", users);
+//        if (principal != null) {
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+//            if (userDetails != null) {
+//                model.addAttribute("user", userDetails);
+//            } else {
+//                model.addAttribute("user", new User()); // Tránh lỗi NullPointerException
+//            }
+//        }
+//        return "account/index";
+//    }
 
-    @GetMapping("admin/account/accounts-paging")
+    @GetMapping("admin/account")
     public String listUsersPaging(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size,
