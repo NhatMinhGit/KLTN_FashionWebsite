@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.example.fashion_web.backend.dto.CategoryForm;
+import org.example.fashion_web.backend.dto.ProductDto;
 import org.example.fashion_web.backend.dto.ProductForm;
 import org.example.fashion_web.backend.dto.SizeInfo;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
@@ -12,6 +13,7 @@ import org.example.fashion_web.backend.repositories.ImageRepository;
 import org.example.fashion_web.backend.repositories.ProductVariantRepository;
 import org.example.fashion_web.backend.repositories.SizeRepository;
 import org.example.fashion_web.backend.services.*;
+import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +27,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -808,16 +809,39 @@ public class ProductManagementController {
         }
         return "redirect:/admin/product";
     }
-    @GetMapping("/admin/products/search")
-    @ResponseBody
-    public Page<Product> searchProducts(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+//    @GetMapping("/admin/products/search")
+//    @ResponseBody
+//    public Page<Product> searchProducts(
+//            @RequestParam String keyword,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size) {
+//
+//        Pageable pageable = PageRequest.of(page, size);
+//        return productService.searchProducts(keyword, pageable);
+//    }
 
-        Pageable pageable = PageRequest.of(page, size);
-        return productService.searchProducts(keyword, pageable);
-    }
+//@GetMapping("/admin/products/search")
+//@ResponseBody
+//public Page<ProductDto> searchProducts(
+//        @RequestParam String keyword,
+//        @RequestParam int page,
+//        @RequestParam int size) {
+//
+//    return productService.searchProducts(keyword, PageRequest.of(page, size));
+//}
+@GetMapping("/admin/products/search")
+@ResponseBody
+public Page<ProductDto> searchProducts(
+        @RequestParam(defaultValue = "") String keyword,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+) {
+
+    return productService.searchProducts(keyword, PageRequest.of(page, size));
+}
+
+
+
 
 //    @PostMapping("user/product-detail/{id}/comments")
 //    public String addComment(@PathVariable("id") Long productId,

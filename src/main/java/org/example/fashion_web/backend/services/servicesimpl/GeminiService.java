@@ -181,7 +181,7 @@ public class GeminiService {
                     : imageUrls.get(0);
 
             String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
-            String productOnClick = "onclick='window.location.href=\"product-detail/" + productId + "\"'";
+            String productOnClick = "onclick='window.location.href=\"/user/product-detail/" + productId + "\"'";
 
             // Thêm CSS animation inline
             String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:150px; cursor:pointer; "
@@ -270,7 +270,72 @@ public class GeminiService {
         }
     }
 
-    public String checkMonthlyRenvenue(String message) {
+    private String extractEntityFromMessage(String message, String entityName) {
+        // Dùng regex giống controller để lấy entity từ message
+        Pattern pattern;
+        if ("month".equals(entityName)) {
+            pattern = Pattern.compile("(tháng\\s*(\\d{1,2}))|(\\b(0?[1-9]|1[0-2])\\b)");
+        } else if ("year".equals(entityName)) {
+            pattern = Pattern.compile("năm\\s*(\\d{4})|(\\b20\\d{2}\\b)");
+        } else {
+            return null;
+        }
+
+        Matcher matcher = pattern.matcher(message.toLowerCase());
+        if (matcher.find()) {
+            return matcher.group(2) != null ? matcher.group(2) : matcher.group(1);
+        }
+
+        return null;
+    }
+//    public String checkMonthlyRenvenue(String message) {
+//        // Chuẩn hóa câu hỏi
+//        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
+//
+//        // Mặc định lấy tháng và năm hiện tại
+//        LocalDate now = LocalDate.now();
+//        int monthToCheck = now.getMonthValue();
+//        int yearToCheck = now.getYear();
+//
+//        // Regex tìm "tháng x" và "năm xxxx"
+//        Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
+//        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
+//
+//        Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
+//        Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
+//
+//        // Nếu người dùng nhập tháng cụ thể
+//        if (monthMatcher.find()) {
+//            monthToCheck = Integer.parseInt(monthMatcher.group(1));
+//        }
+//
+//        // Nếu người dùng nhập năm cụ thể
+//        if (yearMatcher.find()) {
+//            yearToCheck = Integer.parseInt(yearMatcher.group(1));
+//        }
+//
+//        // Lấy doanh thu từ DB
+//        BigDecimal data = orderRepository.getMonthlyRevenue(yearToCheck, monthToCheck);
+//        if (data == null) data = BigDecimal.ZERO;
+//
+//        // Định dạng doanh thu
+//        DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
+//        String formattedRevenue = formatter.format(data);
+//
+//        // Tạo phản hồi JSON
+//        Map<String, String> result = new HashMap<>();
+//        result.put("aiResponse", "Dạ, doanh thu tháng " + monthToCheck + "/" + yearToCheck + " là " + formattedRevenue);
+//        result.put("month", String.valueOf(monthToCheck));
+//        result.put("year", String.valueOf(yearToCheck));
+//        result.put("revenue", formattedRevenue);
+//
+//        try {
+//            return new ObjectMapper().writeValueAsString(result);
+//        } catch (JsonProcessingException e) {
+//            return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
+//        }
+//    }
+    public String checkMonthlyRevenue(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
@@ -297,19 +362,24 @@ public class GeminiService {
         }
 
         // Lấy doanh thu từ DB
-        BigDecimal data = orderRepository.getMonthlyRevenue(yearToCheck, monthToCheck);
-        if (data == null) data = BigDecimal.ZERO;
+        BigDecimal revenue = orderRepository.getMonthlyRevenue(yearToCheck, monthToCheck);
+        if (revenue == null) revenue = BigDecimal.ZERO;
+
+        // Lấy số đơn hàng trong tháng từ DB
+        int totalOrders = orderRepository.countOrdersThisMonth();
 
         // Định dạng doanh thu
         DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
-        String formattedRevenue = formatter.format(data);
+        String formattedRevenue = formatter.format(revenue);
 
         // Tạo phản hồi JSON
         Map<String, String> result = new HashMap<>();
-        result.put("aiResponse", "Dạ, doanh thu tháng " + monthToCheck + "/" + yearToCheck + " là " + formattedRevenue);
+        result.put("aiResponse", "Dạ, doanh thu tháng " + monthToCheck + "/" + yearToCheck + " là " + formattedRevenue +
+                " và số đơn hàng trong tháng là " + totalOrders + " đơn.");
         result.put("month", String.valueOf(monthToCheck));
         result.put("year", String.valueOf(yearToCheck));
         result.put("revenue", formattedRevenue);
+        result.put("totalOrders", String.valueOf(totalOrders));
 
         try {
             return new ObjectMapper().writeValueAsString(result);
@@ -548,28 +618,9 @@ public class GeminiService {
         return result;
     }
 
-
-
-
-
-//    public void saveConversation(Long userId, String interactionLog) {
-//            User user = userService.findById(userId)
-//                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-//
-//            Chatbot chatbot = chatbotRepository.findByUserId(userId);
-//
-//            UserChatbot userChatbot = new UserChatbot();
-//            userChatbot.setUser(user);
-//            userChatbot.setChatbot(chatbot);
-//            userChatbot.setInteractionLog(interactionLog);
-//            userChatbot.setLastInteractionAt(LocalDateTime.now());
-//
-//            userChatbotRepository.save(userChatbot);
-//            System.out.println("Đã lưu đoạn hội thoại mới vào database.");
-//        }
-    public void saveConversation(ChatbotSession session, String senderType, String messageText, String messageType, String intent, String entities) {
+    public void saveConversation(Chatbot chatbot, String senderType, String messageText, String messageType, String intent, String entities) {
         ChatbotMessage message = new ChatbotMessage();
-        message.setChatbotSession(session);
+        message.setChatbot(chatbot);
         message.setSenderType(senderType);
         message.setMessageText(messageText);
         message.setMessageType(messageType);

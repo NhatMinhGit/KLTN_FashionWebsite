@@ -20,11 +20,11 @@ public class Product {
     @Column(name = "product_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Có thể giữ LAZY nếu sử dụng @EntityGraph
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Có thể giữ LAZY nếu sử dụng @EntityGraph
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -37,7 +37,6 @@ public class Product {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    //    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductVariant> variants = new ArrayList<>();
 

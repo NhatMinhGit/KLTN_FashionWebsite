@@ -3,6 +3,7 @@ package org.example.fashion_web.backend.services.servicesimpl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.example.fashion_web.backend.dto.ProductDto;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
 import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Image;
@@ -15,7 +16,6 @@ import org.example.fashion_web.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -197,10 +197,26 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByCategoryIds(categoryIds);
     }
 
-    @Override
-    public Page<Product> searchProducts(String keyword, Pageable pageable) {
-        return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
-    }
+//    @Override
+//    public Page<Product> searchProducts(String keyword, Pageable pageable) {
+//        return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
+//    }
+@Override
+public Page<ProductDto> searchProducts(String keyword, Pageable pageable) {
+    Page<Product> productPage = productRepository.findByNameContainingIgnoreCase(keyword, pageable);
+
+    return productPage.map(product -> {
+        ProductDto dto = new ProductDto();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setPrice(product.getPrice());
+        dto.setDescription(product.getDescription());
+        dto.setCategoryName(product.getCategory().getName());
+        dto.setBrandName(product.getBrand().getName());
+        return dto;
+    });
+}
+
 
     @Override
     public List<Product> saveAll(List<Product> dataList) {

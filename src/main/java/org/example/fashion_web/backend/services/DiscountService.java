@@ -3,6 +3,8 @@ package org.example.fashion_web.backend.services;
 import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.ProductDiscount;
+import org.example.fashion_web.backend.dto.DiscountDto;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -13,6 +15,7 @@ import java.util.Optional;
 
 public interface DiscountService {
     ProductDiscount save(ProductDiscount productDiscount);
+    Optional<ProductDiscount> findById(Long id);
 
     Optional<ProductDiscount> getActiveDiscountForProduct(Product product);
 
@@ -27,6 +30,13 @@ public interface DiscountService {
     void applyDiscountFor10LowSellingProducts(LocalDate startDate, LocalDate endDate);
     void applyDiscountFor3LowSellingCategories(LocalDate startDate, LocalDate endDate);
     int getTotalDiscountsCount();
+
+//    Page<ProductDiscount> getAllDiscountsSorted(Pageable pageable);
+
+    void updateDiscountStatuses();
+
+
+    Page<DiscountDto> searchDiscounts(String keyword, Pageable pageable);
 
     List<ProductDiscount> getAllDiscounts();
 

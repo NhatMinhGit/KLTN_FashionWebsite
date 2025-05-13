@@ -1,5 +1,6 @@
 package org.example.fashion_web.backend.services;
 
+import org.example.fashion_web.backend.dto.ProductDto;
 import org.example.fashion_web.backend.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +41,7 @@ public interface ProductService {
 
     List<Product> getProductsByCategory(String category);
 
-    Page<Product> searchProducts(String keyword,Pageable pageable);
+    Page<ProductDto> searchProducts(String keyword, Pageable pageable);
 
     List<Product> saveAll(List<Product> dataList);
     Optional<Product> findById(Long id);

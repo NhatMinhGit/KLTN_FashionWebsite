@@ -8,12 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,8 +61,6 @@ public class GeminiController {
     @Autowired
     private CartService cartService;
 
-    @Autowired
-    private ChatbotSessionService chatbotSessionService;
 
 
     @GetMapping("/chat")
@@ -76,10 +78,8 @@ public class GeminiController {
             return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
         }
 
-        ChatbotSession session = chatbotSessionService.startOrGetActiveSession(chatbot, user.getId());
-
         // Lưu message người dùng gửi
-        geminiService.saveConversation(session, "USER", message, "text", null, null);
+        geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
 
         // Trích xuất intent và entities
         Map<String, String> extractedData = extractIntentAndEntities(message);
@@ -109,7 +109,7 @@ public class GeminiController {
         }
 
         // Lưu phản hồi từ chatbot
-        geminiService.saveConversation(session, "BOT", response, "text", intent, entities);
+        geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
 
         return ResponseEntity.ok(response);
     }
@@ -328,12 +328,27 @@ public class GeminiController {
 
 
 
-        // Xử lý principal
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             if (user != null) {
                 userId = user.getId();
                 model.addAttribute("user", user);
+
+                // Tìm hoặc tạo mới Chatbot theo userId
+                Chatbot chatbot = chatbotService.findChatBotByUserId(userId);
+                if (chatbot == null) {
+                    chatbot = new Chatbot();
+                    chatbot.setName("Chatbot người dùng " + user.getName());
+                    chatbot.setUserId(userId.intValue());
+                    chatbot.setStatus("active");
+                    chatbot.setCreatedAt(LocalDateTime.now());
+                    chatbotService.save(chatbot);
+                    System.out.println("Đã tạo mới chatbot cho userId: " + userId);
+                } else {
+                    System.out.println("Đã tìm thấy chatbot cho userId: " + userId);
+                }
+
+                model.addAttribute("chatbot", chatbot);
             }
         }
         List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");

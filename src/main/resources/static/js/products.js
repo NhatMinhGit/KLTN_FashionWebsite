@@ -6,19 +6,18 @@ function searchProducts(page = 0) {
     currentPage = page;
 
     fetch(`/admin/products/search?keyword=${keyword}&page=${page}&size=${pageSize}`)
-    .then(response => response.json())
-    .then(data => {
-    let tableBody = document.querySelector("#userTable tbody");
-    tableBody.innerHTML = ""; // Xóa nội dung cũ
+        .then(response => response.json())
+        .then(data => {
+            let tableBody = document.querySelector("#userTable tbody");
+            tableBody.innerHTML = ""; // Xóa nội dung cũ
 
-    data.content.forEach(product => {
-    let row = `<tr>
+            data.content.forEach(product => {
+                let row = `<tr>
                         <td>${product.id}</td>
                         <td>${product.name}</td>
-                        <td>${product.category.name}</td>
+                        <td>${product.categoryName}</td>
                         <td>${product.price}</td>
-                        <td>${product.brand.name}</td>
-                        <td>${product.stockQuantity}</td>
+                        <td>${product.brandName}</td>
                         <td>
                             <a href="/admin/products/edit/${product.id}" class="btn btn-warning btn-sm me-2">
                                 <i class="bi bi-pencil-square"></i> Sửa
@@ -28,15 +27,17 @@ function searchProducts(page = 0) {
                             </a>
                         </td>
                     </tr>`;
-    tableBody.innerHTML += row;
-});
+                tableBody.innerHTML += row;
+            });
 
-    updatePagination(data);
-})
-    .catch(error => console.error("Lỗi khi tìm kiếm:", error));
+            updatePagination(data);
+        })
+        .catch(error => console.error("Lỗi khi tìm kiếm:", error));
 }
 
-    function updatePagination(data) {
+
+
+function updatePagination(data) {
     let pagination = document.querySelector(".pagination");
     pagination.innerHTML = ""; // Xóa phân trang cũ
 
@@ -48,11 +49,11 @@ function searchProducts(page = 0) {
         </li>`;
 
     for (let i = 0; i < data.totalPages; i++) {
-    let activeClass = i === currentPage ? "active" : "";
-    pagination.innerHTML += `<li class="page-item ${activeClass}">
+        let activeClass = i === currentPage ? "active" : "";
+        pagination.innerHTML += `<li class="page-item ${activeClass}">
                 <a class="page-link" href="#" onclick="searchProducts(${i})">${i + 1}</a>
             </li>`;
-}
+    }
 
     pagination.innerHTML += `<li class="page-item ${nextDisabled}">
             <a class="page-link" href="#" onclick="searchProducts(${currentPage + 1})">&raquo;</a>
