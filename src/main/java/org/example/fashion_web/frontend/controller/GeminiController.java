@@ -103,6 +103,21 @@ public class GeminiController {
             case "bestsellers":
                 response = geminiService.checkTopProductsRevenueForUser(message);
                 break;
+            case "shipping_issue":
+                response = geminiService.shippingIssueResponseFoUser();
+                break;
+            case "payment_method_change":
+                response = geminiService.paymentMethodChangeInstructions();
+                break;
+            case "payment_declined_reason":
+                response = geminiService.paymentDeclinedReasonResponse();
+                break;
+            case "delivery_time":
+                response = geminiService.deliveryTimeResponse();
+                break;
+            case "order_tracking":
+                response = geminiService.orderTrackingResponse(message,principal);
+                break;
             default:
                 response = geminiService.chatWithAI(message);
                 break;
@@ -131,6 +146,16 @@ public class GeminiController {
             result.put("intent", "faq");
         } else if (isBESTSELLERS(lowerCaseMessage)) {
             result.put("intent", "bestsellers");
+        } else if (isShippingDelayed(lowerCaseMessage)) {
+            result.put("intent", "shipping_issue");
+        } else if (isPaymentMethodChange(lowerCaseMessage)) {
+            result.put("intent", "payment_method_change");
+        } else if (isPaymentDeclinedReason(lowerCaseMessage)) {
+            result.put("intent", "payment_declined_reason");
+        } else if (isDeliveryTime(lowerCaseMessage)) {
+            result.put("intent", "delivery_time");
+        } else if (isOrderTracking(lowerCaseMessage)) {
+            result.put("intent", "order_tracking");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
@@ -197,6 +222,48 @@ public class GeminiController {
                 message.toLowerCase().matches(".*\\d+.*k.*") ||
                 message.toLowerCase().matches(".*\\d+.*nghìn.*");
     }
+    private boolean isDeliveryTime(String message) {
+        return containsKeywords(message,
+                "giao trong bao lâu",
+                "bao lâu thì nhận được",
+                "thời gian giao hàng",
+                "khi nào nhận được hàng",
+                "giao hàng mất mấy ngày",
+                "mất bao lâu để giao");
+    }
+    private boolean isOrderTracking(String message) {
+        return containsKeywords(message,
+                "kiểm tra đơn hàng",
+                "theo dõi đơn hàng",
+                "đơn hàng đang ở đâu",
+                "track đơn hàng",
+                "tra cứu vận đơn",
+                "check order",
+                "đơn hàng đã giao chưa",
+                "track");
+    }
+
+    private boolean isShippingDelayed(String message) {
+        return containsKeywords(message,
+                "chưa nhận được hàng",
+                "hàng chưa tới",
+                "giao hàng chưa đến",
+                "chưa giao hàng",
+                "đợi mãi chưa thấy hàng",
+                "sao hàng chưa về",
+                "không nhận được hàng",
+                "khi nào giao hàng"
+        );
+    }
+    private boolean isPaymentDeclinedReason(String message) {
+        return containsKeywords(message,
+                "tại sao thanh toán bị từ chối",
+                "thanh toán bị từ chối",
+                "không thanh toán được",
+                "lỗi thanh toán",
+                "không trả tiền được",
+                "thanh toán thất bại");
+    }
 
     private boolean isRefundPolicy(String message) {
         return containsKeywords(message, "refund policy", "hoàn phí", "chính sách hoàn phí", "chính sách đổi trả", "refund");
@@ -208,6 +275,15 @@ public class GeminiController {
 
     private boolean isBESTSELLERS(String message) {
         return containsKeywords(message, "best sellers", "bán chạy", "được yêu thích", "trending");
+    }
+    private boolean isPaymentMethodChange(String message) {
+        return containsKeywords(message,
+                "đổi phương thức thanh toán",
+                "thay đổi cách thanh toán",
+                "thay đổi phương thức trả tiền",
+                "thay đổi phương thức",
+                "có thể đổi thanh toán không",
+                "đổi thanh toán");
     }
 
     private boolean containsKeywords(String message, String... keywords) {

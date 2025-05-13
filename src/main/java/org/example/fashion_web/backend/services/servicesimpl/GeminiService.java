@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -51,6 +52,9 @@ public class GeminiService {
 
     @Autowired
     private UserChatbotRepository userChatbotRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ChatbotRepository chatbotRepository;
@@ -288,53 +292,7 @@ public class GeminiService {
 
         return null;
     }
-//    public String checkMonthlyRenvenue(String message) {
-//        // Chuẩn hóa câu hỏi
-//        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
-//
-//        // Mặc định lấy tháng và năm hiện tại
-//        LocalDate now = LocalDate.now();
-//        int monthToCheck = now.getMonthValue();
-//        int yearToCheck = now.getYear();
-//
-//        // Regex tìm "tháng x" và "năm xxxx"
-//        Pattern monthPattern = Pattern.compile("tháng\\s*(\\d{1,2})");
-//        Pattern yearPattern = Pattern.compile("năm\\s*(\\d{4})");
-//
-//        Matcher monthMatcher = monthPattern.matcher(normalizedMessage);
-//        Matcher yearMatcher = yearPattern.matcher(normalizedMessage);
-//
-//        // Nếu người dùng nhập tháng cụ thể
-//        if (monthMatcher.find()) {
-//            monthToCheck = Integer.parseInt(monthMatcher.group(1));
-//        }
-//
-//        // Nếu người dùng nhập năm cụ thể
-//        if (yearMatcher.find()) {
-//            yearToCheck = Integer.parseInt(yearMatcher.group(1));
-//        }
-//
-//        // Lấy doanh thu từ DB
-//        BigDecimal data = orderRepository.getMonthlyRevenue(yearToCheck, monthToCheck);
-//        if (data == null) data = BigDecimal.ZERO;
-//
-//        // Định dạng doanh thu
-//        DecimalFormat formatter = new DecimalFormat("#,### VNĐ");
-//        String formattedRevenue = formatter.format(data);
-//
-//        // Tạo phản hồi JSON
-//        Map<String, String> result = new HashMap<>();
-//        result.put("aiResponse", "Dạ, doanh thu tháng " + monthToCheck + "/" + yearToCheck + " là " + formattedRevenue);
-//        result.put("month", String.valueOf(monthToCheck));
-//        result.put("year", String.valueOf(yearToCheck));
-//        result.put("revenue", formattedRevenue);
-//
-//        try {
-//            return new ObjectMapper().writeValueAsString(result);
-//        } catch (JsonProcessingException e) {
-//            return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
-//        }
-//    }
+
     public String checkMonthlyRevenue(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
@@ -977,6 +935,170 @@ public class GeminiService {
         } catch (JsonProcessingException e) {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
+    }
+    public String shippingIssueResponseFoUser() {
+        String shippingIssueContent = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>THÔNG TIN VỀ TÌNH TRẠNG GIAO HÀNG</h2>
+        <p>Chúng tôi rất xin lỗi vì sự bất tiện này. Nếu bạn chưa nhận được đơn hàng, vui lòng thực hiện theo các bước sau:</p>
+
+        <p><strong>1. Kiểm tra mã đơn hàng:</strong><br>
+        – Vui lòng chuẩn bị mã đơn hàng để chúng tôi có thể hỗ trợ nhanh chóng.</p>
+
+        <p><strong>2. Liên hệ bộ phận chăm sóc khách hàng:</strong><br>
+        – Gọi <strong>Hotline: 1900 9999</strong> hoặc nhắn tin qua <strong>Fanpage chính thức</strong>.<br>
+        – Cung cấp <strong>mã đơn hàng</strong> và mô tả vấn đề (ví dụ: chưa nhận được hàng, giao nhầm, v.v).</p>
+
+        <p><strong>3. Thời gian xử lý:</strong><br>
+        – Nhân viên hỗ trợ sẽ kiểm tra tình trạng vận chuyển và phản hồi trong vòng <strong>24–48h</strong>.<br>
+        – Nếu đơn hàng thất lạc, chúng tôi sẽ tiến hành gửi lại hoặc hoàn tiền theo chính sách.</p>
+
+        <p><strong>Lưu ý:</strong><br>
+        – Vui lòng kiểm tra kỹ thông tin người nhận và địa chỉ đã cung cấp khi đặt hàng.<br>
+        – Trong một số trường hợp giao hàng chậm do <strong>thời tiết</strong>, <strong>dịch bệnh</strong> hoặc <strong>bưu tá liên hệ không thành công</strong>.</p>
+    </div>
+    """;
+
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", shippingIssueContent);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+
+    public String paymentMethodChangeInstructions() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>THAY ĐỔI PHƯƠNG THỨC THANH TOÁN</h2>
+        <p>Nếu bạn muốn thay đổi phương thức thanh toán cho đơn hàng đã đặt, vui lòng liên hệ trực tiếp với bộ phận chăm sóc khách hàng để được hỗ trợ:</p>
+
+        <p><strong>1. Qua hotline:</strong> <br>
+        Gọi <strong>1900 9999</strong> và cung cấp mã đơn hàng cùng thông tin bạn muốn điều chỉnh.</p>
+
+        <p><strong>2. Qua Fanpage:</strong><br>
+        Nhắn tin trực tiếp đến <strong>Fanpage chính thức</strong> của cửa hàng và yêu cầu hỗ trợ đổi phương thức thanh toán.</p>
+
+        <p><strong>Lưu ý:</strong><br>
+        – Việc thay đổi có thể chỉ áp dụng nếu đơn hàng chưa được xử lý giao.<br>
+        – Một số phương thức thanh toán có thể không hỗ trợ thay đổi sau khi xác nhận.</p>
+    </div>
+    """;
+
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String paymentDeclinedReasonResponse() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>LÝ DO THANH TOÁN BỊ TỪ CHỐI</h2>
+        <p>Việc thanh toán có thể bị từ chối vì một số lý do phổ biến sau:</p>
+        <ul>
+            <li>Thông tin thẻ hoặc ví điện tử không chính xác.</li>
+            <li>Số dư tài khoản không đủ tại thời điểm giao dịch.</li>
+            <li>Ngân hàng hoặc cổng thanh toán tạm thời gián đoạn dịch vụ.</li>
+            <li>Giao dịch bị nghi ngờ là bất thường và bị chặn bởi hệ thống phòng chống gian lận.</li>
+            <li>Thẻ thanh toán chưa được kích hoạt hoặc bị khóa.</li>
+        </ul>
+        <p><strong>Hướng dẫn xử lý:</strong></p>
+        <ul>
+            <li>Vui lòng kiểm tra lại thông tin thanh toán.</li>
+            <li>Thử sử dụng một phương thức thanh toán khác.</li>
+            <li>Liên hệ ngân hàng để kiểm tra trạng thái tài khoản hoặc thẻ.</li>
+            <li>Hoặc liên hệ CSKH của cửa hàng qua hotline <strong>1900 9999</strong> để được hỗ trợ thêm.</li>
+        </ul>
+    </div>
+    """;
+
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String deliveryTimeResponse() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>THỜI GIAN GIAO HÀNG</h2>
+        <p>Thời gian giao hàng dự kiến sẽ phụ thuộc vào địa chỉ nhận hàng và phương thức vận chuyển bạn chọn khi đặt hàng:</p>
+        <ul>
+            <li><strong>Nội thành:</strong> 1–2 ngày làm việc.</li>
+            <li><strong>Ngoại thành / Tỉnh thành khác:</strong> 3–5 ngày làm việc.</li>
+        </ul>
+        <p><strong>Lưu ý:</strong> Thời gian trên có thể thay đổi trong dịp cao điểm, khuyến mãi hoặc điều kiện thời tiết xấu.</p>
+        <p>Chúng tôi luôn nỗ lực để giao hàng đến bạn sớm nhất có thể!</p>
+    </div>
+    """;
+
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+
+    public String orderTrackingResponse(String message, Principal principal) {
+        String username = principal.getName();
+        User user = userRepository.findByEmail(username);
+
+        List<Order> orders = orderRepository.findOrdersInCurrentMonthByUser(user.getId());
+
+        Map<Order.OrderStatusType, List<Order>> groupedOrders = orders.stream()
+                .filter(order -> order.getStatus() == Order.OrderStatusType.PENDING
+                        || order.getStatus() == Order.OrderStatusType.SHIPPED
+                        || order.getStatus() == Order.OrderStatusType.COMPLETED
+                        || order.getStatus() == Order.OrderStatusType.CANCELLED)
+                .collect(Collectors.groupingBy(Order::getStatus));
+
+        StringBuilder responseBuilder = new StringBuilder();
+        responseBuilder.append("📦 Tình trạng đơn hàng của bạn trong tháng này:<br><br>");
+
+        for (Order.OrderStatusType status : Arrays.asList(
+                Order.OrderStatusType.PENDING,
+                Order.OrderStatusType.SHIPPED,
+                Order.OrderStatusType.COMPLETED,
+                Order.OrderStatusType.CANCELLED)) {
+
+            List<Order> ordersByStatus = groupedOrders.getOrDefault(status, Collections.emptyList());
+
+            responseBuilder.append("🔹 ").append(statusToText(status))
+                    .append(": ").append(ordersByStatus.size()).append(" đơn<br>");
+        }
+
+        // Tạo Map và thêm nội dung vào
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", responseBuilder.toString());
+
+        // Chuyển Map thành JSON
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+
+    private String statusToText(Order.OrderStatusType status) {
+        return switch (status) {
+            case PENDING -> "Chờ xác nhận";
+            case SHIPPED -> "Đang giao hàng";
+            case COMPLETED -> "Đã hoàn thành";
+            case CANCELLED -> "Đã hủy";
+            default -> "Khác";
+        };
     }
 
 
