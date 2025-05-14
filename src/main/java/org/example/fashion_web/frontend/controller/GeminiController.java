@@ -1,5 +1,7 @@
 package org.example.fashion_web.frontend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.services.*;
@@ -91,9 +93,9 @@ public class GeminiController {
             case "stock_query":
                 response = geminiService.checkStock(message);
                 break;
-//            case "price_query":
-//                response = geminiService.checkPriceAndCategory(message);
-//                break;
+            case "price_query":
+                response = geminiService.checkPriceAndCategory(message);
+                break;
             case "refund_policy":
                 response = geminiService.refundPolicyForUser();
                 break;
@@ -123,13 +125,11 @@ public class GeminiController {
                 break;
         }
 
-        // Lưu phản hồi từ chatbot
         geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
 
         return ResponseEntity.ok(response);
     }
 
-    // Hàm xác định intent từ câu hỏi
     // Hàm trích xuất intent và entities từ câu hỏi
     private Map<String, String> extractIntentAndEntities(String message) {
         Map<String, String> result = new HashMap<>();
@@ -160,8 +160,11 @@ public class GeminiController {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
 
-        // Trích xuất các thực thể (entities) từ câu hỏi (có thể mở rộng thêm)
-        result.putAll(extractEntities(lowerCaseMessage));
+        // Trích xuất các thực thể (entities) từ câu hỏi (dùng message gốc)
+        Map<String, String> extractedEntities = extractEntities(message);
+
+        // Thêm thực thể vào kết quả dưới khóa "entities"
+        result.put("entities", extractedEntities.toString());
 
         return result;
     }
@@ -218,7 +221,7 @@ public class GeminiController {
     }
 
     private boolean isPrice(String message) {
-        return containsKeywords(message, "giá", "bao nhiêu tiền", "khoảng", "tầm", "từ", "tới", "dưới") ||
+        return containsKeywords(message, "giá", "bao nhiêu tiền", "khoảng", "tầm") ||
                 message.toLowerCase().matches(".*\\d+.*k.*") ||
                 message.toLowerCase().matches(".*\\d+.*nghìn.*");
     }
@@ -297,6 +300,14 @@ public class GeminiController {
     }
 
 
+    private String convertEntitiesToJson(Map<String, String> entities) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(entities); // Chuyển đổi Map thành chuỗi JSON
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi chuyển đổi entities thành JSON: " + e.getMessage() + "\"}";
+        }
+    }
     @GetMapping("/chatbot")
     public ModelAndView chatbotPage(Principal principal, Model model,HttpSession session) {
         Long userId = null;

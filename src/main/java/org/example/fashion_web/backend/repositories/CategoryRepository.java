@@ -17,6 +17,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> getAllByParentCategoryNotNull();
     List<Category> findDistinctByParentCategoryIsNull();
+//    List<Category> getByNameContainingAndAndParentCategoryNotNull();
 
     @Query("SELECT c FROM Category c WHERE c.parentCategory.id = :parentId")
     List<Category> findSubCategories(@Param("parentId") Long parentId);

@@ -27,6 +27,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserOrderController {
@@ -62,12 +63,20 @@ public class UserOrderController {
                                  @AuthenticationPrincipal CustomUserDetails userDetail) {
         List<Order> orders = orderRepository.findByUser_IdOrderByIdDesc(userDetail.getUser().getId());
 
-        model.addAttribute("currentPage", "orders");
-        model.addAttribute("orders", orders);
+        model.addAttribute("ordersAll", orders);
+        model.addAttribute("ordersPaid", filterByStatus(orders, Order.OrderStatusType.PAID));
+        model.addAttribute("ordersPending", filterByStatus(orders, Order.OrderStatusType.PENDING));
+        model.addAttribute("ordersPaying", filterByStatus(orders, Order.OrderStatusType.PAYING));
+        model.addAttribute("ordersCompleted", filterByStatus(orders, Order.OrderStatusType.COMPLETED));
+        model.addAttribute("ordersShipped", filterByStatus(orders, Order.OrderStatusType.SHIPPED));
+        model.addAttribute("ordersCancelled", filterByStatus(orders, Order.OrderStatusType.CANCELLED));
+
         model.addAttribute("currencyFormatter", currencyFormatter);
+        model.addAttribute("currentPage", "orders");
 
         return "user-order/user-order";
     }
+
 
 
     @GetMapping("user/user-order/{orderId}/items")
@@ -105,7 +114,8 @@ public class UserOrderController {
         }
 
         if (order.getStatus() != Order.OrderStatusType.PENDING &&
-                order.getStatus() != Order.OrderStatusType.PAYING) {
+                order.getStatus() != Order.OrderStatusType.PAYING &&
+                    order.getStatus() != Order.OrderStatusType.PAID) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Đơn hàng không thể hủy ở trạng thái hiện tại.");
         }
 
@@ -114,6 +124,15 @@ public class UserOrderController {
 
         return ResponseEntity.ok("Đơn hàng đã được hủy thành công.");
     }
+
+    private List<Order> filterByStatus(List<Order> orders, Order.OrderStatusType status) {
+        if (orders == null) return Collections.emptyList();
+        return orders.stream()
+                .filter(o -> o.getStatus().equals(status))
+                .collect(Collectors.toList());
+    }
+
+
 
     @PostMapping("/user/user-order/{orderId}/update-deadline")
     @ResponseBody

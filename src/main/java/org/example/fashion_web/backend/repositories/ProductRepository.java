@@ -17,6 +17,7 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Tìm sản phẩm theo ID (mặc định JpaRepository đã có findById)
+    @EntityGraph(attributePaths = {"category","brand"})
     Optional<Product> findById(Long id);
     Optional<Product> findProductByName(String categoryName);
 
@@ -40,6 +41,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @EntityGraph(attributePaths = {"category", "brand"})
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"category", "brand"})
+    List<Product> findByNameContainingIgnoreCase(String keyword);
 
 
     List<Product> findByPriceBetween(long priceMin,long priceMax);

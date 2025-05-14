@@ -179,8 +179,11 @@ public class GeminiAdminController {
             result.put("intent", "general_chat");
         }
 
-        // Trích xuất các thực thể (entities) từ câu hỏi (có thể mở rộng thêm theo yêu cầu)
-        result.putAll(extractEntities(lowerCaseMessage));
+        // Trích xuất các thực thể (entities) từ câu hỏi (dùng message gốc)
+        Map<String, String> extractedEntities = extractEntities(message);
+
+        // Thêm thực thể vào kết quả dưới khóa "entities"
+        result.put("entities", extractedEntities.toString());
 
         return result;
     }

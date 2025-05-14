@@ -37,39 +37,40 @@ public class VoucherController {
     @Autowired
     private VoucherRepository voucherRepository;
 
-    @RequestMapping("admin/voucher")
-    public String voucherIndex(Model model, Principal principal) {
+//    @RequestMapping("admin/voucher")
+//    public String voucherIndex(Model model, Principal principal) {
+//
+//        List<Voucher> vouchers = voucherRepository.findAll();
+//
+//        model.addAttribute("vouchers", vouchers);
+//        if (principal != null) {
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+//            if (userDetails != null) {
+//                model.addAttribute("user", userDetails);
+//            } else {
+//                model.addAttribute("user", new User()); // Tránh lỗi NullPointerException
+//            }
+//        }
+//        return "voucher/index";
+//    }
 
-        List<Voucher> vouchers = voucherRepository.findAll();
-
-        model.addAttribute("vouchers", vouchers);
-        if (principal != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            if (userDetails != null) {
-                model.addAttribute("user", userDetails);
-            } else {
-                model.addAttribute("user", new User()); // Tránh lỗi NullPointerException
-            }
-        }
-        return "voucher/index";
-    }
-
-    @GetMapping("admin/voucher/vouchers-paging")
+    @GetMapping("/admin/voucher")
     public String listVouchersPaging(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size,
             Model model, Principal principal) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Voucher> voucherPage = voucherService.getAllVouchers(pageable);
-        if (voucherPage == null || voucherPage.isEmpty()) {
-            throw new RuntimeException("Không tìm thấy voucher nào!");
+        if (voucherPage == null) {
+            model.addAttribute("vouchers", List.of());
+        } else {
+            model.addAttribute("vouchers", voucherPage.getContent());
+            model.addAttribute("totalPages", voucherPage.getTotalPages());
         }
 
         model.addAttribute("voucherPage", voucherPage);
-        model.addAttribute("vouchers", voucherPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
-        model.addAttribute("totalPages", voucherPage.getTotalPages());
 
         if (principal != null) {
             try {

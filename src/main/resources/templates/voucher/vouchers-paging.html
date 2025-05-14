@@ -7,17 +7,6 @@
     <title>Quản lý Voucher</title>
     <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
-    <style>
-        #sidebar-wrapper {
-            position: fixed;
-            height: 100vh;
-            width: 250px;
-            overflow-y: auto;
-        }
-        .container-fluid {
-            margin-left: 260px;
-        }
-    </style>
 </head>
 
 <body>
@@ -27,16 +16,9 @@
 
     <!-- Content -->
     <div class="main-panel p-4">
+        <div th:replace="~{fragments/header-admin :: header-admin}"></div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fw-bold mb-3">Quản lý Voucher</h1>
-            <div class="d-flex align-items-center">
-                <span class="me-3 text-dark"><i class="fas fa-user"></i> Welcome, [[${user.getFullname()}]]</span>
-                <span sec:authorize="isAuthenticated">
-          <a class="text-decoration-none text-dark btn btn-danger" th:href="@{/logout}">
-            <i class="fas fa-sign-out-alt"></i> Logout
-          </a>
-        </span>
-            </div>
         </div>
 
         <div class="mb-3 d-flex">
@@ -47,9 +29,6 @@
         <div class="mb-3 d-flex">
             <a class="btn btn-primary me-2" th:href="@{/admin/voucher/add-voucher}">
                 <i class="fas fa-plus"></i> Thêm voucher
-            </a>
-            <a class="btn btn-secondary" th:href="@{/admin/voucher}">
-                <i class="fas fa-file-alt"></i> Xem danh sách không phân trang
             </a>
         </div>
 
@@ -82,29 +61,27 @@
             </tr>
             </tbody>
         </table>
+        <nav aria-label="Page navigation">
+            <div class="pagination-container">
+                <ul class="pagination justify-content-center">
+                    <!-- Trước -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/voucher(page=${currentPage - 1}, size=${pageSize})}">&laquo;</a>
+                    </li>
 
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <div>Trang [[${currentPage + 1}]] / [[${totalPages}]]</div>
-            <nav>
-                <ul class="pagination">
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=0, size=${pageSize})}">First</a>
+                    <!-- Số trang -->
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${currentPage == i} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/voucher(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
                     </li>
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${currentPage - 1}, size=${pageSize})}">Previous</a>
-                    </li>
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
-                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
-                    </li>
+
+                    <!-- Sau -->
                     <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${currentPage + 1}, size=${pageSize})}">Next</a>
-                    </li>
-                    <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/voucher/vouchers-paging(page=${totalPages - 1}, size=${pageSize})}">Last</a>
+                        <a class="page-link" th:href="@{/admin/voucher(page=${currentPage + 1}, size=${pageSize})}">&raquo;</a>
                     </li>
                 </ul>
-            </nav>
-        </div>
+            </div>
+        </nav>
     </div>
 
 </div>
