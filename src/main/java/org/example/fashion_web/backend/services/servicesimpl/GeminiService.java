@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -148,6 +149,9 @@ public class GeminiService {
                         .getJSONArray("parts")
                         .getJSONObject(0)
                         .getString("text");
+                aiResponse = aiResponse
+                        .replaceAll("\\*\\s\\*\\*(.*?)\\*\\*", "<br><strong>$1</strong><br>")
+                        .replaceAll("\\*\\s", "<br>- ");
             } else {
                 aiResponse = "API không trả về phản hồi hợp lệ!";
             }
@@ -168,8 +172,6 @@ public class GeminiService {
             return "{\"error\": \"Lỗi hệ thống: " + e.getMessage() + "\"}";
         }
     }
-
-
     private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<div style='display:flex; flex-wrap:wrap; gap:10px;'>");
@@ -213,6 +215,8 @@ public class GeminiService {
     }
 
 
+
+
     public String searchProducts(String message) {
         List<Product> products = productRepository.findByNameContaining(message);
         return products.isEmpty() ? "Không tìm thấy sản phẩm phù hợp." : products.stream().map(Product::getName).collect(Collectors.joining(", "));
@@ -220,12 +224,15 @@ public class GeminiService {
 
     public String checkStock(String message) {
         // Chuẩn hóa câu hỏi để lấy đúng tên sản phẩm
-        String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").trim();
+        String normalizedMessage = message.toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").trim();
 
         // Kiểm tra sản phẩm trong database
         List<Product> relatedProducts = productRepository.findAll()
                 .stream()
-                .filter(p -> normalizedMessage.toLowerCase().contains(p.getName().toLowerCase()))
+                .filter(p -> {
+                    String normalizedProductName = p.getName().toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").trim();
+                    return normalizedMessage.contains(normalizedProductName) || normalizedProductName.contains(normalizedMessage);
+                })
                 .collect(Collectors.toList());
 
         // Nếu không tìm thấy sản phẩm
@@ -240,30 +247,43 @@ public class GeminiService {
             }
         }
 
-        // Lấy hình ảnh sản phẩm
-        Optional<Image> relatedProductImage = imageRepository.findAll()
-                .stream()
-                .filter(i -> normalizedMessage.toLowerCase().contains(i.getProductVariant().getProduct().getName().toLowerCase()))
-                .findFirst();
+        // Lấy danh sách ảnh chung cho từng sản phẩm
+        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
+        for (Product product : relatedProducts) {
+            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
+            Map<Long, List<String>> variantImageMap = new HashMap<>();
+            for (ProductVariant variant : variants) {
+                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+                List<String> imageUrls = images.stream()
+                        .map(Image::getImageUri)
+                        .collect(Collectors.toList());
+                variantImageMap.put(variant.getId(), imageUrls);
+            }
+            productVariantImages.put(product.getId(), variantImageMap);
+        }
 
-        // Lấy thông tin sản phẩm
-        Product firstProduct = relatedProducts.get(0);
-        String productName = firstProduct.getName();
-        String productPrice = firstProduct.getPrice() != null
-                ? new DecimalFormat("#,### VNĐ").format(firstProduct.getPrice())
-                : "Chưa có giá";
-        String imageUrl = relatedProductImage.map(Image::getImageUri).orElse("");
+        // Tạo thông tin sản phẩm
+        String productInfo = generateProductInfo(relatedProducts, productVariantImages);
 
         // Chuẩn bị JSON phản hồi
         Map<String, String> result = new HashMap<>();
-        result.put("aiResponse", "Dạ, em tìm thấy sản phẩm bên dưới ạ:");
+        StringBuilder aiResponse = new StringBuilder("Dạ, em tìm thấy sản phẩm bên dưới ạ:<br>");
 
-        // Tạo nội dung HTML mô tả sản phẩm
-        String productInfo = "<b>Tên:</b> " + productName + "<br>" +
-                "<b>Giá:</b> " + productPrice + "<br>";
-        if (!imageUrl.isBlank()) {
-            productInfo += "<img src='" + imageUrl + "' width='200' />";
+        for (Product product : relatedProducts) {
+            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
+            for (ProductVariant variant : variants) {
+                aiResponse.append("- ").append(variant.getColor()).append(":<br>");
+                List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                for (Size size : sizes) {
+                    String sizeName = size.getSizeName() != null ? size.getSizeName() : "Không rõ";
+                    int quantity = size.getStockQuantity() != null ? size.getStockQuantity() : 0;
+                    aiResponse.append("   + Size: ").append(sizeName)
+                            .append(" – Số lượng: ").append(quantity).append("<br>");
+                }
+            }
         }
+
+        result.put("aiResponse", aiResponse.toString());
 
         result.put("productInfo", productInfo);
 
@@ -273,6 +293,128 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+    public String checkPriceAndCategory(String message) {
+        String lowerCaseMessage = message.toLowerCase();
+
+// --- Bước 1: Tách giá ---
+        Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu|tỷ)?", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(lowerCaseMessage);
+
+        List<BigDecimal> priceList = new ArrayList<>();
+        while (matcher.find()) {
+            try {
+                String numberPart = matcher.group(1).replace(",", "").replace(".", "");
+                String unit = matcher.group(2);
+
+                // Sử dụng BigDecimal.valueOf() thay vì parseLong
+                BigDecimal value = new BigDecimal(numberPart);
+
+                if (unit != null) {
+                    switch (unit.toLowerCase()) {
+                        case "k", "nghìn" -> value = value.multiply(BigDecimal.valueOf(1_000));
+                        case "tr", "triệu" -> value = value.multiply(BigDecimal.valueOf(1_000_000));
+                        case "tỷ" -> value = value.multiply(BigDecimal.valueOf(1_000_000_000));
+                    }
+                }
+
+                priceList.add(value);
+            } catch (NumberFormatException ignored) {}
+        }
+
+
+
+
+        // --- Bước 3: Kiểm tra sản phẩm trong database ---
+        List<Product> relatedProducts = productRepository.findAll()
+                .stream()
+                .filter(p -> {
+                    String normalizedProductName = normalize(p.getName()).toLowerCase();
+                    String normalizedMessage = normalize(message).toLowerCase();
+
+                    // Kiểm tra xem tên sản phẩm có chứa bất kỳ từ khóa nào trong thông điệp
+                    return Arrays.stream(normalizedMessage.split("\\s+"))
+                            .anyMatch(normalizedProductName::contains); // Kiểm tra từng từ khóa trong thông điệp
+                })
+                .toList();
+
+
+        // --- Bước 2: Xác định khoảng giá ---
+        BigDecimal minPrice;
+        BigDecimal maxPrice;
+
+        // Kiểm tra giá nếu có 1 giá
+        if (priceList.size() == 1) {
+            BigDecimal basePrice = priceList.get(0);
+            minPrice = basePrice.subtract(BigDecimal.valueOf(50_000));
+            maxPrice = basePrice.add(BigDecimal.valueOf(50_000));
+        }
+        // Nếu có 2 giá, chọn min và max
+        else if (priceList.size() >= 2) {
+            BigDecimal price1 = priceList.get(0);
+            BigDecimal price2 = priceList.get(1);
+
+            // Dùng compareTo để xác định giá trị nhỏ nhất và lớn nhất
+            minPrice = price1.compareTo(price2) < 0 ? price1 : price2;
+            maxPrice = price1.compareTo(price2) > 0 ? price1 : price2;
+        } else {
+            maxPrice = BigDecimal.valueOf(Long.MAX_VALUE);
+            minPrice = BigDecimal.ZERO;
+        }
+
+        // --- Bước 4: Lọc theo giá trong Java ---
+        List<Product> filteredProducts = relatedProducts.stream()
+                .filter(p -> {
+                    BigDecimal price = p.getEffectivePrice() != null ? p.getEffectivePrice() : p.getPrice();
+                    return price != null && price.compareTo(minPrice) >= 0 && price.compareTo(maxPrice) <= 0;
+                })
+                .collect(Collectors.toList());
+        // Lấy danh sách ảnh chung cho từng sản phẩm
+        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
+        for (Product product : filteredProducts) {
+            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
+            Map<Long, List<String>> variantImageMap = new HashMap<>();
+            for (ProductVariant variant : variants) {
+                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+                List<String> imageUrls = images.stream()
+                        .map(Image::getImageUri)
+                        .collect(Collectors.toList());
+                variantImageMap.put(variant.getId(), imageUrls);
+            }
+            productVariantImages.put(product.getId(), variantImageMap);
+        }
+        // --- Bước 5: Tạo JSON phản hồi ---
+        // Tạo thông tin sản phẩm
+        String productInfo = generateProductInfo(filteredProducts, productVariantImages);
+
+        // Chuẩn bị JSON phản hồi
+        Map<String, String> result = new HashMap<>();
+        StringBuilder aiResponse = new StringBuilder();
+        // Kiểm tra nếu không có sản phẩm nào
+        if (filteredProducts.isEmpty()) {
+            aiResponse.append("Dạ, hiện tại không có sản phẩm nào phù hợp với yêu cầu của bạn.<br>");
+        } else {
+            aiResponse.append("Dạ, em tìm thấy sản phẩm bên dưới ạ:<br>");
+        }
+
+        result.put("aiResponse", aiResponse.toString());
+
+        result.put("productInfo", productInfo);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String normalize(String input) {
+        if (input == null) {
+            return "";  // Tránh lỗi nếu input là null
+        }
+        // Chuyển tất cả ký tự thành chữ thường và loại bỏ ký tự không phải chữ cái, chữ số và khoảng trắng
+        return input.toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").trim();
+    }
+
+
 
     private String extractEntityFromMessage(String message, String entityName) {
         // Dùng regex giống controller để lấy entity từ message
@@ -579,6 +721,7 @@ public class GeminiService {
     public void saveConversation(Chatbot chatbot, String senderType, String messageText, String messageType, String intent, String entities) {
         ChatbotMessage message = new ChatbotMessage();
         message.setChatbot(chatbot);
+        message.setCreatedAt(LocalDateTime.now());
         message.setSenderType(senderType);
         message.setMessageText(messageText);
         message.setMessageType(messageType);
@@ -678,7 +821,7 @@ public class GeminiService {
     }
 
 
-//    public String checkPriceAndCategory(String message) {
+//    public List<Product> checkPriceAndCategory(String message) {
 //        String lowerCaseMessage = message.toLowerCase();
 //
 //        // --- Bước 1: Tách giá ---
@@ -732,23 +875,9 @@ public class GeminiService {
 //            products = productRepository.findByPriceBetween(minPrice, maxPrice);
 //        }
 //
-//        // --- Bước 4: Trả kết quả dạng JSON ---
-//        ObjectMapper mapper = new ObjectMapper();
-//        try {
-//            if (products.isEmpty()) {
-//                Map<String, String> notFound = Map.of("message", "Không tìm thấy sản phẩm nào phù hợp với yêu cầu.");
-//                return mapper.writeValueAsString(notFound);
-//            }
-//
-//            List<Product> resultList = products.stream()
-//                    .map(p -> new Product(p.getName(), p.getPrice()))
-//                    .toList();
-//
-//            return mapper.writeValueAsString(resultList);
-//        } catch (Exception e) {
-//            return "{\"error\": \"Lỗi xử lý JSON\"}";
-//        }
+//        return products;
 //    }
+
 
     public String loadServiceLog(Long id) {
         try {
