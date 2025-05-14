@@ -1,7 +1,6 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
-import org.example.fashion_web.backend.dto.CategoryRevenueDto;
-import org.example.fashion_web.backend.dto.ProductRevenueDto;
+import org.example.fashion_web.backend.dto.*;
 import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.ProductDiscount;
@@ -42,6 +41,83 @@ public class DiscountServiceImpl implements DiscountService {
     public ProductDiscount save(ProductDiscount productDiscount) {
         return discountRepository.save(productDiscount);
     }
+
+    @Override
+    public Optional<ProductDiscount> findById(Long id) {
+        return discountRepository.findById(id);
+    }
+
+//    public Page<ProductDiscount> getAllDiscountsSorted(Pageable pageable) {
+//        return discountRepository.findAll(pageable); // Sort đã nằm trong pageable
+//    }
+    @Override
+    public void updateDiscountStatuses() {
+        discountRepository.activateValidDiscounts();
+        discountRepository.deactivateInvalidDiscounts();
+    }
+
+//    @Override
+//    public Page<DiscountDto> searchDiscounts(String keyword, Pageable pageable) {
+//        String trimmedKeyword = (keyword != null) ? keyword.trim() : "";
+//
+//        Page<ProductDiscount> discountPage;
+//        if (trimmedKeyword.isEmpty()) {
+//            discountPage = discountRepository.findAll(pageable);
+//        } else {
+//            discountPage = discountRepository.searchWithRelations(trimmedKeyword, pageable);
+//        }
+//
+//        // Gộp phần chuyển đổi đối tượng ProductDiscount sang DiscountDto
+//        return discountPage.map(discount -> {
+//            DiscountDto dto = new DiscountDto();
+//            dto.setId(discount.getId());
+//            dto.setName(discount.getName());
+//            dto.setDiscountPercent(discount.getDiscountPercent());
+//            dto.setStartTime(discount.getStartTime());
+//            dto.setEndTime(discount.getEndTime());
+//
+//            // Lấy tên sản phẩm và danh mục thay vì đối tượng đầy đủ
+//            if (discount.getProduct() != null) {
+//                dto.setProductName(discount.getProduct().getName());
+//            }
+//
+//            if (discount.getCategory() != null) {
+//                dto.setCategoryName(discount.getCategory().getName());
+//            }
+//
+//            return dto;
+//        });
+//    }
+    @Override
+    public Page<DiscountDto> searchDiscounts(String keyword, Pageable pageable) {
+        Page<ProductDiscount> discountPage;
+
+        if (keyword.isEmpty()) {
+            discountPage = discountRepository.findAll(pageable);
+        } else {
+            discountPage = discountRepository.findByNameContainingIgnoreCase(keyword, pageable);
+        }
+
+        return discountPage.map(discount -> {
+            DiscountDto dto = new DiscountDto();
+            dto.setId(discount.getId());
+            dto.setName(discount.getName());
+            dto.setDiscountPercent(discount.getDiscountPercent());
+            dto.setStartTime(discount.getStartTime());
+            dto.setEndTime(discount.getEndTime());
+
+            if (discount.getProduct() != null) {
+                dto.setProductName(discount.getProduct().getName());
+            }
+            if (discount.getCategory() != null) {
+                dto.setCategoryName(discount.getCategory().getName());
+            }
+
+            return dto;
+        });
+    }
+
+
 
     @Override
     public Optional<ProductDiscount> getActiveDiscountForProduct(Product product) {

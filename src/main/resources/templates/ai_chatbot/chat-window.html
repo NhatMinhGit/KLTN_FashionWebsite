@@ -18,18 +18,15 @@
     <style>
         .main-container {
             width: 90%;
-            padding: 1rem;
+            padding-top: 0.3rem;
+            padding-bottom: 0.3rem;
         }
 
         .chat-container {
             max-width: 90%;
             margin: 1rem;
         }
-        .prompt-container {
-            max-width: 90%;
-            max-height: 10%;
-            margin: 1rem;
-        }
+
         .container-fluid {
             padding: 0;
             margin: 0;
@@ -53,17 +50,37 @@
             padding: 10px;           /* Khoảng cách xung quanh nút */
             cursor: pointer;        /* Thêm con trỏ chuột khi di chuột qua */
         }
-
+        .tab-content{
+            height: 250px;
+        }
         #arrowIcon {
             font-size: 20px;         /* Kích thước biểu tượng mũi tên */
             transition: transform 0.3s ease; /* Thêm hiệu ứng chuyển động cho mũi tên */
         }
         #questionTabsContent {
-            height: 200px; /* Giảm chiều cao xuống, có thể thay đổi theo nhu cầu */
+            height: 350px; /* Giảm chiều cao xuống, có thể thay đổi theo nhu cầu */
             overflow-y: auto; /* Thêm cuộn dọc nếu nội dung vượt quá chiều cao */
         }
         #messages{
-            height: 400px;
+            height: 450px;
+        }
+        .message-text p {
+            font-size: 0.9em; /* Giảm kích thước chữ */
+        }
+
+        .chat-messages {
+            position:relative;
+            height: 450px; /* Điều chỉnh chiều cao của khu vực chat */
+            overflow-y: auto; /* Để chat có thể cuộn khi quá dài */
+        }
+
+        .back-to-latest {
+            position: absolute; /* Đặt lại thành absolute để nó nằm trong khu vực chat-messages */
+            bottom: 10px; /* Đảm bảo nằm ở dưới cùng */
+            left: 50%;
+            transform: translateX(-50%); /* Căn giữa */
+            z-index: 10;
+            display: none; /* Ẩn mặc định, chỉ hiện khi cần */
         }
     </style>
 </head>
@@ -130,7 +147,15 @@
                             <div class="message-time">04:11</div>
                         </div>
                     </div>
+                    <!-- Chat Navigation - Back to Latest -->
+                    <div class="back-to-latest text-center mt-1 mb-1">
+                        <a href="#" class="btn btn-sm btn-light">
+                            <i class="fa-solid fa-arrow-up"></i> Back to the latest
+                        </a>
+                    </div>
                 </div>
+
+
 
                 <!-- Service Categories -->
                 <div class="button-container">
@@ -237,7 +262,7 @@
                 </div>
 
                 <!-- Hot Questions -->
-                <div class="tab-content" id="questionTabsContent" style="height: 100px;">
+                <div class="tab-content" id="questionTabsContent" style="height: 250px;">
                     <div class="tab-pane fade show active" id="hot" role="tabpanel" aria-labelledby="hot-tab">
                         <div class="question-list">
                             <div class="question-item">
@@ -368,12 +393,7 @@
                 </div>
             </div>
 
-                <!-- Chat Navigation - Back to Latest -->
-                <div class="back-to-latest text-center mt-1 mb-1">
-                    <a href="#" class="btn btn-sm btn-light">
-                        <i class="fa-solid fa-arrow-up"></i> back to the latest
-                    </a>
-                </div>
+
 
                 <!-- Chat Quick Options -->
                     <div class="quick-options mb-1 mt-1">

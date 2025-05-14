@@ -15,4 +15,9 @@ public class ChatbotServiceImpl implements ChatbotService {
     public Chatbot findChatBotByUserId(Long userId) {
         return chatbotRepository.findByUserId(userId);
     }
+
+    @Override
+    public Chatbot save(Chatbot chatbot) {
+        return chatbotRepository.save(chatbot);
+    }
 }

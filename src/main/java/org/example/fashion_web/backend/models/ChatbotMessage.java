@@ -18,8 +18,8 @@ public class ChatbotMessage {
     private Long messageId;
 
     @ManyToOne
-    @JoinColumn(name = "session_id", referencedColumnName = "session_id")
-    private ChatbotSession chatbotSession;
+    @JoinColumn(name = "chatbot_id", referencedColumnName = "chatbot_id")
+    private Chatbot chatbot;
 
     @Column(name = "sender_type", columnDefinition = "VARCHAR(50)")
     private String senderType;
