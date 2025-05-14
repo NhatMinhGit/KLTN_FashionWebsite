@@ -17,6 +17,7 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Tìm sản phẩm theo ID (mặc định JpaRepository đã có findById)
+    @EntityGraph(attributePaths = {"category","brand"})
     Optional<Product> findById(Long id);
     Optional<Product> findProductByName(String categoryName);
 
