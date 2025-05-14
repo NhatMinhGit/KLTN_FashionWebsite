@@ -2,6 +2,7 @@ package org.example.fashion_web.backend.services;
 
 import org.example.fashion_web.backend.dto.OrderStatusDto;
 import org.example.fashion_web.backend.models.Order;
+import org.example.fashion_web.backend.models.User;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +20,8 @@ public interface OrderService {
     List<OrderStatusDto> getOrderStatusData(int year, int month);
 
     int getOrdersToday();
+
+    List<Order> findOrdersByUserAndStatusIn(User user, List<Order.OrderStatusType> statuses);
 
     int getOrdersThisMonth();
 

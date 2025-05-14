@@ -1229,6 +1229,91 @@ public class GeminiService {
             default -> "Khác";
         };
     }
+    public String returnPolicyResponse() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>CHÍNH SÁCH ĐỔI TRẢ</h2>
+        <p>Chính sách đổi trả của cửa hàng cho phép <strong>đổi trong vòng 7 ngày</strong> kể từ khi nhận hàng.</p>
+        <p>Vui lòng giữ nguyên bao bì và hóa đơn khi đổi sản phẩm.</p>
+        <h3>Thông tin liên hệ:</h3>
+        <p>📞 Số điện thoại: 0765 599 103</p>
+        <p>📧 Email: support@mntfashion.com</p>
+        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+    </div>
+    """;
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String productIssueResponse() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>SẢN PHẨM BỊ LỖI / KHÔNG ĐÚNG MÔ TẢ</h2>
+        <p>Nếu sản phẩm bạn nhận được <strong>bị lỗi</strong> hoặc <strong>không đúng mô tả</strong>, bạn có thể <strong>liên hệ ngay với chúng tôi để được đổi/trả miễn phí</strong>.</p>
+        <p>Đội ngũ CSKH sẽ hỗ trợ bạn nhanh chóng.</p>
+        <h3>Thông tin liên hệ:</h3>
+        <p>📞 Số điện thoại: 0765 599 103</p>
+        <p>📧 Email: support@mntfashion.com</p>
+        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+    </div>
+    """;
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String refundTimeResponse() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>THỜI GIAN HOÀN TIỀN</h2>
+        <p>Thời gian xử lý hoàn tiền thường mất từ <strong>3 đến 7 ngày làm việc</strong> kể từ khi yêu cầu được xác nhận.</p>
+        <p>Thời gian có thể thay đổi tùy thuộc vào ngân hàng hoặc phương thức thanh toán.</p>
+        <h3>Thông tin liên hệ:</h3>
+        <p>📞 Số điện thoại: 0765 599 103</p>
+        <p>📧 Email: support@mntfashion.com</p>
+        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+    </div>
+    """;
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String changeProductModelResponse() {
+        String content = """
+    <div style="max-width: 700px; margin: auto;">
+        <h2>ĐỔI SANG MẪU KHÁC</h2>
+        <p>Bạn có thể đổi sang mẫu khác trong vòng <strong>7 ngày</strong> nếu sản phẩm chưa qua sử dụng và còn nguyên bao bì.</p>
+        <p>Vui lòng liên hệ CSKH để được hỗ trợ đổi mẫu nhanh chóng.</p>
+        <h3>Thông tin liên hệ:</h3>
+        <p>📞 Số điện thoại: 0765 599 103</p>
+        <p>📧 Email: support@mntfashion.com</p>
+        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+    </div>
+    """;
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+
 
 
 

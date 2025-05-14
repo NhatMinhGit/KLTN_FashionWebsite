@@ -2,6 +2,7 @@ package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.OrderStatusDto;
 import org.example.fashion_web.backend.models.Order;
+import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.OrderRepository;
 import org.example.fashion_web.backend.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,11 @@ public class OrderServiceImpl implements OrderService {
 
     public int getOrdersToday() {
         return orderRepository.countOrdersToday();
+    }
+
+    @Override
+    public List<Order> findOrdersByUserAndStatusIn(User user, List<Order.OrderStatusType> statuses) {
+        return orderRepository.findByUserAndStatusIn(user,statuses);
     }
 
     public int getOrdersThisMonth() {
