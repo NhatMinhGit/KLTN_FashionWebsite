@@ -3,6 +3,7 @@ package org.example.fashion_web.backend.repositories;
 import org.example.fashion_web.backend.models.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,7 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Tìm sản phẩm theo ID (mặc định JpaRepository đã có findById)
+    @EntityGraph(attributePaths = {"category","brand"})
     Optional<Product> findById(Long id);
     Optional<Product> findProductByName(String categoryName);
 
@@ -37,7 +39,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByNameContaining(String name);
     // Tìm kiếm sản phẩm theo tên
 
+    @EntityGraph(attributePaths = {"category", "brand"})
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+
 
     List<Product> findByPriceBetween(long priceMin,long priceMax);
 

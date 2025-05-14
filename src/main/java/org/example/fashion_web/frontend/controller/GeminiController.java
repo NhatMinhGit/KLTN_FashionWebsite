@@ -8,12 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,8 +61,6 @@ public class GeminiController {
     @Autowired
     private CartService cartService;
 
-    @Autowired
-    private ChatbotSessionService chatbotSessionService;
 
 
     @GetMapping("/chat")
@@ -76,10 +78,8 @@ public class GeminiController {
             return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
         }
 
-        ChatbotSession session = chatbotSessionService.startOrGetActiveSession(chatbot, user.getId());
-
         // Lưu message người dùng gửi
-        geminiService.saveConversation(session, "USER", message, "text", null, null);
+        geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
 
         // Trích xuất intent và entities
         Map<String, String> extractedData = extractIntentAndEntities(message);
@@ -103,13 +103,28 @@ public class GeminiController {
             case "bestsellers":
                 response = geminiService.checkTopProductsRevenueForUser(message);
                 break;
+            case "shipping_issue":
+                response = geminiService.shippingIssueResponseFoUser();
+                break;
+            case "payment_method_change":
+                response = geminiService.paymentMethodChangeInstructions();
+                break;
+            case "payment_declined_reason":
+                response = geminiService.paymentDeclinedReasonResponse();
+                break;
+            case "delivery_time":
+                response = geminiService.deliveryTimeResponse();
+                break;
+            case "order_tracking":
+                response = geminiService.orderTrackingResponse(message,principal);
+                break;
             default:
                 response = geminiService.chatWithAI(message);
                 break;
         }
 
         // Lưu phản hồi từ chatbot
-        geminiService.saveConversation(session, "BOT", response, "text", intent, entities);
+        geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
 
         return ResponseEntity.ok(response);
     }
@@ -131,6 +146,16 @@ public class GeminiController {
             result.put("intent", "faq");
         } else if (isBESTSELLERS(lowerCaseMessage)) {
             result.put("intent", "bestsellers");
+        } else if (isShippingDelayed(lowerCaseMessage)) {
+            result.put("intent", "shipping_issue");
+        } else if (isPaymentMethodChange(lowerCaseMessage)) {
+            result.put("intent", "payment_method_change");
+        } else if (isPaymentDeclinedReason(lowerCaseMessage)) {
+            result.put("intent", "payment_declined_reason");
+        } else if (isDeliveryTime(lowerCaseMessage)) {
+            result.put("intent", "delivery_time");
+        } else if (isOrderTracking(lowerCaseMessage)) {
+            result.put("intent", "order_tracking");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
@@ -197,6 +222,48 @@ public class GeminiController {
                 message.toLowerCase().matches(".*\\d+.*k.*") ||
                 message.toLowerCase().matches(".*\\d+.*nghìn.*");
     }
+    private boolean isDeliveryTime(String message) {
+        return containsKeywords(message,
+                "giao trong bao lâu",
+                "bao lâu thì nhận được",
+                "thời gian giao hàng",
+                "khi nào nhận được hàng",
+                "giao hàng mất mấy ngày",
+                "mất bao lâu để giao");
+    }
+    private boolean isOrderTracking(String message) {
+        return containsKeywords(message,
+                "kiểm tra đơn hàng",
+                "theo dõi đơn hàng",
+                "đơn hàng đang ở đâu",
+                "track đơn hàng",
+                "tra cứu vận đơn",
+                "check order",
+                "đơn hàng đã giao chưa",
+                "track");
+    }
+
+    private boolean isShippingDelayed(String message) {
+        return containsKeywords(message,
+                "chưa nhận được hàng",
+                "hàng chưa tới",
+                "giao hàng chưa đến",
+                "chưa giao hàng",
+                "đợi mãi chưa thấy hàng",
+                "sao hàng chưa về",
+                "không nhận được hàng",
+                "khi nào giao hàng"
+        );
+    }
+    private boolean isPaymentDeclinedReason(String message) {
+        return containsKeywords(message,
+                "tại sao thanh toán bị từ chối",
+                "thanh toán bị từ chối",
+                "không thanh toán được",
+                "lỗi thanh toán",
+                "không trả tiền được",
+                "thanh toán thất bại");
+    }
 
     private boolean isRefundPolicy(String message) {
         return containsKeywords(message, "refund policy", "hoàn phí", "chính sách hoàn phí", "chính sách đổi trả", "refund");
@@ -208,6 +275,15 @@ public class GeminiController {
 
     private boolean isBESTSELLERS(String message) {
         return containsKeywords(message, "best sellers", "bán chạy", "được yêu thích", "trending");
+    }
+    private boolean isPaymentMethodChange(String message) {
+        return containsKeywords(message,
+                "đổi phương thức thanh toán",
+                "thay đổi cách thanh toán",
+                "thay đổi phương thức trả tiền",
+                "thay đổi phương thức",
+                "có thể đổi thanh toán không",
+                "đổi thanh toán");
     }
 
     private boolean containsKeywords(String message, String... keywords) {
@@ -328,12 +404,27 @@ public class GeminiController {
 
 
 
-        // Xử lý principal
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             if (user != null) {
                 userId = user.getId();
                 model.addAttribute("user", user);
+
+                // Tìm hoặc tạo mới Chatbot theo userId
+                Chatbot chatbot = chatbotService.findChatBotByUserId(userId);
+                if (chatbot == null) {
+                    chatbot = new Chatbot();
+                    chatbot.setName("Chatbot người dùng " + user.getName());
+                    chatbot.setUserId(userId.intValue());
+                    chatbot.setStatus("active");
+                    chatbot.setCreatedAt(LocalDateTime.now());
+                    chatbotService.save(chatbot);
+                    System.out.println("Đã tạo mới chatbot cho userId: " + userId);
+                } else {
+                    System.out.println("Đã tìm thấy chatbot cho userId: " + userId);
+                }
+
+                model.addAttribute("chatbot", chatbot);
             }
         }
         List<CartItems> cart = (List<CartItems>) session.getAttribute("cartItems");

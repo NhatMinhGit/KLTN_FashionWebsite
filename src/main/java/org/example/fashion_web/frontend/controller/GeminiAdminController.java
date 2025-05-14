@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.fashion_web.backend.models.Chatbot;
-import org.example.fashion_web.backend.models.ChatbotSession;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.services.ChatbotService;
-import org.example.fashion_web.backend.services.ChatbotSessionService;
 import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +38,6 @@ public class GeminiAdminController {
     @Autowired
     private ChatbotService chatbotService;
 
-    @Autowired
-    private ChatbotSessionService chatbotSessionService;
 
 
     @GetMapping("/chat")
@@ -58,10 +55,8 @@ public class GeminiAdminController {
             return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
         }
 
-        ChatbotSession session = chatbotSessionService.startOrGetActiveSession(chatbot, user.getId());
-
         // Lưu message người dùng gửi
-        geminiService.saveConversation(session, "USER", message, "text", null, null);
+        geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
 
         // Trích xuất intent và entities
         Map<String, String> extractedData = extractIntentAndEntities(message);
@@ -80,7 +75,7 @@ public class GeminiAdminController {
                 response = geminiService.faqShowForStaff();
                 break;
             case "monthly_revenue":
-                response = geminiService.checkMonthlyRenvenue(message);
+                response = geminiService.checkMonthlyRevenue(message);
                 break;
             case "yearly_revenue":
                 response = geminiService.checkYearlyRenvenue(message);
@@ -155,7 +150,7 @@ public class GeminiAdminController {
         }
 
         // Lưu phản hồi từ chatbot
-        geminiService.saveConversation(session, "BOT", response, "text", intent, entities);
+        geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
 
         return ResponseEntity.ok(response);
     }
@@ -295,12 +290,31 @@ public class GeminiAdminController {
         Long userId = null;
 
         if (principal != null) {
-            System.out.println("Principal Name: " + principal.getName());  // Debug principal
+            System.out.println("Principal Name: " + principal.getName());
 
             User user = userService.findByEmail(principal.getName());
             if (user != null) {
                 userId = user.getId();
                 model.addAttribute("user", user);
+
+                // Tìm chatbot của người dùng
+                Chatbot chatbot = chatbotService.findChatBotByUserId(userId);
+
+                if (chatbot == null) {
+                    // Nếu chưa có -> tạo mới
+                    chatbot = new Chatbot();
+                    chatbot.setName("Chatbot nhân viên " + user.getName());  // hoặc user.getEmail()
+                    chatbot.setUserId(userId.intValue());
+                    chatbot.setStatus("active");
+                    chatbot.setCreatedAt(LocalDateTime.now());
+
+                    chatbotService.save(chatbot);
+                    System.out.println("Tạo mới chatbot cho userId: " + userId);
+                } else {
+                    System.out.println("Đã tồn tại chatbot cho userId: " + userId);
+                }
+
+                model.addAttribute("chatbot", chatbot);
             } else {
                 System.out.println("User not found for: " + principal.getName());
             }
@@ -308,8 +322,7 @@ public class GeminiAdminController {
             System.out.println("Principal is NULL!");
         }
 
-        System.out.println("UserID in chatbotPage: " + userId); // Debug userId
-
         return new ModelAndView("ai_chatbot/admin-chat-window");
     }
+
 }

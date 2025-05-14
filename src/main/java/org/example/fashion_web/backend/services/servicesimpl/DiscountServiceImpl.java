@@ -1,6 +1,7 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.CategoryRevenueDto;
+import org.example.fashion_web.backend.dto.DiscountDto;
 import org.example.fashion_web.backend.dto.ProductRevenueDto;
 import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Product;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -42,6 +42,48 @@ public class DiscountServiceImpl implements DiscountService {
     public ProductDiscount save(ProductDiscount productDiscount) {
         return discountRepository.save(productDiscount);
     }
+
+    @Override
+    public Optional<ProductDiscount> findById(Long id) {
+        return discountRepository.findById(id);
+    }
+
+    @Override
+    public void updateDiscountStatuses() {
+        discountRepository.activateValidDiscounts();
+        discountRepository.deactivateInvalidDiscounts();
+    }
+
+    @Override
+    public Page<DiscountDto> searchDiscounts(String keyword, Pageable pageable) {
+        Page<ProductDiscount> discountPage;
+
+        if (keyword.isEmpty()) {
+            discountPage = discountRepository.findAll(pageable);
+        } else {
+            discountPage = discountRepository.findByNameContainingIgnoreCase(keyword, pageable);
+        }
+
+        return discountPage.map(discount -> {
+            DiscountDto dto = new DiscountDto();
+            dto.setId(discount.getId());
+            dto.setName(discount.getName());
+            dto.setDiscountPercent(discount.getDiscountPercent());
+            dto.setStartTime(discount.getStartTime());
+            dto.setEndTime(discount.getEndTime());
+
+            if (discount.getProduct() != null) {
+                dto.setProductName(discount.getProduct().getName());
+            }
+            if (discount.getCategory() != null) {
+                dto.setCategoryName(discount.getCategory().getName());
+            }
+
+            return dto;
+        });
+    }
+
+
 
     @Override
     public Optional<ProductDiscount> getActiveDiscountForProduct(Product product) {
@@ -87,7 +129,6 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
-    @Transactional
     public void applyDiscountFor10LowSellingProducts(LocalDate startDate, LocalDate endDate) {
         List<ProductRevenueDto> result = orderItemRepository.findTopProductsByLowestRevenue(startDate, endDate);
         List<ProductRevenueDto> lowRevenueProducts = result.size() > 10 ? result.subList(0, 10) : result;
@@ -99,7 +140,7 @@ public class DiscountServiceImpl implements DiscountService {
 
                 ProductDiscount discount = new ProductDiscount();
                 discount.setProduct(product);
-                discount.setDiscountPercent(20);
+                discount.setDiscountPercent(10);
                 discount.setActive(true);
                 discount.setName("Giảm giá sản phẩm bán chậm");
                 discount.setStartTime(LocalDateTime.now());
@@ -111,7 +152,6 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
-    @Transactional
     public void applyDiscountFor3LowSellingCategories(LocalDate startDate, LocalDate endDate) {
         List<CategoryRevenueDto> result = orderItemRepository.findTopCategoriesByLowestRevenue(startDate, endDate);
         List<CategoryRevenueDto> lowRevenueCategories = result.size() > 3 ? result.subList(0, 3) : result;
@@ -129,9 +169,9 @@ public class DiscountServiceImpl implements DiscountService {
 
                 ProductDiscount discount = new ProductDiscount();
                 discount.setProduct(product);
-                discount.setDiscountPercent(20);
+                discount.setDiscountPercent(12);
                 discount.setActive(true);
-                discount.setName("Giảm giá sản phẩm bán chậm");
+                discount.setName("Giảm giá danh mục bán chậm");
                 discount.setStartTime(LocalDateTime.now());
                 discount.setEndTime(LocalDateTime.now().plusDays(7)); // Giảm trong 7 ngày
 
@@ -178,4 +218,46 @@ public class DiscountServiceImpl implements DiscountService {
         // Truy vấn từ database hoặc cache để lấy giảm giá cho danh mục
         return discountRepository.findProductDiscountByActiveAndCategory_Name(active,name);
     }
+
+    @Override
+    public void applyHolidayDiscount(LocalDate date, String discountName) {
+        List<Product> allProducts = productService.getAllProducts();
+
+        for (Product product : allProducts) {
+            Optional<Product> productOpt = productRepository.findById(product.getId());
+            if (productOpt.isPresent()) {
+                ProductDiscount discount = new ProductDiscount();
+                discount.setProduct(productOpt.get());
+                discount.setDiscountPercent(20);
+                discount.setActive(true);
+                discount.setName(discountName);
+                discount.setStartTime(date.atStartOfDay());
+                discount.setEndTime(date.atStartOfDay().plusDays(3)); // Áp dụng trong 3 ngày
+
+                discountRepository.save(discount);
+            }
+        }
+    }
+
+
+    @Override
+    public void applySpecialDayDiscount(LocalDate date) {
+        List<Product> specialProducts = productService.getAllProducts();
+
+        for (Product product : specialProducts) {
+            Optional<Product> productOpt = productRepository.findById(product.getId());
+            if (productOpt.isPresent()) {
+                ProductDiscount discount = new ProductDiscount();
+                discount.setProduct(productOpt.get());
+                discount.setDiscountPercent(15);
+                discount.setActive(true);
+                discount.setName("Ưu đãi đặc biệt ngày " + date.getDayOfMonth() + "/" + date.getMonthValue());
+                discount.setStartTime(LocalDateTime.now());
+                discount.setEndTime(LocalDateTime.now().plusDays(1)); // Giảm trong 1 ngày
+
+                discountRepository.save(discount);
+            }
+        }
+    }
+
 }

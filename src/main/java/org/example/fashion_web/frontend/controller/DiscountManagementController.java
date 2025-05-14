@@ -1,11 +1,13 @@
 package org.example.fashion_web.frontend.controller;
 
 import jakarta.validation.Valid;
+import org.example.fashion_web.backend.dto.DiscountDto;
 import org.example.fashion_web.backend.dto.DiscountForm;
 import org.example.fashion_web.backend.exceptions.ResourceNotFoundException;
 import org.example.fashion_web.backend.models.Category;
 import org.example.fashion_web.backend.models.Product;
 import org.example.fashion_web.backend.models.ProductDiscount;
+import org.example.fashion_web.backend.repositories.DiscountRepository;
 import org.example.fashion_web.backend.services.CategoryService;
 import org.example.fashion_web.backend.services.DiscountService;
 import org.example.fashion_web.backend.services.ProductService;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -34,6 +37,8 @@ public class DiscountManagementController {
     private DiscountService discountService;
     @Autowired
     private UserDetailsService userDetailsService;
+    @Autowired
+    private DiscountRepository discountRepository;
 
     @GetMapping("/admin/discounts/add")
     public String showAddDiscountForm(Model model) {
@@ -86,24 +91,23 @@ public class DiscountManagementController {
             }
         }
 
-        // Lấy tổng số sản phẩm
+        // Lấy tổng số giảm giá
         int totalDiscounts = discountService.getTotalDiscountsCount();
 
-        // Nếu số sản phẩm > 10, dùng phân trang
         if (totalDiscounts > 10) {
-            Pageable pageable = PageRequest.of(page, size);
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
             Page<ProductDiscount> discountPage = discountService.getAllDiscounts(pageable);
             model.addAttribute("discountPage", discountPage);
             model.addAttribute("currentPage", page);
             model.addAttribute("pageSize", size);
             return "discount/discounts-paging";
         } else {
-            // Nếu số sản phẩm <= 15, trả về toàn bộ danh sách
-            List<ProductDiscount> discounts = discountService.getAllDiscounts();
+            List<ProductDiscount> discounts = discountService.getAllDiscounts(); // đã sắp xếp theo startTime DESC trong service
             model.addAttribute("discounts", discounts);
             return "discount/discounts";
         }
     }
+
     // Hiển thị form cập nhật giảm giá
     @GetMapping("/admin/discounts/edit/{id}")
     public String showEditDiscountForm(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
@@ -255,6 +259,24 @@ public class DiscountManagementController {
             return "redirect:/admin/discounts/edit/" + id;
         }
     }
+    @GetMapping("admin/discounts/delete/{id}")
+    public String deleteVoucher(@PathVariable Long id) {
+        ProductDiscount discount = discountService.findById(id).orElse(null);
 
+        if (discount != null) {
+            discountRepository.delete(discount);
+        }
 
+        return "redirect:/admin/discount";
+    }
+
+    @GetMapping("/admin/discounts/search")
+    @ResponseBody
+    public Page<DiscountDto> searchDiscounts(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return discountService.searchDiscounts(keyword, PageRequest.of(page, size));
+    }
 }

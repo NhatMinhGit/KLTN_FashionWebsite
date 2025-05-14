@@ -11,8 +11,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDto {
+    private Long id;
     private Long brand_id;
     private Long category_id;
+    private String categoryName;
+    private String brandName;
     private String name;
     private BigDecimal price;
     private String description;

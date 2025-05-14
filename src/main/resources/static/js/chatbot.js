@@ -162,45 +162,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessage(colorQuestion, 'ai');
         addMessage(quantityQuestion, 'ai');
     }
-    // Function to send message to API
-    // function sendToAPI(message) {
-    //     // Show loading indicator
-    //     const loadingId = showLoadingIndicator();
-    //
-    //     fetch(`/user/chat?message=${encodeURIComponent(message)}`, {
-    //         method: 'GET',
-    //         headers: { 'Content-Type': 'application/json' }
-    //     })
-    //
-    //         .then(response => {
-    //             if (!response.ok) {
-    //                 throw new Error(`HTTP error! Status: ${response.status}`);
-    //             }
-    //             return response.json(); // Chuyển dữ liệu trả về thành JSON
-    //         })
-    //         .then(data => {
-    //             setTimeout(() => {
-    //                 removeLoadingIndicator(loadingId); // Xoá spinner
-    //
-    //                 // Kiểm tra dữ liệu từ API trả về (ví dụ: aiResponse và productInfo)
-    //                 if (data.aiResponse) {
-    //                     addMessage(data.aiResponse, 'ai');  // Hiển thị phản hồi từ AI
-    //                 }
-    //                 if (data.productInfo) {
-    //                     addMessage(data.productInfo, 'html'); // Hiển thị thông tin sản phẩm
-    //                 }
-    //                 // Nếu có yêu cầu chọn size và số lượng, yêu cầu người dùng nhập thông tin
-    //                 if (data.sizeAndQuantityRequired) {
-    //                     askSizeAndQuantity(data.productId); // Gửi câu hỏi về size và số lượng
-    //                 }
-    //             }, 400);
-    //         })
-    //
-    //         .catch(error => {
-    //             console.error('Error:', error);
-    //             addMessage("Lỗi kết nối API! Vui lòng thử lại.", 'ai');
-    //         });
-    // }
 
     // Function to add a message to the chat
     function addMessage(text, sender) {
