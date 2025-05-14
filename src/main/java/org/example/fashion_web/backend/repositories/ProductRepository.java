@@ -42,6 +42,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @EntityGraph(attributePaths = {"category", "brand"})
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"category", "brand"})
+    List<Product> findByNameContainingIgnoreCase(String keyword);
+
 
     List<Product> findByPriceBetween(long priceMin,long priceMax);
 
