@@ -220,8 +220,8 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
-    public void applyHolidayDiscount(LocalDate date) {
-        List<Product> allProducts = productService.getAllProducts(); // Áp dụng toàn bộ sản phẩm
+    public void applyHolidayDiscount(LocalDate date, String discountName) {
+        List<Product> allProducts = productService.getAllProducts();
 
         for (Product product : allProducts) {
             Optional<Product> productOpt = productRepository.findById(product.getId());
@@ -230,14 +230,15 @@ public class DiscountServiceImpl implements DiscountService {
                 discount.setProduct(productOpt.get());
                 discount.setDiscountPercent(20);
                 discount.setActive(true);
-                discount.setName("Khuyến mãi ngày lễ " + date);
-                discount.setStartTime(LocalDateTime.now());
-                discount.setEndTime(LocalDateTime.now().plusDays(3)); // Giảm trong 3 ngày
+                discount.setName(discountName);
+                discount.setStartTime(date.atStartOfDay());
+                discount.setEndTime(date.atStartOfDay().plusDays(3)); // Áp dụng trong 3 ngày
 
                 discountRepository.save(discount);
             }
         }
     }
+
 
     @Override
     public void applySpecialDayDiscount(LocalDate date) {
@@ -252,7 +253,7 @@ public class DiscountServiceImpl implements DiscountService {
                 discount.setActive(true);
                 discount.setName("Ưu đãi đặc biệt ngày " + date.getDayOfMonth() + "/" + date.getMonthValue());
                 discount.setStartTime(LocalDateTime.now());
-                discount.setEndTime(LocalDateTime.now().plusDays(3)); // Giảm trong 3 ngày
+                discount.setEndTime(LocalDateTime.now().plusDays(1)); // Giảm trong 1 ngày
 
                 discountRepository.save(discount);
             }

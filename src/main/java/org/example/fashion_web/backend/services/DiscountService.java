@@ -48,7 +48,7 @@ public interface DiscountService {
 
     Optional<ProductDiscount> getActiveDiscountForCategory(Boolean active,String name);
 
-    void applyHolidayDiscount(LocalDate date);
+    void applyHolidayDiscount(LocalDate date, String discountName);
 
     void applySpecialDayDiscount(LocalDate date);
 }
