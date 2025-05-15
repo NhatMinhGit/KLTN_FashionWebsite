@@ -477,7 +477,7 @@ public class ProductManagementController {
                     Map<Long, Integer> discountViewedPercents = new HashMap<>();
                     for (Product viewedProduct : viewedProducts) {
                         if (viewedProduct.getEffectivePrice() != null && viewedProduct.getEffectivePrice().compareTo(viewedProduct.getPrice()) < 0) {
-                            BigDecimal discount = product.getPrice().subtract(viewedProduct.getEffectivePrice());
+                            BigDecimal discount = viewedProduct.getPrice().subtract(viewedProduct.getEffectivePrice());
                             BigDecimal percent = discount.divide(viewedProduct.getPrice(), 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
                             discountViewedPercents.put(viewedProduct.getId(), percent.intValue());
                         } else {

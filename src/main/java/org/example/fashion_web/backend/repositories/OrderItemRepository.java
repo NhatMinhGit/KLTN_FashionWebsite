@@ -15,7 +15,7 @@ import java.util.List;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByOrder_Id(Long orderId);
     //Get 10 top sale item
-    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id, p.name, SUM(oi.pricePerUnit * oi.quantity)) " +
+    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id,p.name,p.brand.name,p.category.name,SUM(oi.pricePerUnit * oi.quantity)) " +
             "FROM OrderItem oi " +
             "JOIN oi.order o " +
             "JOIN oi.product p " +
@@ -25,7 +25,25 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             "ORDER BY SUM(oi.pricePerUnit * oi.quantity) DESC")
     List<ProductRevenueDto> findTopProductsByRevenue(LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT new org.example.fashion_web.backend.dto.CategoryRevenueDto(c.name, SUM(oi.pricePerUnit * oi.quantity)) " +
+    @Query("""
+    SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id,p.name,p.brand.name,p.category.name,SUM(oi.pricePerUnit * oi.quantity))
+    FROM OrderItem oi
+    JOIN oi.order o
+    JOIN oi.product p
+    WHERE o.orderDate BETWEEN :startDate AND :endDate
+      AND o.status = 1
+      AND p.category.id = :categoryId
+    GROUP BY p.id, p.name, p.brand.name, p.category.name
+    ORDER BY SUM(oi.pricePerUnit * oi.quantity) DESC
+""")
+    List<ProductRevenueDto> findTopProductsByRevenueAndCategory(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("categoryId") Long categoryId
+    );
+
+
+    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id,p.name,p.brand.name,p.category.name,SUM(oi.pricePerUnit * oi.quantity)) " +
             "FROM OrderItem oi " +
             "JOIN oi.order o " +
             "JOIN oi.product p " +
@@ -38,7 +56,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
 
     //Get 10 top lowest sale item
-    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id, p.name, SUM(oi.pricePerUnit * oi.quantity)) " +
+    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id,p.name,p.brand.name,p.category.name,SUM(oi.pricePerUnit * oi.quantity)) " +
             "FROM OrderItem oi " +
             "JOIN oi.order o " +
             "JOIN oi.product p " +
@@ -48,7 +66,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             "ORDER BY SUM(oi.pricePerUnit * oi.quantity) ASC")
     List<ProductRevenueDto> findTopProductsByLowestRevenue(LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT new org.example.fashion_web.backend.dto.CategoryRevenueDto(c.name, SUM(oi.pricePerUnit * oi.quantity)) " +
+    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id,p.name,p.brand.name,p.category.name,SUM(oi.pricePerUnit * oi.quantity)) " +
             "FROM OrderItem oi " +
             "JOIN oi.order o " +
             "JOIN oi.product p " +

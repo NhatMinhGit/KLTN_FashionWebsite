@@ -1,21 +1,20 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.fashion_web.backend.configurations.GeminiConfig;
 import org.example.fashion_web.backend.dto.ProductRevenueDto;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.ProductVariantService;
-import org.example.fashion_web.backend.services.SizeService;
-import org.example.fashion_web.backend.services.UserService;
+import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.utils.CurrencyFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -38,6 +37,9 @@ public class GeminiService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductService productService;
 
     @Autowired
     private ProductVariantRepository productVariantRepository;
@@ -85,6 +87,9 @@ public class GeminiService {
     private CartRepository cartRepository;
     @Autowired
     private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private DiscountService discountService;
 
     private final WebClient webClient = WebClient.builder().build();
 
@@ -172,6 +177,7 @@ public class GeminiService {
             return "{\"error\": \"Lỗi hệ thống: " + e.getMessage() + "\"}";
         }
     }
+
     private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<div style='display:flex; flex-wrap:wrap; gap:10px;'>");
@@ -213,8 +219,6 @@ public class GeminiService {
         htmlBuilder.append("</div>");
         return htmlBuilder.toString();
     }
-
-
 
 
     public String searchProducts(String message) {
@@ -293,6 +297,7 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String checkPriceAndCategory(String message) {
         String lowerCaseMessage = message.toLowerCase();
 
@@ -318,10 +323,9 @@ public class GeminiService {
                 }
 
                 priceList.add(value);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
-
-
 
 
         // --- Bước 3: Kiểm tra sản phẩm trong database ---
@@ -406,6 +410,7 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String normalize(String input) {
         if (input == null) {
             return "";  // Tránh lỗi nếu input là null
@@ -413,7 +418,6 @@ public class GeminiService {
         // Chuyển tất cả ký tự thành chữ thường và loại bỏ ký tự không phải chữ cái, chữ số và khoảng trắng
         return input.toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").trim();
     }
-
 
 
     private String extractEntityFromMessage(String message, String entityName) {
@@ -610,6 +614,7 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String checkTopProductsRevenueForOptimalPlan(String message) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
@@ -686,6 +691,7 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     private Map<Long, Map<Long, List<String>>> prepareProductVariantImages(List<Product> products) {
         Map<Long, Map<Long, List<String>>> result = new HashMap<>();
 
@@ -767,6 +773,7 @@ public class GeminiService {
             return "{\"error\": \"Lỗi JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String getVietnamWeatherSuggestion(String message) {
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
@@ -910,30 +917,30 @@ public class GeminiService {
 
         // Tạo phản hồi mặc định
         String faqContent = """
-        <div style="max-width: 700px; margin: auto;">
-        <h2>CÂU HỎI THƯỜNG GẶP (FAQ)</h2>
-        <p><strong>1. Tôi có thể đổi trả sản phẩm trong bao lâu?</strong><br>
-        Bạn có thể đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng, với điều kiện sản phẩm chưa qua sử dụng và còn nguyên tem, nhãn, bao bì.</p>
+                    <div style="max-width: 700px; margin: auto;">
+                    <h2>CÂU HỎI THƯỜNG GẶP (FAQ)</h2>
+                    <p><strong>1. Tôi có thể đổi trả sản phẩm trong bao lâu?</strong><br>
+                    Bạn có thể đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng, với điều kiện sản phẩm chưa qua sử dụng và còn nguyên tem, nhãn, bao bì.</p>
 
-        <p><strong>2. Tôi có thể theo dõi đơn hàng của mình ở đâu?</strong><br>
-        Bạn có thể theo dõi đơn hàng bằng cách đăng nhập vào tài khoản và truy cập mục <strong>“Đơn hàng của tôi”</strong>.</p>
+                    <p><strong>2. Tôi có thể theo dõi đơn hàng của mình ở đâu?</strong><br>
+                    Bạn có thể theo dõi đơn hàng bằng cách đăng nhập vào tài khoản và truy cập mục <strong>“Đơn hàng của tôi”</strong>.</p>
 
-        <p><strong>3. Phí vận chuyển được tính như thế nào?</strong><br>
-        Phí vận chuyển sẽ được tính dựa trên vị trí giao hàng. <strong>Miễn phí vận chuyển</strong> cho đơn hàng từ <strong>500.000 VNĐ</strong> trở lên.</p>
+                    <p><strong>3. Phí vận chuyển được tính như thế nào?</strong><br>
+                    Phí vận chuyển sẽ được tính dựa trên vị trí giao hàng. <strong>Miễn phí vận chuyển</strong> cho đơn hàng từ <strong>500.000 VNĐ</strong> trở lên.</p>
 
-        <p><strong>4. Tôi có thể thanh toán bằng hình thức nào?</strong><br>
-        Chúng tôi hỗ trợ nhiều hình thức thanh toán như:<br>
-        – Thanh toán khi nhận hàng (<strong>COD</strong>)<br>
-        – Chuyển khoản ngân hàng<br>
-        – Thanh toán trực tuyến qua <strong>VNPay</strong> hoặc <strong>Momo</strong></p>
+                    <p><strong>4. Tôi có thể thanh toán bằng hình thức nào?</strong><br>
+                    Chúng tôi hỗ trợ nhiều hình thức thanh toán như:<br>
+                    – Thanh toán khi nhận hàng (<strong>COD</strong>)<br>
+                    – Chuyển khoản ngân hàng<br>
+                    – Thanh toán trực tuyến qua <strong>VNPay</strong> hoặc <strong>Momo</strong></p>
 
-        <p><strong>5. Làm sao để sử dụng mã giảm giá?</strong><br>
-        Bạn có thể nhập <strong>mã giảm giá</strong> tại bước thanh toán trong ô “Mã khuyến mãi”. Mỗi mã sẽ có điều kiện và thời hạn sử dụng riêng.</p>
+                    <p><strong>5. Làm sao để sử dụng mã giảm giá?</strong><br>
+                    Bạn có thể nhập <strong>mã giảm giá</strong> tại bước thanh toán trong ô “Mã khuyến mãi”. Mỗi mã sẽ có điều kiện và thời hạn sử dụng riêng.</p>
 
-        <p><strong>6. Tôi có thể liên hệ bộ phận chăm sóc khách hàng bằng cách nào?</strong><br>
-        Bạn có thể liên hệ qua hotline <strong>1900 1234</strong>, email <strong>support@mntfashion.vn</strong>, hoặc nhắn tin qua fanpage Facebook của chúng tôi.</p>
-        </div>
-    """;
+                    <p><strong>6. Tôi có thể liên hệ bộ phận chăm sóc khách hàng bằng cách nào?</strong><br>
+                    Bạn có thể liên hệ qua hotline <strong>1900 1234</strong>, email <strong>support@mntfashion.vn</strong>, hoặc nhắn tin qua fanpage Facebook của chúng tôi.</p>
+                    </div>
+                """;
 
         // Trả về nội dung câu hỏi thường gặp dưới dạng JSON
         Map<String, String> result = new HashMap<>();
@@ -945,38 +952,39 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String refundPolicyForUser() {
         // Nội dung chính sách đổi trả
         String refundPolicyContent = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM</h2>
-        <p><strong>1. Thời hạn đổi/trả:</strong><br>
-        Khách hàng được đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng. Thời gian tính theo ngày giao hàng thành công được cập nhật trên hệ thống.</p>
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM</h2>
+                    <p><strong>1. Thời hạn đổi/trả:</strong><br>
+                    Khách hàng được đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng. Thời gian tính theo ngày giao hàng thành công được cập nhật trên hệ thống.</p>
 
-        <p><strong>2. Điều kiện đổi/trả:</strong><br>
-        – Sản phẩm chưa qua sử dụng, còn nguyên tem, nhãn mác, bao bì gốc.<br>
-        – Không có dấu hiệu bị giặt, bẩn, rách, hỏng do tác động bên ngoài.<br>
-        – Có đầy đủ hóa đơn mua hàng hoặc mã đơn hàng.<br>
-        – Sản phẩm nằm trong danh mục <strong>được áp dụng đổi/trả</strong>.</p>
+                    <p><strong>2. Điều kiện đổi/trả:</strong><br>
+                    – Sản phẩm chưa qua sử dụng, còn nguyên tem, nhãn mác, bao bì gốc.<br>
+                    – Không có dấu hiệu bị giặt, bẩn, rách, hỏng do tác động bên ngoài.<br>
+                    – Có đầy đủ hóa đơn mua hàng hoặc mã đơn hàng.<br>
+                    – Sản phẩm nằm trong danh mục <strong>được áp dụng đổi/trả</strong>.</p>
 
-        <p><strong>3. Trường hợp không áp dụng đổi/trả:</strong><br>
-        – Sản phẩm trong chương trình giảm giá trên 50% (trừ khi có lỗi từ nhà sản xuất).<br>
-        – Sản phẩm thuộc nhóm phụ kiện, đồ lót, tất vớ, đồ mặc trong.<br>
-        – Sản phẩm bị hư hỏng do khách hàng bảo quản sai cách.</p>
+                    <p><strong>3. Trường hợp không áp dụng đổi/trả:</strong><br>
+                    – Sản phẩm trong chương trình giảm giá trên 50% (trừ khi có lỗi từ nhà sản xuất).<br>
+                    – Sản phẩm thuộc nhóm phụ kiện, đồ lót, tất vớ, đồ mặc trong.<br>
+                    – Sản phẩm bị hư hỏng do khách hàng bảo quản sai cách.</p>
 
-        <p><strong>4. Quy trình đổi/trả:</strong><br>
-        – Bước 1: Khách hàng liên hệ bộ phận CSKH qua hotline hoặc fanpage.<br>
-        – Bước 2: Cung cấp mã đơn hàng, lý do đổi/trả và hình ảnh sản phẩm.<br>
-        – Bước 3: Chờ xác nhận từ nhân viên và tiến hành gửi hàng về kho.<br>
-        – Bước 4: Nhận sản phẩm mới hoặc hoàn tiền sau khi kiểm tra hàng.</p>
+                    <p><strong>4. Quy trình đổi/trả:</strong><br>
+                    – Bước 1: Khách hàng liên hệ bộ phận CSKH qua hotline hoặc fanpage.<br>
+                    – Bước 2: Cung cấp mã đơn hàng, lý do đổi/trả và hình ảnh sản phẩm.<br>
+                    – Bước 3: Chờ xác nhận từ nhân viên và tiến hành gửi hàng về kho.<br>
+                    – Bước 4: Nhận sản phẩm mới hoặc hoàn tiền sau khi kiểm tra hàng.</p>
 
-        <p><strong>5. Phí đổi/trả:</strong><br>
-        – Đổi hàng do lỗi của nhà cung cấp: <strong>Miễn phí</strong>.<br>
-        – Đổi hàng do nhu cầu cá nhân: Khách hàng chịu phí vận chuyển 2 chiều.</p>
+                    <p><strong>5. Phí đổi/trả:</strong><br>
+                    – Đổi hàng do lỗi của nhà cung cấp: <strong>Miễn phí</strong>.<br>
+                    – Đổi hàng do nhu cầu cá nhân: Khách hàng chịu phí vận chuyển 2 chiều.</p>
 
-        <p><strong>Lưu ý:</strong> Toàn bộ quy trình xử lý đổi/trả thường mất từ <strong>3–5 ngày làm việc</strong> kể từ khi chúng tôi nhận được sản phẩm gửi về.</p>
-    </div>
-    """;
+                    <p><strong>Lưu ý:</strong> Toàn bộ quy trình xử lý đổi/trả thường mất từ <strong>3–5 ngày làm việc</strong> kể từ khi chúng tôi nhận được sản phẩm gửi về.</p>
+                </div>
+                """;
         // Trả về nội dung câu hỏi thường gặp dưới dạng JSON
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", refundPolicyContent);
@@ -988,30 +996,31 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String faqShowForStaff() {
         String refundPolicyContent = """
-        <div style="max-width: 700px; margin: auto;">
-        <h2>FAQ DÀNH CHO NHÂN VIÊN</h2>
-    
-        <p><strong>1. Chính sách đổi trả được áp dụng thế nào?</strong><br>
-        Nhân viên cần kiểm tra điều kiện sản phẩm trước khi nhận đổi/trả: sản phẩm chưa qua sử dụng, còn tem, nhãn, bao bì và kèm hóa đơn mua hàng.</p>
-    
-        <p><strong>2. Quy trình xử lý đơn hàng ra sao?</strong><br>
-        Khi nhận được đơn, nhân viên cần xác nhận tồn kho, chuẩn bị hàng, đóng gói đúng tiêu chuẩn và chuyển cho bộ phận giao hàng trong vòng <strong>24 giờ</strong>.</p>
-    
-        <p><strong>3. Khi khách hàng khiếu nại, tôi phải làm gì?</strong><br>
-        Lắng nghe khách hàng, ghi nhận thông tin cụ thể và chuyển ngay đến bộ phận chăm sóc khách hàng hoặc quản lý để xử lý kịp thời.</p>
-    
-        <p><strong>4. Ca làm việc và chấm công thế nào?</strong><br>
-        Nhân viên cần có mặt trước ca làm <strong>15 phút</strong>, chấm công đúng giờ và báo cáo cho quản lý nếu có vấn đề phát sinh.</p>
-    
-        <p><strong>5. Mục tiêu doanh số của cửa hàng là gì?</strong><br>
-        Mục tiêu doanh số được cập nhật hàng tháng. Nhân viên có thể xem chi tiết tại bảng thông báo nội bộ hoặc hỏi quản lý ca.</p>
-    
-        <p><strong>6. Tôi có thể liên hệ phòng nhân sự qua đâu?</strong><br>
-        Vui lòng liên hệ hotline nội bộ <strong>1900 5678</strong> hoặc email <strong>hr@mntfashion.vn</strong> để được hỗ trợ các vấn đề nhân sự.</p>
-        </div>
-        """;
+                <div style="max-width: 700px; margin: auto;">
+                <h2>FAQ DÀNH CHO NHÂN VIÊN</h2>
+                    
+                <p><strong>1. Chính sách đổi trả được áp dụng thế nào?</strong><br>
+                Nhân viên cần kiểm tra điều kiện sản phẩm trước khi nhận đổi/trả: sản phẩm chưa qua sử dụng, còn tem, nhãn, bao bì và kèm hóa đơn mua hàng.</p>
+                    
+                <p><strong>2. Quy trình xử lý đơn hàng ra sao?</strong><br>
+                Khi nhận được đơn, nhân viên cần xác nhận tồn kho, chuẩn bị hàng, đóng gói đúng tiêu chuẩn và chuyển cho bộ phận giao hàng trong vòng <strong>24 giờ</strong>.</p>
+                    
+                <p><strong>3. Khi khách hàng khiếu nại, tôi phải làm gì?</strong><br>
+                Lắng nghe khách hàng, ghi nhận thông tin cụ thể và chuyển ngay đến bộ phận chăm sóc khách hàng hoặc quản lý để xử lý kịp thời.</p>
+                    
+                <p><strong>4. Ca làm việc và chấm công thế nào?</strong><br>
+                Nhân viên cần có mặt trước ca làm <strong>15 phút</strong>, chấm công đúng giờ và báo cáo cho quản lý nếu có vấn đề phát sinh.</p>
+                    
+                <p><strong>5. Mục tiêu doanh số của cửa hàng là gì?</strong><br>
+                Mục tiêu doanh số được cập nhật hàng tháng. Nhân viên có thể xem chi tiết tại bảng thông báo nội bộ hoặc hỏi quản lý ca.</p>
+                    
+                <p><strong>6. Tôi có thể liên hệ phòng nhân sự qua đâu?</strong><br>
+                Vui lòng liên hệ hotline nội bộ <strong>1900 5678</strong> hoặc email <strong>hr@mntfashion.vn</strong> để được hỗ trợ các vấn đề nhân sự.</p>
+                </div>
+                """;
         // Trả về nội dung câu hỏi thường gặp dưới dạng JSON
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", refundPolicyContent);
@@ -1023,37 +1032,38 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String refundPolicyForStaff() {
         String refundPolicyContent = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM</h2>
-        <p><strong>1. Thời hạn đổi/trả:</strong><br>
-        Khách hàng được đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng. Thời gian tính theo ngày giao hàng thành công được cập nhật trên hệ thống.</p>
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM</h2>
+                    <p><strong>1. Thời hạn đổi/trả:</strong><br>
+                    Khách hàng được đổi hoặc trả sản phẩm trong vòng <strong>7 ngày</strong> kể từ ngày nhận hàng. Thời gian tính theo ngày giao hàng thành công được cập nhật trên hệ thống.</p>
 
-        <p><strong>2. Điều kiện đổi/trả:</strong><br>
-        – Sản phẩm chưa qua sử dụng, còn nguyên tem, nhãn mác, bao bì gốc.<br>
-        – Không có dấu hiệu bị giặt, bẩn, rách, hỏng do tác động bên ngoài.<br>
-        – Có đầy đủ hóa đơn mua hàng hoặc mã đơn hàng.<br>
-        – Sản phẩm nằm trong danh mục <strong>được áp dụng đổi/trả</strong>.</p>
+                    <p><strong>2. Điều kiện đổi/trả:</strong><br>
+                    – Sản phẩm chưa qua sử dụng, còn nguyên tem, nhãn mác, bao bì gốc.<br>
+                    – Không có dấu hiệu bị giặt, bẩn, rách, hỏng do tác động bên ngoài.<br>
+                    – Có đầy đủ hóa đơn mua hàng hoặc mã đơn hàng.<br>
+                    – Sản phẩm nằm trong danh mục <strong>được áp dụng đổi/trả</strong>.</p>
 
-        <p><strong>3. Trường hợp không áp dụng đổi/trả:</strong><br>
-        – Sản phẩm trong chương trình giảm giá trên 50% (trừ khi có lỗi từ nhà sản xuất).<br>
-        – Sản phẩm thuộc nhóm phụ kiện, đồ lót, tất vớ, đồ mặc trong.<br>
-        – Sản phẩm bị hư hỏng do khách hàng bảo quản sai cách.</p>
+                    <p><strong>3. Trường hợp không áp dụng đổi/trả:</strong><br>
+                    – Sản phẩm trong chương trình giảm giá trên 50% (trừ khi có lỗi từ nhà sản xuất).<br>
+                    – Sản phẩm thuộc nhóm phụ kiện, đồ lót, tất vớ, đồ mặc trong.<br>
+                    – Sản phẩm bị hư hỏng do khách hàng bảo quản sai cách.</p>
 
-        <p><strong>4. Quy trình đổi/trả:</strong><br>
-        – Bước 1: Khách hàng liên hệ bộ phận CSKH qua hotline hoặc fanpage.<br>
-        – Bước 2: Cung cấp mã đơn hàng, lý do đổi/trả và hình ảnh sản phẩm.<br>
-        – Bước 3: Chờ xác nhận từ nhân viên và tiến hành gửi hàng về kho.<br>
-        – Bước 4: Nhận sản phẩm mới hoặc hoàn tiền sau khi kiểm tra hàng.</p>
+                    <p><strong>4. Quy trình đổi/trả:</strong><br>
+                    – Bước 1: Khách hàng liên hệ bộ phận CSKH qua hotline hoặc fanpage.<br>
+                    – Bước 2: Cung cấp mã đơn hàng, lý do đổi/trả và hình ảnh sản phẩm.<br>
+                    – Bước 3: Chờ xác nhận từ nhân viên và tiến hành gửi hàng về kho.<br>
+                    – Bước 4: Nhận sản phẩm mới hoặc hoàn tiền sau khi kiểm tra hàng.</p>
 
-        <p><strong>5. Phí đổi/trả:</strong><br>
-        – Đổi hàng do lỗi của nhà cung cấp: <strong>Miễn phí</strong>.<br>
-        – Đổi hàng do nhu cầu cá nhân: Khách hàng chịu phí vận chuyển 2 chiều.</p>
+                    <p><strong>5. Phí đổi/trả:</strong><br>
+                    – Đổi hàng do lỗi của nhà cung cấp: <strong>Miễn phí</strong>.<br>
+                    – Đổi hàng do nhu cầu cá nhân: Khách hàng chịu phí vận chuyển 2 chiều.</p>
 
-        <p><strong>Lưu ý:</strong> Toàn bộ quy trình xử lý đổi/trả thường mất từ <strong>3–5 ngày làm việc</strong> kể từ khi chúng tôi nhận được sản phẩm gửi về.</p>
-    </div>
-    """;
+                    <p><strong>Lưu ý:</strong> Toàn bộ quy trình xử lý đổi/trả thường mất từ <strong>3–5 ngày làm việc</strong> kể từ khi chúng tôi nhận được sản phẩm gửi về.</p>
+                </div>
+                """;
         // Trả về nội dung câu hỏi thường gặp dưới dạng JSON
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", refundPolicyContent);
@@ -1065,28 +1075,29 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String shippingIssueResponseFoUser() {
         String shippingIssueContent = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>THÔNG TIN VỀ TÌNH TRẠNG GIAO HÀNG</h2>
-        <p>Chúng tôi rất xin lỗi vì sự bất tiện này. Nếu bạn chưa nhận được đơn hàng, vui lòng thực hiện theo các bước sau:</p>
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>THÔNG TIN VỀ TÌNH TRẠNG GIAO HÀNG</h2>
+                    <p>Chúng tôi rất xin lỗi vì sự bất tiện này. Nếu bạn chưa nhận được đơn hàng, vui lòng thực hiện theo các bước sau:</p>
 
-        <p><strong>1. Kiểm tra mã đơn hàng:</strong><br>
-        – Vui lòng chuẩn bị mã đơn hàng để chúng tôi có thể hỗ trợ nhanh chóng.</p>
+                    <p><strong>1. Kiểm tra mã đơn hàng:</strong><br>
+                    – Vui lòng chuẩn bị mã đơn hàng để chúng tôi có thể hỗ trợ nhanh chóng.</p>
 
-        <p><strong>2. Liên hệ bộ phận chăm sóc khách hàng:</strong><br>
-        – Gọi <strong>Hotline: 1900 9999</strong> hoặc nhắn tin qua <strong>Fanpage chính thức</strong>.<br>
-        – Cung cấp <strong>mã đơn hàng</strong> và mô tả vấn đề (ví dụ: chưa nhận được hàng, giao nhầm, v.v).</p>
+                    <p><strong>2. Liên hệ bộ phận chăm sóc khách hàng:</strong><br>
+                    – Gọi <strong>Hotline: 1900 9999</strong> hoặc nhắn tin qua <strong>Fanpage chính thức</strong>.<br>
+                    – Cung cấp <strong>mã đơn hàng</strong> và mô tả vấn đề (ví dụ: chưa nhận được hàng, giao nhầm, v.v).</p>
 
-        <p><strong>3. Thời gian xử lý:</strong><br>
-        – Nhân viên hỗ trợ sẽ kiểm tra tình trạng vận chuyển và phản hồi trong vòng <strong>24–48h</strong>.<br>
-        – Nếu đơn hàng thất lạc, chúng tôi sẽ tiến hành gửi lại hoặc hoàn tiền theo chính sách.</p>
+                    <p><strong>3. Thời gian xử lý:</strong><br>
+                    – Nhân viên hỗ trợ sẽ kiểm tra tình trạng vận chuyển và phản hồi trong vòng <strong>24–48h</strong>.<br>
+                    – Nếu đơn hàng thất lạc, chúng tôi sẽ tiến hành gửi lại hoặc hoàn tiền theo chính sách.</p>
 
-        <p><strong>Lưu ý:</strong><br>
-        – Vui lòng kiểm tra kỹ thông tin người nhận và địa chỉ đã cung cấp khi đặt hàng.<br>
-        – Trong một số trường hợp giao hàng chậm do <strong>thời tiết</strong>, <strong>dịch bệnh</strong> hoặc <strong>bưu tá liên hệ không thành công</strong>.</p>
-    </div>
-    """;
+                    <p><strong>Lưu ý:</strong><br>
+                    – Vui lòng kiểm tra kỹ thông tin người nhận và địa chỉ đã cung cấp khi đặt hàng.<br>
+                    – Trong một số trường hợp giao hàng chậm do <strong>thời tiết</strong>, <strong>dịch bệnh</strong> hoặc <strong>bưu tá liên hệ không thành công</strong>.</p>
+                </div>
+                """;
 
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", shippingIssueContent);
@@ -1100,21 +1111,21 @@ public class GeminiService {
 
     public String paymentMethodChangeInstructions() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>THAY ĐỔI PHƯƠNG THỨC THANH TOÁN</h2>
-        <p>Nếu bạn muốn thay đổi phương thức thanh toán cho đơn hàng đã đặt, vui lòng liên hệ trực tiếp với bộ phận chăm sóc khách hàng để được hỗ trợ:</p>
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>THAY ĐỔI PHƯƠNG THỨC THANH TOÁN</h2>
+                    <p>Nếu bạn muốn thay đổi phương thức thanh toán cho đơn hàng đã đặt, vui lòng liên hệ trực tiếp với bộ phận chăm sóc khách hàng để được hỗ trợ:</p>
 
-        <p><strong>1. Qua hotline:</strong> <br>
-        Gọi <strong>1900 9999</strong> và cung cấp mã đơn hàng cùng thông tin bạn muốn điều chỉnh.</p>
+                    <p><strong>1. Qua hotline:</strong> <br>
+                    Gọi <strong>1900 9999</strong> và cung cấp mã đơn hàng cùng thông tin bạn muốn điều chỉnh.</p>
 
-        <p><strong>2. Qua Fanpage:</strong><br>
-        Nhắn tin trực tiếp đến <strong>Fanpage chính thức</strong> của cửa hàng và yêu cầu hỗ trợ đổi phương thức thanh toán.</p>
+                    <p><strong>2. Qua Fanpage:</strong><br>
+                    Nhắn tin trực tiếp đến <strong>Fanpage chính thức</strong> của cửa hàng và yêu cầu hỗ trợ đổi phương thức thanh toán.</p>
 
-        <p><strong>Lưu ý:</strong><br>
-        – Việc thay đổi có thể chỉ áp dụng nếu đơn hàng chưa được xử lý giao.<br>
-        – Một số phương thức thanh toán có thể không hỗ trợ thay đổi sau khi xác nhận.</p>
-    </div>
-    """;
+                    <p><strong>Lưu ý:</strong><br>
+                    – Việc thay đổi có thể chỉ áp dụng nếu đơn hàng chưa được xử lý giao.<br>
+                    – Một số phương thức thanh toán có thể không hỗ trợ thay đổi sau khi xác nhận.</p>
+                </div>
+                """;
 
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
@@ -1125,27 +1136,28 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String paymentDeclinedReasonResponse() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>LÝ DO THANH TOÁN BỊ TỪ CHỐI</h2>
-        <p>Việc thanh toán có thể bị từ chối vì một số lý do phổ biến sau:</p>
-        <ul>
-            <li>Thông tin thẻ hoặc ví điện tử không chính xác.</li>
-            <li>Số dư tài khoản không đủ tại thời điểm giao dịch.</li>
-            <li>Ngân hàng hoặc cổng thanh toán tạm thời gián đoạn dịch vụ.</li>
-            <li>Giao dịch bị nghi ngờ là bất thường và bị chặn bởi hệ thống phòng chống gian lận.</li>
-            <li>Thẻ thanh toán chưa được kích hoạt hoặc bị khóa.</li>
-        </ul>
-        <p><strong>Hướng dẫn xử lý:</strong></p>
-        <ul>
-            <li>Vui lòng kiểm tra lại thông tin thanh toán.</li>
-            <li>Thử sử dụng một phương thức thanh toán khác.</li>
-            <li>Liên hệ ngân hàng để kiểm tra trạng thái tài khoản hoặc thẻ.</li>
-            <li>Hoặc liên hệ CSKH của cửa hàng qua hotline <strong>1900 9999</strong> để được hỗ trợ thêm.</li>
-        </ul>
-    </div>
-    """;
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>LÝ DO THANH TOÁN BỊ TỪ CHỐI</h2>
+                    <p>Việc thanh toán có thể bị từ chối vì một số lý do phổ biến sau:</p>
+                    <ul>
+                        <li>Thông tin thẻ hoặc ví điện tử không chính xác.</li>
+                        <li>Số dư tài khoản không đủ tại thời điểm giao dịch.</li>
+                        <li>Ngân hàng hoặc cổng thanh toán tạm thời gián đoạn dịch vụ.</li>
+                        <li>Giao dịch bị nghi ngờ là bất thường và bị chặn bởi hệ thống phòng chống gian lận.</li>
+                        <li>Thẻ thanh toán chưa được kích hoạt hoặc bị khóa.</li>
+                    </ul>
+                    <p><strong>Hướng dẫn xử lý:</strong></p>
+                    <ul>
+                        <li>Vui lòng kiểm tra lại thông tin thanh toán.</li>
+                        <li>Thử sử dụng một phương thức thanh toán khác.</li>
+                        <li>Liên hệ ngân hàng để kiểm tra trạng thái tài khoản hoặc thẻ.</li>
+                        <li>Hoặc liên hệ CSKH của cửa hàng qua hotline <strong>1900 9999</strong> để được hỗ trợ thêm.</li>
+                    </ul>
+                </div>
+                """;
 
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
@@ -1156,19 +1168,20 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String deliveryTimeResponse() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>THỜI GIAN GIAO HÀNG</h2>
-        <p>Thời gian giao hàng dự kiến sẽ phụ thuộc vào địa chỉ nhận hàng và phương thức vận chuyển bạn chọn khi đặt hàng:</p>
-        <ul>
-            <li><strong>Nội thành:</strong> 1–2 ngày làm việc.</li>
-            <li><strong>Ngoại thành / Tỉnh thành khác:</strong> 3–5 ngày làm việc.</li>
-        </ul>
-        <p><strong>Lưu ý:</strong> Thời gian trên có thể thay đổi trong dịp cao điểm, khuyến mãi hoặc điều kiện thời tiết xấu.</p>
-        <p>Chúng tôi luôn nỗ lực để giao hàng đến bạn sớm nhất có thể!</p>
-    </div>
-    """;
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>THỜI GIAN GIAO HÀNG</h2>
+                    <p>Thời gian giao hàng dự kiến sẽ phụ thuộc vào địa chỉ nhận hàng và phương thức vận chuyển bạn chọn khi đặt hàng:</p>
+                    <ul>
+                        <li><strong>Nội thành:</strong> 1–2 ngày làm việc.</li>
+                        <li><strong>Ngoại thành / Tỉnh thành khác:</strong> 3–5 ngày làm việc.</li>
+                    </ul>
+                    <p><strong>Lưu ý:</strong> Thời gian trên có thể thay đổi trong dịp cao điểm, khuyến mãi hoặc điều kiện thời tiết xấu.</p>
+                    <p>Chúng tôi luôn nỗ lực để giao hàng đến bạn sớm nhất có thể!</p>
+                </div>
+                """;
 
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
@@ -1229,18 +1242,19 @@ public class GeminiService {
             default -> "Khác";
         };
     }
+
     public String returnPolicyResponse() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>CHÍNH SÁCH ĐỔI TRẢ</h2>
-        <p>Chính sách đổi trả của cửa hàng cho phép <strong>đổi trong vòng 7 ngày</strong> kể từ khi nhận hàng.</p>
-        <p>Vui lòng giữ nguyên bao bì và hóa đơn khi đổi sản phẩm.</p>
-        <h3>Thông tin liên hệ:</h3>
-        <p>📞 Số điện thoại: 0765 599 103</p>
-        <p>📧 Email: support@mntfashion.com</p>
-        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
-    </div>
-    """;
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>CHÍNH SÁCH ĐỔI TRẢ</h2>
+                    <p>Chính sách đổi trả của cửa hàng cho phép <strong>đổi trong vòng 7 ngày</strong> kể từ khi nhận hàng.</p>
+                    <p>Vui lòng giữ nguyên bao bì và hóa đơn khi đổi sản phẩm.</p>
+                    <h3>Thông tin liên hệ:</h3>
+                    <p>📞 Số điện thoại: 0765 599 103</p>
+                    <p>📧 Email: support@mntfashion.com</p>
+                    <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+                </div>
+                """;
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
 
@@ -1250,18 +1264,19 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String productIssueResponse() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>SẢN PHẨM BỊ LỖI / KHÔNG ĐÚNG MÔ TẢ</h2>
-        <p>Nếu sản phẩm bạn nhận được <strong>bị lỗi</strong> hoặc <strong>không đúng mô tả</strong>, bạn có thể <strong>liên hệ ngay với chúng tôi để được đổi/trả miễn phí</strong>.</p>
-        <p>Đội ngũ CSKH sẽ hỗ trợ bạn nhanh chóng.</p>
-        <h3>Thông tin liên hệ:</h3>
-        <p>📞 Số điện thoại: 0765 599 103</p>
-        <p>📧 Email: support@mntfashion.com</p>
-        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
-    </div>
-    """;
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>SẢN PHẨM BỊ LỖI / KHÔNG ĐÚNG MÔ TẢ</h2>
+                    <p>Nếu sản phẩm bạn nhận được <strong>bị lỗi</strong> hoặc <strong>không đúng mô tả</strong>, bạn có thể <strong>liên hệ ngay với chúng tôi để được đổi/trả miễn phí</strong>.</p>
+                    <p>Đội ngũ CSKH sẽ hỗ trợ bạn nhanh chóng.</p>
+                    <h3>Thông tin liên hệ:</h3>
+                    <p>📞 Số điện thoại: 0765 599 103</p>
+                    <p>📧 Email: support@mntfashion.com</p>
+                    <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+                </div>
+                """;
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
 
@@ -1271,18 +1286,19 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String refundTimeResponse() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>THỜI GIAN HOÀN TIỀN</h2>
-        <p>Thời gian xử lý hoàn tiền thường mất từ <strong>3 đến 7 ngày làm việc</strong> kể từ khi yêu cầu được xác nhận.</p>
-        <p>Thời gian có thể thay đổi tùy thuộc vào ngân hàng hoặc phương thức thanh toán.</p>
-        <h3>Thông tin liên hệ:</h3>
-        <p>📞 Số điện thoại: 0765 599 103</p>
-        <p>📧 Email: support@mntfashion.com</p>
-        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
-    </div>
-    """;
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>THỜI GIAN HOÀN TIỀN</h2>
+                    <p>Thời gian xử lý hoàn tiền thường mất từ <strong>3 đến 7 ngày làm việc</strong> kể từ khi yêu cầu được xác nhận.</p>
+                    <p>Thời gian có thể thay đổi tùy thuộc vào ngân hàng hoặc phương thức thanh toán.</p>
+                    <h3>Thông tin liên hệ:</h3>
+                    <p>📞 Số điện thoại: 0765 599 103</p>
+                    <p>📧 Email: support@mntfashion.com</p>
+                    <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+                </div>
+                """;
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
 
@@ -1292,18 +1308,19 @@ public class GeminiService {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
     public String changeProductModelResponse() {
         String content = """
-    <div style="max-width: 700px; margin: auto;">
-        <h2>ĐỔI SANG MẪU KHÁC</h2>
-        <p>Bạn có thể đổi sang mẫu khác trong vòng <strong>7 ngày</strong> nếu sản phẩm chưa qua sử dụng và còn nguyên bao bì.</p>
-        <p>Vui lòng liên hệ CSKH để được hỗ trợ đổi mẫu nhanh chóng.</p>
-        <h3>Thông tin liên hệ:</h3>
-        <p>📞 Số điện thoại: 0765 599 103</p>
-        <p>📧 Email: support@mntfashion.com</p>
-        <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
-    </div>
-    """;
+                <div style="max-width: 700px; margin: auto;">
+                    <h2>ĐỔI SANG MẪU KHÁC</h2>
+                    <p>Bạn có thể đổi sang mẫu khác trong vòng <strong>7 ngày</strong> nếu sản phẩm chưa qua sử dụng và còn nguyên bao bì.</p>
+                    <p>Vui lòng liên hệ CSKH để được hỗ trợ đổi mẫu nhanh chóng.</p>
+                    <h3>Thông tin liên hệ:</h3>
+                    <p>📞 Số điện thoại: 0765 599 103</p>
+                    <p>📧 Email: support@mntfashion.com</p>
+                    <p>🌐 Website: <a href="https://mntfashion.store">mntfashion.store</a></p>
+                </div>
+                """;
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", content);
 
@@ -1314,8 +1331,199 @@ public class GeminiService {
         }
     }
 
+//    public String recommendProductBasedOnViewedResponse(@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
+//        if (viewedProductsCookie != null) {
+//            System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
+//            ObjectMapper mapper = new ObjectMapper();
+//            try {
+//                // Parse chuỗi JSON cookie thành List<String>
+//                List<String> viewedProductIdsStr = mapper.readValue(viewedProductsCookie, new TypeReference<>() {
+//                });
+//
+//                // Chuyển sang List<Long>, bỏ qua các id không hợp lệ
+//                List<Long> viewedProductIds = viewedProductIdsStr.stream()
+//                        .map(idStr -> {
+//                            try {
+//                                return Long.parseLong(idStr);
+//                            } catch (NumberFormatException e) {
+//                                return null; // Bỏ qua nếu không parse được
+//                            }
+//                        })
+//                        .filter(Objects::nonNull)
+//                        .toList();
+//
+//                if (!viewedProductIds.isEmpty()) {
+//                    // Lấy danh sách sản phẩm đã xem
+//                    List<Product> viewedProducts = productService.getProductsById(viewedProductIds);
+//
+//                    // Lấy các danh mục không trùng lặp
+//                    Set<Category> viewedCategories = viewedProducts.stream()
+//                            .map(Product::getCategory)
+//                            .filter(Objects::nonNull)
+//                            .collect(Collectors.toSet());
+//
+//                    // Xác định khoảng thời gian 3 tháng gần đây
+//                    LocalDate startDate = LocalDate.now().minusMonths(3);
+//                    LocalDate endDate = LocalDate.now();
+//
+//                    // Map chứa top sản phẩm theo từng danh mục
+//                    Map<Category, List<ProductRevenueDto>> topProductsByCategory = new HashMap<>();
+//
+//                    for (Category category : viewedCategories) {
+//                        List<ProductRevenueDto> topProducts = orderItemRepository.findTopProductsByRevenueAndCategory(
+//                                startDate, endDate, category.getId());
+//
+//                        // Chỉ lấy top 3 sản phẩm
+//                        List<ProductRevenueDto> top3 = topProducts.stream().limit(3).toList();
+//
+//                        topProductsByCategory.put(category, top3);
+//                    }
+//
+//                    Map<Long, Map<Long, List<String>>> topProductVariantImages = new HashMap<>();
+//
+//                    for (List<ProductRevenueDto> productList : topProductsByCategory.values()) {
+//                        for (ProductRevenueDto productDto : productList) {
+//                            Long productId = productDto.getId();
+//
+//                            // Lấy tất cả variant của sản phẩm
+//                            List<ProductVariant> variants = productVariantService.findAllByProductId(productId);
+//                            Map<Long, List<String>> variantImageMap = new HashMap<>();
+//
+//                            for (ProductVariant variant : variants) {
+//                                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+//
+//                                List<String> imageUrls = images.stream()
+//                                        .map(Image::getImageUri)
+//                                        .collect(Collectors.toList());
+//
+//                                variantImageMap.put(variant.getId(), imageUrls);
+//                            }
+//                            topProductVariantImages.put(productId, variantImageMap);
+//                        }
+//                    }
+//
+//                } else {
+//                    System.out.println("No viewedProducts cookie found.");
+//                }
+//            } catch (JsonMappingException e) {
+//                throw new RuntimeException(e);
+//            } catch (JsonProcessingException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//        return viewedProductsCookie;
+//    }
+    public String recommendProductBasedOnViewedResponse(@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
+        if (viewedProductsCookie != null) {
+            System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                // Parse chuỗi JSON cookie thành List<String>
+                List<String> viewedProductIdsStr = mapper.readValue(viewedProductsCookie, new TypeReference<>() {});
 
+                // Chuyển sang List<Long>, bỏ qua các id không hợp lệ
+                List<Long> viewedProductIds = viewedProductIdsStr.stream()
+                        .map(idStr -> {
+                            try {
+                                return Long.parseLong(idStr);
+                            } catch (NumberFormatException e) {
+                                return null; // Bỏ qua nếu không parse được
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .toList();
 
+                if (!viewedProductIds.isEmpty()) {
+                    // Lấy danh sách sản phẩm đã xem
+                    List<Product> viewedProducts = productService.getProductsById(viewedProductIds);
 
+                    // Lấy các danh mục không trùng lặp
+                    Set<Category> viewedCategories = viewedProducts.stream()
+                            .map(Product::getCategory)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+
+                    // Xác định khoảng thời gian 3 tháng gần đây
+                    LocalDate startDate = LocalDate.now().minusMonths(3);
+                    LocalDate endDate = LocalDate.now();
+
+                    // Map chứa top sản phẩm theo từng danh mục
+                    Map<Category, List<ProductRevenueDto>> topProductsByCategory = new HashMap<>();
+
+                    for (Category category : viewedCategories) {
+                        List<ProductRevenueDto> topProducts = orderItemRepository.findTopProductsByRevenueAndCategory(
+                                startDate, endDate, category.getId());
+
+                        // Chỉ lấy top 3 sản phẩm
+                        List<ProductRevenueDto> top3 = topProducts.stream().limit(3).toList();
+
+                        topProductsByCategory.put(category, top3);
+                    }
+
+                    // Gom tất cả top product DTO thành 1 list duy nhất để lấy product info
+                    List<ProductRevenueDto> allTopProducts = topProductsByCategory.values()
+                            .stream()
+                            .flatMap(List::stream)
+                            .distinct()
+                            .toList();
+
+                    // Lấy Product entities tương ứng từ allTopProducts
+                    List<Long> topProductIds = allTopProducts.stream()
+                            .map(ProductRevenueDto::getId)
+                            .toList();
+
+                    List<Product> relatedProducts = productService.getProductsById(topProductIds);
+
+                    // Lấy ảnh cho từng variant của top products
+                    Map<Long, Map<Long, List<String>>> topProductVariantImages = new HashMap<>();
+
+                    for (Product product : relatedProducts) {
+                        List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
+                        Map<Long, List<String>> variantImageMap = new HashMap<>();
+
+                        for (ProductVariant variant : variants) {
+                            List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
+                            List<String> imageUrls = images.stream()
+                                    .map(Image::getImageUri)
+                                    .toList();
+                            variantImageMap.put(variant.getId(), imageUrls);
+                        }
+                        topProductVariantImages.put(product.getId(), variantImageMap);
+                    }
+
+                    // Tạo phần text AI response
+                    StringBuilder aiResponse = new StringBuilder("Danh sách các sản phẩm bạn có thể thích "
+                            + LocalDate.now().getMonthValue() + "/" + LocalDate.now().getYear() + " là:<br>");
+                    for (int i = 0; i < allTopProducts.size(); i++) {
+                        ProductRevenueDto dto = allTopProducts.get(i);
+                        aiResponse.append(i + 1).append(". ").append(dto.getName())
+                                .append(" - Danh mục: ").append(dto.getCategory())
+                                .append(" - Nhãn hàng: ").append(dto.getBrand()).append("<br>");
+                    }
+
+                    // Tạo phần HTML thông tin sản phẩm
+                    String productInfoHtml = generateProductInfo(relatedProducts, topProductVariantImages);
+
+                    // Đóng vào Map để serialize JSON
+                    Map<String, String> result = new HashMap<>();
+                    result.put("aiResponse", aiResponse.toString());
+                    if (relatedProducts != null && !relatedProducts.isEmpty() && productInfoHtml != null && !productInfoHtml.isBlank()) {
+                        result.put("productInfo", productInfoHtml);
+                    }
+
+                    // Trả về JSON string
+                    return mapper.writeValueAsString(result);
+
+                } else {
+                    System.out.println("No valid viewed product IDs found.");
+                }
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Lỗi xử lý JSON cookie: " + e.getMessage(), e);
+            }
+        }
+
+        // Nếu không có cookie hoặc lỗi, trả về chuỗi rỗng hoặc thông báo phù hợp
+        return "{\"aiResponse\":\"Không có sản phẩm đã xem hoặc dữ liệu không hợp lệ.\"}";
+    }
 
 }

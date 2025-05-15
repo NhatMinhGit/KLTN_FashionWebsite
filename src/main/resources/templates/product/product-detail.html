@@ -210,7 +210,7 @@
                                              th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
                                         <img th:each="variant, iterStat : ${innerProduct.variants}"
                                              th:src="@{${viewedProductVariantImages[innerProduct.id]?.values()?.iterator()?.next()?.get(1)}}"
-                                             th:if="${iterStat.index == 1}" th:alt="${variant.color}" class="product-image" />
+                                             th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
                                     </div>
                                 </a>
                             </div>

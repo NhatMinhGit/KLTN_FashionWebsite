@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
@@ -66,10 +63,13 @@ public class GeminiController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private ProductVariantService productVariantService;
+
 
 
     @GetMapping("/chat")
-    public ResponseEntity<String> chat(@RequestParam String message, Principal principal) {
+    public ResponseEntity<String> chat(@RequestParam String message, Principal principal,@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
         String response;
         String userName = principal.getName();
         User user = userService.findByEmail(userName);
@@ -135,6 +135,9 @@ public class GeminiController {
             case "change_product_model":
                 response = geminiService.changeProductModelResponse();
                 break;
+            case "recommend_product":
+                response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie);
+                break;
             default:
                 response = geminiService.chatWithAI(message);
                 break;
@@ -179,6 +182,8 @@ public class GeminiController {
             result.put("intent", "refund_time");
         } else if (isChangeProductModelQuestion(lowerCaseMessage)) {
             result.put("intent", "change_product_model");
+        } else if (isRecommendProductModelQuestion(lowerCaseMessage)) {
+            result.put("intent", "recommend_product");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
@@ -311,6 +316,10 @@ public class GeminiController {
                 "có thể đổi thanh toán không",
                 "đổi thanh toán");
     }
+    private boolean isRecommendProductModelQuestion(String message) {
+        return containsKeywords(message,
+                "gợi ý", "gợi ý sản phẩm", "giới thiệu");
+    }
     // Ý định 1: Chính sách đổi trả
     private boolean isReturnPolicyQuestion(String message) {
         return containsKeywords(message,
@@ -334,6 +343,7 @@ public class GeminiController {
         return containsKeywords(message,
                 "đổi sang mẫu khác", "đổi mẫu", "đổi size", "đổi màu", "thay sản phẩm");
     }
+
 
     private boolean containsKeywords(String message, String... keywords) {
         String lowerCaseMessage = message.toLowerCase();
@@ -441,7 +451,7 @@ public class GeminiController {
             product.setEffectivePrice(effectivePrice);
         }
 
-// Lọc các sản phẩm khuyến mãi (đã có giá hiệu lực hợp lệ)
+        // Lọc các sản phẩm khuyến mãi (đã có giá hiệu lực hợp lệ)
         List<Product> preSaleProducts = products.stream()
                 .filter(p -> p.getPrice() != null
                         && p.getEffectivePrice() != null
@@ -456,9 +466,6 @@ public class GeminiController {
                 .collect(Collectors.toList()); // Thu thập thành danh sách
 
         model.addAttribute("preSaleProducts", preSaleProducts); // Đưa vào model để hiển thị trên giao diện
-
-
-
 
 
         if (principal != null) {
@@ -518,6 +525,8 @@ public class GeminiController {
                 Arrays.asList(Order.OrderStatusType.PENDING)
         );
         model.addAttribute("pendingOrders", pendingOrders != null ? pendingOrders : new ArrayList<>());
+
+
 
         return new ModelAndView("ai_chatbot/chat-window");
     }
