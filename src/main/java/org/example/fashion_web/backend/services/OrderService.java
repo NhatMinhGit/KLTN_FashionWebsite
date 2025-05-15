@@ -21,6 +21,8 @@ public interface OrderService {
 
     int getOrdersToday();
 
+    List<Order> findOrdersByUserAndStatusIn(User user, List<Order.OrderStatusType> statuses);
+
     int getOrdersThisMonth();
 
     void notifyNewOrders(List<Order> orders);

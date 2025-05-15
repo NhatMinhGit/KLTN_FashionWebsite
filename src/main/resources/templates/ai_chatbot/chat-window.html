@@ -23,8 +23,7 @@
         }
 
         .chat-container {
-            max-width: 90%;
-            margin: 1rem;
+            max-width: 100%;
         }
 
         .container-fluid {
@@ -288,13 +287,123 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="tracking" role="tabpanel" aria-labelledby="tracking-tab">
-                        <!-- Tracking & Delivery questions would go here -->
+                        <!-- Kiểm tra nếu không có đơn hàng nào -->
+                        <div th:if="${trackingOrders == null or #lists.isEmpty(trackingOrders)}" class="text-center mt-4">
+                            <p>Hiện tại bạn chưa có đơn hàng nào đang giao hoặc đã hoàn tất.</p>
+                        </div>
+
+                        <!-- Bảng hiển thị đơn hàng -->
+                        <table class="table table-bordered text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày đặt</th>
+                                <th>Địa chỉ giao hàng</th>
+                                <th>Phương thức thanh toán</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Duyệt qua từng đơn hàng -->
+                            <th:block th:each="order : ${trackingOrders}">
+                                <tr>
+                                    <!-- Mã đơn hàng -->
+                                    <td th:text="${order.id}"></td>
+
+                                    <!-- Trạng thái đơn hàng -->
+                                    <td th:text="${order.status}"></td>
+
+                                    <!-- Ngày đặt -->
+                                    <td th:text="${order.orderDate != null} ? ${#temporals.format(order.orderDate, 'dd/MM/yyyy')} : 'Chưa có'"></td>
+
+                                    <!-- Địa chỉ giao hàng -->
+                                    <td th:text="${order.shippingAddress != null ? order.shippingAddress : 'Chưa cung cấp'}"></td>
+
+                                    <!-- Phương thức thanh toán -->
+                                    <td th:text="${order.paymentMethod != null ? order.paymentMethod : 'Chưa chọn'}"></td>
+
+                                    <!-- Xem chi tiết đơn hàng -->
+                                    <td>
+                                        <a th:href="@{/user/user-order}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                                    </td>
+                                </tr>
+                            </th:block>
+                            </tbody>
+                        </table>
                     </div>
+
                     <div class="tab-pane fade" id="return" role="tabpanel" aria-labelledby="return-tab">
                         <!-- Return & Refund questions would go here -->
+                        <div class="question-list">
+                            <div class="question-item">
+                                <span class="question-number">1</span>
+                                <span class="question-text">Chính sách đổi trả của cửa hàng là gì?</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                            <div class="question-item">
+                                <span class="question-number">2</span>
+                                <span class="question-text">Tôi cần làm gì nếu sản phẩm bị lỗi hoặc không đúng mô tả?</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                            <div class="question-item">
+                                <span class="question-number">3</span>
+                                <span class="question-text">Thời gian xử lý hoàn tiền mất bao lâu?</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                            <div class="question-item">
+                                <span class="question-number">4</span>
+                                <span class="question-text">Tôi có thể đổi sản phẩm sang mẫu khác không?</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="tab-pane fade" id="processing" role="tabpanel" aria-labelledby="processing-tab">
                         <!-- Processing questions would go here -->
+                        <!-- Kiểm tra nếu không có đơn hàng nào -->
+                        <div th:if="${trackingOrders == null or #lists.isEmpty(trackingOrders)}" class="text-center mt-4">
+                            <p>Hiện tại bạn chưa có đơn hàng nào đang giao hoặc đã hoàn tất.</p>
+                        </div>
+
+                        <!-- Bảng hiển thị đơn hàng -->
+                        <table class="table table-bordered text-center">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày đặt</th>
+                                <th>Địa chỉ giao hàng</th>
+                                <th>Phương thức thanh toán</th>
+                                <th>Chi tiết</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Duyệt qua từng đơn hàng -->
+                            <th:block th:each="order : ${pendingOrders}">
+                                <tr>
+                                    <!-- Mã đơn hàng -->
+                                    <td th:text="${order.id}"></td>
+
+                                    <!-- Trạng thái đơn hàng -->
+                                    <td th:text="${order.status}"></td>
+
+                                    <!-- Ngày đặt -->
+                                    <td th:text="${order.orderDate != null} ? ${#temporals.format(order.orderDate, 'dd/MM/yyyy')} : 'Chưa có'"></td>
+
+                                    <!-- Địa chỉ giao hàng -->
+                                    <td th:text="${order.shippingAddress != null ? order.shippingAddress : 'Chưa cung cấp'}"></td>
+
+                                    <!-- Phương thức thanh toán -->
+                                    <td th:text="${order.paymentMethod != null ? order.paymentMethod : 'Chưa chọn'}"></td>
+
+                                    <!-- Xem chi tiết đơn hàng -->
+                                    <td>
+                                        <a th:href="@{/user/user-order}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                                    </td>
+                                </tr>
+                            </th:block>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="tab-pane fade" id="presale" role="tabpanel" aria-labelledby="presale-tab">
                         <!-- Tab content -->
@@ -340,7 +449,7 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="payment" role="tabpanel" aria-labelledby="payment-tab">
-                        <!-- Payment & Account questions would go here -->
+
                     </div>
                 <div class="tab-pane fade" id="cart" role="tabpanel" aria-labelledby="cart-tab">
                     <th:block th:each="item : ${cartItems}">

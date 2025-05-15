@@ -87,6 +87,11 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.countOrdersToday();
     }
 
+    @Override
+    public List<Order> findOrdersByUserAndStatusIn(User user, List<Order.OrderStatusType> statuses) {
+        return orderRepository.findByUserAndStatusIn(user,statuses);
+    }
+
     public int getOrdersThisMonth() {
         return orderRepository.countOrdersThisMonth();
     }

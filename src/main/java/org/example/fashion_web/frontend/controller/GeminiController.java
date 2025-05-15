@@ -63,6 +63,9 @@ public class GeminiController {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private OrderService orderService;
+
 
 
     @GetMapping("/chat")
@@ -120,6 +123,18 @@ public class GeminiController {
             case "order_tracking":
                 response = geminiService.orderTrackingResponse(message,principal);
                 break;
+            case "return_policy":
+                response = geminiService.returnPolicyResponse();
+                break;
+            case "product_issue":
+                response = geminiService.productIssueResponse();
+                break;
+            case "refund_time":
+                response = geminiService.refundTimeResponse();
+                break;
+            case "change_product_model":
+                response = geminiService.changeProductModelResponse();
+                break;
             default:
                 response = geminiService.chatWithAI(message);
                 break;
@@ -156,6 +171,14 @@ public class GeminiController {
             result.put("intent", "delivery_time");
         } else if (isOrderTracking(lowerCaseMessage)) {
             result.put("intent", "order_tracking");
+        } else if (isReturnPolicyQuestion(lowerCaseMessage)) {
+            result.put("intent", "return_policy");
+        } else if (isProductIssueQuestion(lowerCaseMessage)) {
+            result.put("intent", "product_issue");
+        } else if (isRefundTimeQuestion(lowerCaseMessage)) {
+            result.put("intent", "refund_time");
+        } else if (isChangeProductModelQuestion(lowerCaseMessage)) {
+            result.put("intent", "change_product_model");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
@@ -287,6 +310,29 @@ public class GeminiController {
                 "thay đổi phương thức",
                 "có thể đổi thanh toán không",
                 "đổi thanh toán");
+    }
+    // Ý định 1: Chính sách đổi trả
+    private boolean isReturnPolicyQuestion(String message) {
+        return containsKeywords(message,
+                "chính sách đổi trả", "đổi trả", "chính sách hoàn hàng", "đổi hàng", "trả hàng");
+    }
+
+    // Ý định 2: Sản phẩm bị lỗi hoặc không đúng mô tả
+    private boolean isProductIssueQuestion(String message) {
+        return containsKeywords(message,
+                "sản phẩm bị lỗi", "không đúng mô tả", "hư hỏng", "lỗi sản phẩm", "sai mô tả");
+    }
+
+    // Ý định 3: Thời gian hoàn tiền
+    private boolean isRefundTimeQuestion(String message) {
+        return containsKeywords(message,
+                "thời gian hoàn tiền", "hoàn tiền mất bao lâu", "khi nào nhận được tiền", "bao lâu hoàn tiền");
+    }
+
+    // Ý định 4: Đổi sang mẫu khác
+    private boolean isChangeProductModelQuestion(String message) {
+        return containsKeywords(message,
+                "đổi sang mẫu khác", "đổi mẫu", "đổi size", "đổi màu", "thay sản phẩm");
     }
 
     private boolean containsKeywords(String message, String... keywords) {
@@ -455,6 +501,23 @@ public class GeminiController {
         model.addAttribute("productImages", productImages);
         model.addAttribute("cartItems", cart);
         System.out.println("Items cart sau khi load trang cart: " + cart);
+
+
+
+        // Lấy danh sách đơn hàng đã giao hoặc đang giao
+        User user = userService.findByEmail(principal.getName());
+        List<Order> trackingOrders = orderService.findOrdersByUserAndStatusIn(
+                user,
+                Arrays.asList(Order.OrderStatusType.SHIPPED, Order.OrderStatusType.COMPLETED)
+        );
+        model.addAttribute("trackingOrders", trackingOrders != null ? trackingOrders : new ArrayList<>());
+
+        // Lấy danh sách đơn hàng đang chờ được xử lý
+        List<Order> pendingOrders = orderService.findOrdersByUserAndStatusIn(
+                user,
+                Arrays.asList(Order.OrderStatusType.PENDING)
+        );
+        model.addAttribute("pendingOrders", pendingOrders != null ? pendingOrders : new ArrayList<>());
 
         return new ModelAndView("ai_chatbot/chat-window");
     }
