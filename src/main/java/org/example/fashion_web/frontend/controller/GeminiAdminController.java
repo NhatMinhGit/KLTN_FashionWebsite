@@ -62,11 +62,11 @@ public class GeminiAdminController {
         Map<String, String> extractedData = extractIntentAndEntities(message);
         String intent = extractedData.get("intent");
         String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
-
+        boolean isAdmin = user.getRole().equalsIgnoreCase("ADMIN");
         // Xử lý phản hồi dựa trên intent
         switch (intent) {
             case "check_stock":
-                response = geminiService.checkStock(message);
+                response = geminiService.checkStock(message,isAdmin);
                 break;
             case "refund_policy":
                 response = geminiService.refundPolicyForStaff();
@@ -142,10 +142,11 @@ public class GeminiAdminController {
             }
 
             case "check_bestsellers":
-                response = geminiService.checkTopProductsRevenueForUser(message);
+                response = geminiService.checkTopProductsRevenueForUser(message,isAdmin);
                 break;
             default:
-                response = geminiService.chatWithAI(message);
+
+                response = geminiService.chatWithAI(message,isAdmin);
                 break;
         }
 

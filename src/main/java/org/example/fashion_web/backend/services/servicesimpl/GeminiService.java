@@ -94,7 +94,7 @@ public class GeminiService {
     private final WebClient webClient = WebClient.builder().build();
 
 
-    public String chatWithAI(String message) {
+    public String chatWithAI(String message,boolean isAdmin) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").trim();
 
@@ -103,25 +103,17 @@ public class GeminiService {
         if (relatedProducts.isEmpty()) {
             return "{\"error\": \"Không tìm thấy sản phẩm nào liên quan.\"}";
         }
-
-//        // Lấy danh sách ảnh chung cho từng sản phẩm
-//        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-//        for (Product product : relatedProducts) {
-//            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-//            Map<Long, List<String>> variantImageMap = new HashMap<>();
-//            for (ProductVariant variant : variants) {
-//                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-//                List<String> imageUrls = images.stream()
-//                        .map(Image::getImageUri)
-//                        .collect(Collectors.toList());
-//                variantImageMap.put(variant.getId(), imageUrls);
-//            }
-//            productVariantImages.put(product.getId(), variantImageMap);
-//        }
-        Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImages = prepareProductVariantImagesWithSize(relatedProducts);
-
-        // Tạo thông tin sản phẩm
-        String productInfo = generateProductInfo(relatedProducts, productVariantImages);
+        
+        String productInfo;
+        if (isAdmin) {
+            // Dành cho admin
+            Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+            productInfo = generateProductInfoForStaff(relatedProducts, productVariantImages);
+        } else {
+            // Dành cho user
+            Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(relatedProducts);
+            productInfo = generateProductInfo(relatedProducts, productVariantImagesWithSize);
+        }
 
         // Tạo câu hỏi gửi đến AI cùng với dữ liệu từ database
         String prompt = "Người dùng hỏi: '" + message + "'.\n\nDữ liệu từ hệ thống:\n" + productInfo + "\n\nHãy phản hồi thông minh dựa trên thông tin có sẵn.";
@@ -179,105 +171,49 @@ public class GeminiService {
         }
     }
 
-//    private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
-//        StringBuilder htmlBuilder = new StringBuilder();
-//        htmlBuilder.append("<div style='display:flex; flex-wrap:wrap; gap:10px;'>");
-//
-//        relatedProducts.forEach(p -> {
-//            Long productId = p.getId();
-//            Long variantId = p.getVariants().get(0).getId();
-//            List<String> imageUrls = productVariantImages.getOrDefault(productId, new HashMap<>())
-//                    .getOrDefault(variantId, Collections.emptyList());
-//
-//            String productImage = (imageUrls.isEmpty())
-//                    ? "https://via.placeholder.com/80?text=No+Image"
-//                    : imageUrls.get(0);
-//
-//            String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
-//            String productOnClick = "onclick='window.location.href=\"/user/product-detail/" + productId + "\"'";
-//
-//            // Thêm CSS animation inline
-//            String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:150px; cursor:pointer; "
-//                    + "transition: transform 0.3s, box-shadow 0.3s; "
-//                    + "display:inline-block;";
-//
-//            String cardHoverStyle = "this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';";
-//            String cardUnhoverStyle = "this.style.transform='scale(1)'; this.style.boxShadow='none';";
-//
-//
-//            htmlBuilder.append("<div id='product-card-").append(productId).append("' style='").append(cardStyle).append("' ")
-////                    .append(" onclick='window.location.href=\"/user/product-detail/").append(productId).append("\"' ")
-//                    .append(" onmouseover=\"").append(cardHoverStyle).append("\" ")
-//                    .append(" onmouseout=\"").append(cardUnhoverStyle).append("\">")
-//
-//                    // Ảnh
-//                    .append("<div style='text-align:center; margin-bottom:8px;'>")
-//                    .append("<img id='product-img-").append(productId).append("' src='").append(productImage)
-//                    .append("' style='border-radius:8px;' alt='").append(p.getName()).append("' width='80' height='80'>")
-//                    .append("</div>")
-//
-//                    // Thông tin
-//                    .append("<div style='text-align:center;'>")
-//                    .append("<h6 id='category-").append(productId).append("' style='color:#6c757d; margin:0; font-size:12px;'>")
-//                    .append(p.getCategory().getName()).append("</h6>")
-//                    .append("<h6 id='name-").append(productId).append("' style='margin:0; font-size:14px;'>").append(p.getName()).append("</h6>")
-//                    .append("<p id='price-").append(productId).append("' style='font-weight:bold; margin:0; font-size:14px;'>")
-//                    .append(priceHtml).append("</p>")
-//
-//                    // Chọn màu
-//                    .append("<div style='margin:6px 0;'>")
-//                    .append("<label style='font-size:12px;'>Chọn màu:</label><br>")
-//                    .append("<label><input type='radio' id='color-radio-").append(productId).append("-do' name='color_").append(productId).append("' value='Đỏ'> Đỏ</label> ")
-//                    .append("<label><input type='radio' id='color-radio-").append(productId).append("-xanh' name='color_").append(productId).append("' value='Xanh'> Xanh</label> ")
-//                    .append("<label><input type='radio' id='color-radio-").append(productId).append("-den' name='color_").append(productId).append("' value='Đen'> Đen</label>")
-//                    .append("</div>")
-//
-//                    // Chọn size
-//                    .append("<div style='margin:6px 0;'>")
-//                    .append("<label style='font-size:12px;'>Chọn size:</label><br>")
-//                    .append("<select id='size-select-").append(productId).append("' name='size_").append(productId).append("' style='font-size:12px; padding:4px;'>")
-//                    .append("<option value='S'>S</option>")
-//                    .append("<option value='M'>M</option>")
-//                    .append("<option value='L'>L</option>")
-//                    .append("<option value='XL'>XL</option>")
-//                    .append("</select>")
-//                    .append("</div>")
-//
-//                    // Nhập số lượng
-//                    .append("<div style='margin:6px 0;'>")
-//                    .append("<label style='font-size:12px;'>Số lượng:</label><br>")
-//                    .append("<input type='number' id='qty-input-").append(productId).append("' name='qty_").append(productId)
-//                    .append("' value='1' min='1' style='width:60px; font-size:12px;'>")
-//                    .append("</div>")
-//
-//                    // Nút đặt hàng
-//                    .append("<div style='margin-top:8px;'>")
-//                    .append("<button id='add-cart-btn-").append(productId).append("' ")
-//                    .append("class='btn btn-primary btn-lg mb-3 me-2' onclick='addToCart(").append(productId).append(")'>")
-//                    .append("<i class='fas fa-cart-plus'></i> Thêm vào giỏ</button>")
-//                    .append("</div>")
-//
-//
-//                    .append("</div>") // text-align:center
-//                    .append("</div>"); // product card
-//
-//
-//        });
-//
-//        htmlBuilder.append("</div>");
-//        return htmlBuilder.toString();
-//        //            htmlBuilder.append("<div style='").append(cardStyle).append("' ")
-////                    .append(productOnClick)
-////                    .append(" onmouseover=\"").append(cardHoverStyle).append("\" ")
-////                    .append(" onmouseout=\"").append(cardUnhoverStyle).append("\">")
-////                    .append("<div style='text-align:center; margin-bottom:8px;'>")
-////                    .append("<img src='").append(productImage).append("' style='border-radius:8px;' alt='").append(p.getName()).append("' width='80' height='80'>")
-////                    .append("</div><div style='text-align:center;'>")
-////                    .append("<h6 style='color:#6c757d; margin:0; font-size:12px;'>").append(p.getCategory().getName()).append("</h6>")
-////                    .append("<h6 style='margin:0; font-size:14px;'>").append(p.getName()).append("</h6>")
-////                    .append("<p style='font-weight:bold; margin:0; font-size:14px;'>").append(priceHtml).append("</p>")
-////                    .append("</div></div>");
-//    }
+    private String generateProductInfoForStaff(List<Product> relatedProducts, Map<Long, Map<Long, List<String>>> productVariantImages) {
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<div style='display:flex; flex-wrap:wrap; gap:10px;'>");
+
+        relatedProducts.forEach(p -> {
+            Long productId = p.getId();
+            Long variantId = p.getVariants().get(0).getId();
+            List<String> imageUrls = productVariantImages.getOrDefault(productId, new HashMap<>())
+                    .getOrDefault(variantId, Collections.emptyList());
+
+            String productImage = (imageUrls.isEmpty())
+                    ? "https://via.placeholder.com/80?text=No+Image"
+                    : imageUrls.get(0);
+
+            String priceHtml = CurrencyFormatter.formatVND(p.getPrice());
+            String productOnClick = "onclick='window.location.href=\"/user/product-detail/" + productId + "\"'";
+
+            // Thêm CSS animation inline
+            String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:150px; cursor:pointer; "
+                    + "transition: transform 0.3s, box-shadow 0.3s; "
+                    + "display:inline-block;";
+
+            String cardHoverStyle = "this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';";
+            String cardUnhoverStyle = "this.style.transform='scale(1)'; this.style.boxShadow='none';";
+
+
+            htmlBuilder.append("<div style='").append(cardStyle).append("' ")
+                    .append(productOnClick)
+                    .append(" onmouseover=\"").append(cardHoverStyle).append("\" ")
+                    .append(" onmouseout=\"").append(cardUnhoverStyle).append("\">")
+                    .append("<div style='text-align:center; margin-bottom:8px;'>")
+                    .append("<img src='").append(productImage).append("' style='border-radius:8px;' alt='").append(p.getName()).append("' width='80' height='80'>")
+                    .append("</div><div style='text-align:center;'>")
+                    .append("<h6 style='color:#6c757d; margin:0; font-size:12px;'>").append(p.getCategory().getName()).append("</h6>")
+                    .append("<h6 style='margin:0; font-size:14px;'>").append(p.getName()).append("</h6>")
+                    .append("<p style='font-weight:bold; margin:0; font-size:14px;'>").append(priceHtml).append("</p>")
+                    .append("</div></div>");
+        });
+
+        htmlBuilder.append("</div>");
+        return htmlBuilder.toString();
+
+    }
 private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<Long, Map<Long, List<String>>>> preparedImages) {
     StringBuilder htmlBuilder = new StringBuilder();
     htmlBuilder.append("<div class='row'>");
@@ -401,7 +337,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         return products.isEmpty() ? "Không tìm thấy sản phẩm phù hợp." : products.stream().map(Product::getName).collect(Collectors.joining(", "));
     }
 
-    public String checkStock(String message) {
+    public String checkStock(String message,boolean isAdmin) {
         // Chuẩn hóa câu hỏi để lấy đúng tên sản phẩm
         String normalizedMessage = message.toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").trim();
 
@@ -426,25 +362,18 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
             }
         }
 
-        // Lấy danh sách ảnh chung cho từng sản phẩm
-//        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-//        for (Product product : relatedProducts) {
-//            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-//            Map<Long, List<String>> variantImageMap = new HashMap<>();
-//            for (ProductVariant variant : variants) {
-//                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-//                List<String> imageUrls = images.stream()
-//                        .map(Image::getImageUri)
-//                        .collect(Collectors.toList());
-//                variantImageMap.put(variant.getId(), imageUrls);
-//            }
-//            productVariantImages.put(product.getId(), variantImageMap);
-//        }
-        Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImages = prepareProductVariantImagesWithSize(relatedProducts);
+        String productInfo;
+        if (isAdmin) {
+            // Dành cho admin
+            Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+            productInfo = generateProductInfoForStaff(relatedProducts, productVariantImages);
+        } else {
+            // Dành cho user
+            Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(relatedProducts);
+            productInfo = generateProductInfo(relatedProducts, productVariantImagesWithSize);
+        }
 
 
-        // Tạo thông tin sản phẩm
-        String productInfo = generateProductInfo(relatedProducts, productVariantImages);
 
         // Chuẩn bị JSON phản hồi
         Map<String, String> result = new HashMap<>();
@@ -475,7 +404,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         }
     }
 
-    public String checkPriceAndCategory(String message) {
+    public String checkPriceAndCategory(String message,Boolean isAdmin) {
         String lowerCaseMessage = message.toLowerCase();
 
 // --- Bước 1: Tách giá ---
@@ -549,25 +478,19 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                     return price != null && price.compareTo(minPrice) >= 0 && price.compareTo(maxPrice) <= 0;
                 })
                 .collect(Collectors.toList());
-        // Lấy danh sách ảnh chung cho từng sản phẩm
-//        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-//        for (Product product : filteredProducts) {
-//            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-//            Map<Long, List<String>> variantImageMap = new HashMap<>();
-//            for (ProductVariant variant : variants) {
-//                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-//                List<String> imageUrls = images.stream()
-//                        .map(Image::getImageUri)
-//                        .collect(Collectors.toList());
-//                variantImageMap.put(variant.getId(), imageUrls);
-//            }
-//            productVariantImages.put(product.getId(), variantImageMap);
-//        }
-        Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImages = prepareProductVariantImagesWithSize(relatedProducts);
+
 
         // --- Bước 5: Tạo JSON phản hồi ---
-        // Tạo thông tin sản phẩm
-        String productInfo = generateProductInfo(filteredProducts, productVariantImages);
+        String productInfo;
+        if (isAdmin) {
+            // Dành cho admin
+            Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(filteredProducts);
+            productInfo = generateProductInfoForStaff(filteredProducts, productVariantImages);
+        } else {
+            // Dành cho user
+            Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(filteredProducts);
+            productInfo = generateProductInfo(filteredProducts, productVariantImagesWithSize);
+        }
 
         // Chuẩn bị JSON phản hồi
         Map<String, String> result = new HashMap<>();
@@ -710,7 +633,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         }
     }
 
-    public String checkTopProductsRevenueForUser(String message) {
+    public String checkTopProductsRevenueForUser(String message,Boolean isAdmin) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
@@ -768,13 +691,16 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        // Chuẩn bị map productVariantImages
-//        Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
-
-        // Chuẩn bị map productVariantImages và productVariantSizes
-        Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImages = prepareProductVariantImagesWithSize(relatedProducts);
-        // Tạo productInfo HTML
-        String productInfoHtml = generateProductInfo(relatedProducts, productVariantImages);
+        String productInfoHtml;
+        if (isAdmin) {
+            // Dành cho admin
+            Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+            productInfoHtml = generateProductInfoForStaff(relatedProducts, productVariantImages);
+        } else {
+            // Dành cho user
+            Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(relatedProducts);
+            productInfoHtml = generateProductInfo(relatedProducts, productVariantImagesWithSize);
+        }
 
         // Tạo response AI text
         StringBuilder response = new StringBuilder("Danh sách top sản phẩm bán chạy tháng " + monthToCheck + "/" + yearToCheck + " là:<br>");
