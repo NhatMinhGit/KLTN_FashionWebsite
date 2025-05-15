@@ -187,7 +187,6 @@ public class GeminiController {
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
-
         // Trích xuất các thực thể (entities) từ câu hỏi (dùng message gốc)
         Map<String, String> extractedEntities = extractEntities(message);
 
@@ -287,6 +286,15 @@ public class GeminiController {
         );
     }
     private boolean isPaymentDeclinedReason(String message) {
+        return containsKeywords(message,
+                "tại sao thanh toán bị từ chối",
+                "thanh toán bị từ chối",
+                "không thanh toán được",
+                "lỗi thanh toán",
+                "không trả tiền được",
+                "thanh toán thất bại");
+    }
+    private boolean isAddToCart(String message) {
         return containsKeywords(message,
                 "tại sao thanh toán bị từ chối",
                 "thanh toán bị từ chối",

@@ -42,6 +42,10 @@
             align-items: center;     /* Căn giữa theo chiều dọc (nếu cần) */
             height: 50px;           /* Đảm bảo có đủ không gian để căn giữa */
         }
+        .tab-content{
+            max-height: 300px;
+            overflow-y: auto;
+        }
 
         #showCategoriesBtn {
             background: none;        /* Không có nền */
@@ -49,16 +53,9 @@
             padding: 10px;           /* Khoảng cách xung quanh nút */
             cursor: pointer;        /* Thêm con trỏ chuột khi di chuột qua */
         }
-        .tab-content{
-            height: 250px;
-        }
         #arrowIcon {
             font-size: 20px;         /* Kích thước biểu tượng mũi tên */
             transition: transform 0.3s ease; /* Thêm hiệu ứng chuyển động cho mũi tên */
-        }
-        #questionTabsContent {
-            height: 350px; /* Giảm chiều cao xuống, có thể thay đổi theo nhu cầu */
-            overflow-y: auto; /* Thêm cuộn dọc nếu nội dung vượt quá chiều cao */
         }
         #messages{
             height: 450px;
@@ -261,7 +258,7 @@
                 </div>
 
                 <!-- Hot Questions -->
-                <div class="tab-content" id="questionTabsContent" style="height: 250px;">
+                <div class="tab-content" id="questionTabsContent">
                     <div class="tab-pane fade show active" id="hot" role="tabpanel" aria-labelledby="hot-tab">
                         <div class="question-list">
                             <div class="question-item">
@@ -446,61 +443,58 @@
 
                             </tbody>
                         </table>
-                        </div>
                     </div>
                     <div class="tab-pane fade" id="payment" role="tabpanel" aria-labelledby="payment-tab">
 
                     </div>
-                <div class="tab-pane fade" id="cart" role="tabpanel" aria-labelledby="cart-tab">
-                    <th:block th:each="item : ${cartItems}">
-                        <div class="row mb-4 d-flex justify-content-between align-items-center">
-                            <div class="col-md-2 col-lg-2 col-xl-2">
-                                <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
-                                     th:src="@{${productImages[item.product.id][0]}}"
-                                     class="img-fluid rounded-3"
-                                     th:alt="${item.product.name}"
-                                     width="150"
-                                     height="80">
-                                <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
-                            </div>
-                            <div class="col-md-3 col-lg-3 col-xl-3">
-                                <h6 class="text-muted" th:text="${item.product.category.name}"></h6>
-                                <h6 class="mb-0" th:text="${item.product.name}"></h6>
-                            </div>
-                            <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                                <button class="btn btn-link px-2"
-                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', -1)'">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-
-                                <input type="number" min="1" name="quantity"
-                                       th:value="${item.quantity}"
-                                       th:attr="data-cart-id=${item.cartItemId}"
-                                       class="form-control form-control-sm"
-                                       style="display: block; width: 50px;">
-
-                                <button class="btn btn-link px-2"
-                                        th:onclick="'updateQuantity(' + ${item.cartItemId} + ', 1)'">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <div class="col-md-2 col-lg-2 col-xl-2">
-                                <h6 class="mb-0" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></h6>
-                            </div>
-                            <!-- Đưa nút xóa vào cột riêng trong row -->
-                            <div class="col-md-1 col-lg-1 col-xl-1 text-end">
-                                <form th:action="@{/user/cart/remove-from-cart}" method="post">
-                                    <input type="hidden" name="id" th:value="${item.cartItemId}" />
-                                    <button type="submit" class="btn btn-link text-muted">
-                                        <i class="fas fa-times"></i>
+                    <div class="tab-pane fade" id="cart" role="tabpanel" aria-labelledby="cart-tab">
+                        <th:block th:each="item : ${cartItems}">
+                            <div class="row mb-2 d-flex justify-content-between align-items-center">
+                                <div class="col-md-2 col-lg-2 col-xl-2">
+                                    <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
+                                         th:src="@{${productImages[item.product.id][0]}}"
+                                         class="img-fluid rounded-3"
+                                         th:alt="${item.product.name}"
+                                         width="100" height="60">
+                                    <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
+                                </div>
+                                <div class="col-md-3 col-lg-3 col-xl-3">
+                                    <h6 class="text-muted small" th:text="${item.product.category.name}"></h6>
+                                    <h6 class="mb-0 small" th:text="${item.product.name}"></h6>
+                                </div>
+                                <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                                    <button class="btn btn-link px-2"
+                                            th:onclick="'updateQuantity(' + ${item.cartItemId} + ', -1)'">
+                                        <i class="fas fa-minus"></i>
                                     </button>
-                                </form>
+
+                                    <input type="number" min="1" name="quantity"
+                                           th:value="${item.quantity}"
+                                           th:attr="data-cart-id=${item.cartItemId}"
+                                           class="form-control form-control-sm"
+                                           style="width: 50px; height: 30px;">
+
+                                    <button class="btn btn-link px-2"
+                                            th:onclick="'updateQuantity(' + ${item.cartItemId} + ', 1)'">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="col-md-2 col-lg-2 col-xl-2">
+                                    <h6 class="mb-0 small" th:text="${@currencyFormatter.formatVND(item.pricePerUnit)}"></h6>
+                                </div>
+                                <div class="col-md-1 col-lg-1 col-xl-1 text-end">
+                                    <form th:action="@{/user/cart/remove-from-cart}" method="post">
+                                        <input type="hidden" name="id" th:value="${item.cartItemId}" />
+                                        <button type="submit" class="btn btn-link text-muted">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-                        <hr class="my-4">
-                    </th:block>
+                            <hr class="my-2">
+                        </th:block>
+                    </div>
                 </div>
-            </div>
 
 
 
@@ -509,7 +503,6 @@
                         <div class="row">
                             <div class="col d-flex justify-content-between">
                                 <button class="btn btn-sm btn-outline-secondary">Gợi Ý Sản Phẩm</button>
-                                <button class="btn btn-sm btn-outline-secondary">Thêm Yêu Cầu</button>
                                 <button class="btn btn-sm btn-outline-secondary">BEST SELLERS</button>
                                 <button class="btn btn-sm btn-outline-secondary">Giao Hàng Nhanh</button>
                                 <button class="btn btn-sm btn-outline-secondary">Hỏa Tốc</button>
@@ -535,6 +528,7 @@
 </div>
 </body>
 <script th:src="@{/js/cart.js}"></script>
+<script th:src="@{/js/product-add-chatbot.js}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function(){

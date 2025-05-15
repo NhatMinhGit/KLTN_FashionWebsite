@@ -78,13 +78,6 @@
                 <p>Không có ảnh cho màu đã chọn.</p>
             </div>
 
-<!--            <div class="d-flex justify-content-between mt-2 carousel-item" id="thumbnailContainer">-->
-<!--                <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"-->
-<!--                     th:src="@{${imageUri}}"-->
-<!--                     class="thumbnail"-->
-<!--                     th:alt="${product.name}"-->
-<!--                     onclick="changeImage(this)">-->
-<!--            </div>-->
             <div class="thumbnail-carousel">
                 <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"
                      th:src="@{${imageUri}}"
