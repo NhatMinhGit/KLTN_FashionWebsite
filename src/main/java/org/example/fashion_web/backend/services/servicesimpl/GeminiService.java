@@ -722,7 +722,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         }
     }
 
-    public String checkTopProductsRevenueForOptimalPlan(String message) {
+    public String checkTopProductsRevenueForOptimalPlan(String message,boolean isAdmin) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").toLowerCase().trim();
 
@@ -780,11 +780,16 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                 .collect(Collectors.toList());
 
         // Chuẩn bị map productVariantImages
-//        Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
-        Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImages = prepareProductVariantImagesWithSize(relatedProducts);
-
-        // Tạo productInfo HTML
-        String productInfoHtml = generateProductInfo(relatedProducts, productVariantImages);
+        String productInfoHtml;
+        if (isAdmin) {
+            // Dành cho admin
+            Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+            productInfoHtml = generateProductInfoForStaff(relatedProducts, productVariantImages);
+        } else {
+            // Dành cho user
+            Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(relatedProducts);
+            productInfoHtml = generateProductInfo(relatedProducts, productVariantImagesWithSize);
+        }
 
         // Tạo response AI text
 

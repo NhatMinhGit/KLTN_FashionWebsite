@@ -84,7 +84,7 @@ public class GeminiAdminController {
                 Map<String, Object> businessPlanResponse = new HashMap<>();
 
                 // 1. Top sản phẩm doanh thu cao
-                String topProducts = geminiService.checkTopProductsRevenueForOptimalPlan(message);
+                String topProducts = geminiService.checkTopProductsRevenueForOptimalPlan(message,isAdmin);
                 businessPlanResponse.put("topProducts", topProducts);
 
                 // 2. Gợi ý thời trang theo mùa
