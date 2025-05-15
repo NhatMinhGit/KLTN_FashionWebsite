@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -91,6 +92,9 @@ public class OrderController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private OrderService orderService;
 
     private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
@@ -218,6 +222,7 @@ public class OrderController {
         return ResponseEntity.ok(paymentInfo);
     }
     @PostMapping("/user/order/checkout")
+    @Transactional
     public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail, HttpServletRequest request) {
         try {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
@@ -260,6 +265,11 @@ public class OrderController {
                 payment.setPaymentStatus(String.valueOf(0));
                 paymentRepository.save(payment);
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
+                //bắt lỗi nếu người dùng chưa thực hiện xong thanh toán trước đó
+                if (orderService.hasPayingOrder(user)) {
+                    model.addAttribute("errorMessage", "Invalid order total");
+                    return "redirect:/user/order/checkout";
+                }
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
                 orderRepository.save(newOrder);
 
@@ -345,7 +355,6 @@ public class OrderController {
                 userVoucherRepository.save(userVoucher);
             }
 
-
             // Gửi email
             try {
                 String htmlContent = emailService.buildOrderConfirmationEmail(user, paymentInfo, cartItems);
@@ -361,7 +370,8 @@ public class OrderController {
             } catch (Exception e) {
                 System.out.println("❌ Lỗi khi gửi email: " + e.getMessage());
             }
-
+            //thông báo có đơn hàng mới
+            orderService.notifyNewOrders(List.of(newOrder));
             return "order/order-confirmination";
 
         } catch (Exception e) {

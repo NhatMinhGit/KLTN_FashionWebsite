@@ -5,6 +5,7 @@ import org.example.fashion_web.backend.dto.ProductRevenueDto;
 import org.example.fashion_web.backend.models.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -57,4 +58,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             "GROUP BY c.name " +
             "ORDER BY SUM(oi.pricePerUnit * oi.quantity) ASC")
     List<CategoryRevenueDto> findTopCategoriesByLowestRevenue(LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT i FROM OrderItem i JOIN FETCH i.product p JOIN FETCH p.category WHERE i.order.id = :orderId")
+    List<OrderItem> findByOrderIdWithCategory(@Param("orderId") Long orderId);
+
 }

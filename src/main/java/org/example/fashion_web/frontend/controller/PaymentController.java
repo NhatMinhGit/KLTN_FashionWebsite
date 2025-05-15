@@ -7,12 +7,10 @@ import org.example.fashion_web.backend.dto.EmailRequest;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
-import org.example.fashion_web.backend.services.EmailService;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.SizeService;
-import org.example.fashion_web.backend.services.VNPAYService;
+import org.example.fashion_web.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -55,6 +53,9 @@ public class PaymentController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private OrderService orderService;
+
     @GetMapping("/user/order/submitOrder")
     public String rejectGetSubmitOrder() {
         return "redirect:/user/order?error=invalid-method";
@@ -68,6 +69,7 @@ public class PaymentController {
 
     // Sau khi hoàn tất thanh toán, VNPAY sẽ chuyển hướng trình duyệt về URL này
     @GetMapping("/user/order/vnpay-payment-return")
+    @Transactional
     public String paymentCompleted(HttpSession session, HttpServletRequest request, Model model) {
         int paymentStatus = vnPayService.orderReturn(request);
         List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
@@ -86,7 +88,8 @@ public class PaymentController {
         String totalPrice = request.getParameter("vnp_Amount");
         String vnpId = request.getParameter("vnp_TxnRef");
 
-        if (paymentStatus == 1 && order.isPresent()) {
+
+        if (paymentStatus == 1 && order.isPresent() && order.get().getStatus() != Order.OrderStatusType.PAID) {
             // Cập nhật trạng thái đơn hàng
             Order o = order.get();
             o.setStatus(Order.OrderStatusType.PAID);
@@ -175,7 +178,7 @@ public class PaymentController {
             } catch (Exception e) {
                 System.out.println("❌ Lỗi khi gửi email: " + e.getMessage());
             }
-
+            orderService.notifyNewOrders(List.of(o));
             return "/order/ordersuccess";
         } else  {
             // Cập nhật trạng thái đơn hàng

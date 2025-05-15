@@ -57,8 +57,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COUNT(o) FROM Order o WHERE MONTH(o.createdAt) = MONTH(CURRENT_DATE) AND YEAR(o.createdAt) = YEAR(CURRENT_DATE)")
     Integer countOrdersThisMonth();
 
+    List<Order> findByStatusIn(List<Order.OrderStatusType> statuses);
+
+    List<Order> findByStatus(Order.OrderStatusType status);
+
+    boolean existsByUserAndStatus(User user, Order.OrderStatusType status);
+
     @Query("SELECT o FROM Order o WHERE MONTH(o.orderDate) = MONTH(CURRENT_DATE) AND YEAR(o.orderDate) = YEAR(CURRENT_DATE) AND o.user.id = :userId")
     List<Order> findOrdersInCurrentMonthByUser(@Param("userId") Long userId);
+
 
     @Query("SELECT o FROM Order o WHERE o.user = :user AND o.status IN :statuses")
     List<Order> findByUserAndStatusIn(@Param("user") User user, @Param("statuses") List<Order.OrderStatusType> statuses);

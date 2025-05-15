@@ -25,4 +25,9 @@ public interface OrderService {
 
     int getOrdersThisMonth();
 
+    void notifyNewOrders(List<Order> orders);
+
+    List<Order> getAllOrders();
+
+    boolean hasPayingOrder(User user);
 }

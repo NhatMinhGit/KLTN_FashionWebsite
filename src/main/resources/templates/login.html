@@ -18,7 +18,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 80vh;
         color: black;
     }
 
@@ -29,27 +29,6 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         width: 400px;
         text-align: center;
-    }
-
-    .social-login {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .social-btn {
-        border: none;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        width: 35px;
-        height: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #fff;
-        border: 1px solid #ddd;
     }
 
     .text-divider {
@@ -114,12 +93,7 @@
     <h3 class="fw-bold my-4">ĐĂNG NHẬP</h3>
     <p>Bạn chưa có tài khoản? <a th:href="@{/registration}" class="text-primary">Đăng ký</a></p>
 
-    <div class="social-login">
-      <button class="social-btn"><i class="fab fa-facebook-f text-primary"></i></button>
-      <button class="social-btn"><i class="fab fa-google text-danger"></i></button>
-    </div>
-
-    <p class="text-divider">or login with email</p>
+    <p class="text-divider">or login here</p>
 
     <form th:action="@{/login}" method="post">
       <div class="mb-3 text-start">

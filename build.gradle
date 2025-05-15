@@ -76,6 +76,8 @@ dependencies {
 	implementation 'com.sendgrid:sendgrid-java:4.9.3'
 	//pdf
 	implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
+	// websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 dependencyManagement {
