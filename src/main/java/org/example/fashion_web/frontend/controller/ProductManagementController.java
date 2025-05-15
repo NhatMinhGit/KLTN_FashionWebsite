@@ -2,6 +2,8 @@ package org.example.fashion_web.frontend.controller;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FilenameUtils;
 import org.example.fashion_web.backend.dto.CategoryForm;
 import org.example.fashion_web.backend.dto.ProductDto;
@@ -30,6 +32,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -298,7 +301,7 @@ public class ProductManagementController {
 
     // Xem chi tiết sản phẩm theo ID
     @GetMapping("/user/product-detail/{id}")
-    public String viewProduct(@PathVariable Long id, Model model, Principal principal) {
+    public String viewProduct(@PathVariable Long id, Model model, Principal principal,@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
         try {
             // Lấy thông tin người dùng
             UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
@@ -308,13 +311,6 @@ public class ProductManagementController {
             if (product == null) {
                 return "redirect:/user"; // Nếu không có sản phẩm, redirect
             }
-
-            // Áp dụng discount nếu có
-//            BigDecimal effectivePrice = discountService.getActiveDiscountForProduct(product)
-//                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-//                    .orElse(product.getPrice());
-//            product.setEffectivePrice(effectivePrice);
-
             // Lấy giảm giá cho sản phẩm
             List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
 
@@ -428,6 +424,95 @@ public class ProductManagementController {
 
             // Thêm sản phẩm vào model
             model.addAttribute("product", product);
+
+            if (viewedProductsCookie != null) {
+                System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    // Parse JSON string thành List<String>
+                    List<String> viewedProductIdsStr = mapper.readValue(viewedProductsCookie, new TypeReference<List<String>>() {});
+                    System.out.println("Viewed products list: " + viewedProductIdsStr);
+
+                    // Convert List<String> thành List<Long>, bỏ qua id không hợp lệ
+                    List<Long> viewedProductIds = viewedProductIdsStr.stream()
+                            .map(idStr -> {
+                                try {
+                                    return Long.parseLong(idStr);
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                    return null;
+                                }
+                            })
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    // Lấy danh sách sản phẩm theo id
+                    List<Product> viewedProducts = productService.getProductsById(viewedProductIds);
+                    // Lấy giảm giá cho sản phẩm
+                    for (Product viewedProduct : viewedProducts) {
+                        List<ProductDiscount> viewedProductDiscounts = discountService.getActiveDiscountsForProduct(viewedProduct);
+
+                        // Lấy giảm giá cho danh mục
+                        List<ProductDiscount> viewedCategoryDiscounts = discountService.getActiveDiscountsForCategory(viewedProduct.getCategory());
+
+                        // Gộp cả 2 danh sách giảm giá
+                        Stream<ProductDiscount> viewedAllDiscounts = Stream.concat(
+                                viewedProductDiscounts.stream(),
+                                viewedCategoryDiscounts.stream()
+                        );
+
+                        // Tìm giảm giá cao nhất
+                        Optional<ProductDiscount> viewedMaxDiscount = viewedAllDiscounts
+                                .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+                        // Áp dụng giảm giá cao nhất (nếu có)
+                        BigDecimal viewedEffectivePrice = viewedMaxDiscount
+                                .map(discount -> discountService.applyDiscount(viewedProduct.getPrice(), discount))
+                                .orElse(viewedProduct.getPrice());
+
+                        // Cập nhật giá hiệu lực cho sản phẩm
+                        viewedProduct.setEffectivePrice(viewedEffectivePrice);
+//                        viewedProduct.setDescription(viewedProduct.getDescription());
+                    }
+                    Map<Long, Integer> discountViewedPercents = new HashMap<>();
+                    for (Product viewedProduct : viewedProducts) {
+                        if (viewedProduct.getEffectivePrice() != null && viewedProduct.getEffectivePrice().compareTo(viewedProduct.getPrice()) < 0) {
+                            BigDecimal discount = product.getPrice().subtract(viewedProduct.getEffectivePrice());
+                            BigDecimal percent = discount.divide(viewedProduct.getPrice(), 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+                            discountViewedPercents.put(viewedProduct.getId(), percent.intValue());
+                        } else {
+                            discountViewedPercents.put(viewedProduct.getId(), 0);
+                        }
+                    }
+                    model.addAttribute("discountViewedPercents", discountViewedPercents);
+                    Map<Long, Map<Long, List<String>>> viewedProductVariantImages = new HashMap<>();
+
+                    for (Product viewedProduct : viewedProducts) {
+                        List<ProductVariant> viewedVariants = productVariantService.findAllByProductId(viewedProduct.getId());
+                        Map<Long, List<String>> variantImageMap = new HashMap<>();
+
+                        for (ProductVariant viewedVariant : viewedVariants) {
+                            List<Image> images = imageService.findImagesByProductVariantId(viewedVariant.getId());
+                            List<String> imageUrls = images.stream()
+                                    .map(Image::getImageUri)
+                                    .collect(Collectors.toList());
+                            variantImageMap.put(viewedVariant.getId(), imageUrls);
+                        }
+
+                        viewedProductVariantImages.put(viewedProduct.getId(), variantImageMap);
+                    }
+                    // Gửi danh sách ảnh theo productId vào model
+                    model.addAttribute("viewedProductVariantImages", viewedProductVariantImages);
+                    // Gán các attribute vào model
+                    model.addAttribute("viewedProductIds", viewedProductIds);
+                    model.addAttribute("viewedProducts", viewedProducts);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("No viewedProducts cookie found.");
+            }
             return "product/product-detail";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "An error occurred while retrieving the product: " + e.getMessage());
@@ -809,26 +894,7 @@ public class ProductManagementController {
         }
         return "redirect:/admin/product";
     }
-//    @GetMapping("/admin/products/search")
-//    @ResponseBody
-//    public Page<Product> searchProducts(
-//            @RequestParam String keyword,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size) {
-//
-//        Pageable pageable = PageRequest.of(page, size);
-//        return productService.searchProducts(keyword, pageable);
-//    }
 
-//@GetMapping("/admin/products/search")
-//@ResponseBody
-//public Page<ProductDto> searchProducts(
-//        @RequestParam String keyword,
-//        @RequestParam int page,
-//        @RequestParam int size) {
-//
-//    return productService.searchProducts(keyword, PageRequest.of(page, size));
-//}
 @GetMapping("/admin/products/search")
 @ResponseBody
 public Page<ProductDto> searchProducts(
@@ -840,36 +906,6 @@ public Page<ProductDto> searchProducts(
     return productService.searchProducts(keyword, PageRequest.of(page, size));
 }
 
-
-
-
-//    @PostMapping("user/product-detail/{id}/comments")
-//    public String addComment(@PathVariable("id") Long productId,
-//                             @RequestParam("comment") String content,
-//                             @RequestParam("rating") int rating,
-//                             Principal principal) {
-//
-//        User user = userService.findByEmail(principal.getName());
-//        System.out.println(user.toString());
-//        Product product = productService.findById(productId)
-//                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-////        // Tìm feedback của sản phẩm
-////        Feedback feedback = feedBackService.findByProductId(productId)
-////                .orElseThrow(() -> new IllegalArgumentException("Feedback not found"));
-//
-//        Feedback feedback = new Feedback();
-//        feedback.setUser(user);
-////        feedback.setOrderItem(orderItem);
-////        comment.setFeedback(feedback);
-//        feedback.setProduct(product); // Gắn comment với sản phẩm luôn
-//        feedback.setComment(content);
-//        feedback.setRating(rating);
-//        feedback.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-//
-//        feedBackService.save(feedback);
-//
-//        return "redirect:/user/product-detail/" + productId;
-//    }
 
 
     @PostMapping("user/product-detail/{id}/comments")
@@ -915,10 +951,7 @@ public Page<ProductDto> searchProducts(
 
         // Lọc sản phẩm theo danh mục
         List<Product> products = productService.getProductsByCategory(category);
-//        System.out.println("Số sản phẩm tìm thấy: " + products.size());
-//        for (Product p : products) {
-//            System.out.println("Sản phẩm: " + p.getName() + " - Giá: " + p.getPrice());
-//        }
+
         // Lấy giảm giá cho sản phẩm
         for (Product product : products) {
             List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
@@ -950,18 +983,18 @@ public Page<ProductDto> searchProducts(
 
 
         // Nhóm danh sách ảnh theo productId
-        Map<Long, List<String>> productImages = new HashMap<>();
-        for (Product product : products) {
-            // Kiểm tra và lưu ảnh
-            List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
-            List<String> imageUrls = imageList.stream()
-                    .map(Image::getImageUri)
-                    .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
-                    .collect(Collectors.toList());
-            productImages.put(product.getId(), imageUrls);
-        }
-
-        model.addAttribute("productImages", productImages);
+//        Map<Long, List<String>> productImages = new HashMap<>();
+//        for (Product product : products) {
+//            // Kiểm tra và lưu ảnh
+//            List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
+//            List<String> imageUrls = imageList.stream()
+//                    .map(Image::getImageUri)
+//                    .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
+//                    .collect(Collectors.toList());
+//            productImages.put(product.getId(), imageUrls);
+//        }
+//
+//        model.addAttribute("productImages", productImages);
         // Lấy danh sách ảnh chung cho từng sản phẩm
         Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
 
@@ -985,86 +1018,6 @@ public Page<ProductDto> searchProducts(
 
         return "shop"; // Trả về trang shop.html chung
     }
-//    @GetMapping("/user/shop/filter")
-//    public String listProducts(
-//            @RequestParam(value = "category", required = false, defaultValue = "Áo Nam") String category,
-//            @RequestParam(value = "color", required = false) String color,
-//            @RequestParam(value = "size", required = false) String size,
-//            @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
-//            @RequestParam(value = "sort", required = false) String sort,
-//            Model model, Principal principal) {
-//
-//        // Xử lý thông tin người dùng nếu có
-//        if (principal != null) {
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-//            if (userDetails != null) {
-//                model.addAttribute("user", userDetails);
-//            }
-//        }
-//        List<Product> products;
-////        if ("Áo Nam".equals(category)) {
-////            List<Long> categoryIds = categoryService.findCategoryIdsByParentCategoryName("Áo Nam");
-////
-////            products = productService.findCategoryIdsByParentCategoryName(color, size, maxPrice,categoryIds);
-////        } else {
-////            // Lọc sản phẩm theo các tham số
-////            products = productService.filterProducts(color, size, maxPrice, category);
-////        }
-//        if ("Áo Nam".equals(category)) {
-//            List<Long> categoryIds = categoryService.findCategoryIdsByParentCategoryName("Áo Nam");
-//            products = productService.findCategoryIdsByParentCategoryName(color, size, maxPrice, categoryIds);
-//        } else {
-//            products = productService.filterProducts(color, size, maxPrice, category);
-//        }
-//        // Tiếp tục xử lý sản phẩm như trước
-//        Optional<ProductDiscount> categoryDiscount = discountService.getActiveDiscountForCategory(true, category);
-//        for (Product product : products) {
-//            BigDecimal effectivePrice;
-//            if (categoryDiscount.isPresent()) {
-//                effectivePrice = discountService.applyDiscount(product.getPrice(), categoryDiscount.get());
-//            } else {
-//                effectivePrice = discountService.getActiveDiscountForProduct(product)
-//                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-//                        .orElse(product.getPrice());
-//            }
-//            product.setEffectivePrice(effectivePrice);
-//        }
-//
-//        model.addAttribute("products", products);
-//
-//        // Nhóm danh sách ảnh theo productId
-//        Map<Long, List<String>> productImages = new HashMap<>();
-//        for (Product product : products) {
-//            List<Image> imageList = imageService.findImagesByProductVariantId(product.getId());
-//            List<String> imageUrls = imageList.stream()
-//                    .map(Image::getImageUri)
-//                    .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))  // Chỉ lấy ảnh Cloudinary
-//                    .collect(Collectors.toList());
-//            productImages.put(product.getId(), imageUrls);
-//        }
-//
-//        model.addAttribute("productImages", productImages);
-//
-//        // Lấy danh sách ảnh chung cho từng sản phẩm
-//        Map<Long, Map<Long, List<String>>> productVariantImages = new HashMap<>();
-//        for (Product product : products) {
-//            List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-//            Map<Long, List<String>> variantImageMap = new HashMap<>();
-//            for (ProductVariant variant : variants) {
-//                List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-//                List<String> imageUrls = images.stream()
-//                        .map(Image::getImageUri)
-//                        .collect(Collectors.toList());
-//                variantImageMap.put(variant.getId(), imageUrls);
-//            }
-//            productVariantImages.put(product.getId(), variantImageMap);
-//        }
-//
-//        model.addAttribute("productVariantImages", productVariantImages);
-//        model.addAttribute("currentCategory", category); // Lưu danh mục hiện tại để xử lý giao diện
-//
-//        return "shop"; // Trả về trang shop.html chung
-//    }
 @GetMapping("/user/shop/filter")
 public String listProducts(
         @RequestParam(value = "category", required = false, defaultValue = "Áo Nam") String category,

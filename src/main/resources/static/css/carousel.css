@@ -4,3 +4,29 @@
     text-overflow: ellipsis;
     max-width: 100%;
 }
+/* Card sản phẩm */
+.carousel-item-wrapper {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    background-color: white;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Card khi mờ hoặc hover */
+.carousel-item-wrapper.faded {
+    opacity: 0.4;
+    filter: brightness(0.8);
+}
+
+.carousel-item-wrapper.hovered {
+    z-index: 10;
+    opacity: 1;
+    filter: brightness(1.05);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    transform: scale(1.03);
+}

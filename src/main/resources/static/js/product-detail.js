@@ -245,3 +245,38 @@ function calculateAndDisplaySize() {
 
     document.getElementById('sizeRecommendation').innerText = sizeRecommendation;
 }
+$(document).ready(function(){
+    $('.thumbnail-carousel').slick({
+        centerMode: true,
+        centerPadding: '40px',
+        slidesToShow: 2,
+        arrows: true,
+        focusOnSelect: true
+    });
+});
+document.addEventListener("DOMContentLoaded", function () {
+    const productId = document.getElementById("productId").value;
+    const cookieName = "viewedProducts";
+    const maxAge = 60 * 60 * 24; // 1 ngày
+
+    function getCookie(name) {
+        const cookieArr = document.cookie.split(";");
+        for (let cookie of cookieArr) {
+            let [key, val] = cookie.trim().split("=");
+            if (key === name) return decodeURIComponent(val);
+        }
+        return null;
+    }
+
+    function setCookie(name, value, maxAgeSeconds) {
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}`;
+    }
+
+    let viewed = getCookie(cookieName);
+    let viewedList = viewed ? JSON.parse(viewed) : [];
+
+    if (!viewedList.includes(productId)) {
+        viewedList.push(productId);
+        setCookie(cookieName, JSON.stringify(viewedList), maxAge);
+    }
+});
