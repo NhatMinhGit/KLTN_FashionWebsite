@@ -1,12 +1,11 @@
 package org.example.fashion_web.frontend.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
@@ -70,83 +69,94 @@ public class GeminiController {
 
     @GetMapping("/chat")
     public ResponseEntity<String> chat(@RequestParam String message, Principal principal,@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
-        String response;
-        String userName = principal.getName();
-        User user = userService.findByEmail(userName);
+        try {
+            String response;
+            String userName = principal.getName();
+            User user = userService.findByEmail(userName);
 
-        if (user == null) {
-            return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
+            if (user == null) {
+                return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
+            }
+
+            Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
+            if (chatbot == null) {
+                return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
+            }
+
+            // Lưu message người dùng gửi
+            geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
+
+            // Trích xuất intent và entities
+            Map<String, String> extractedData = extractIntentAndEntities(message);
+            String intent = extractedData.get("intent");
+            String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
+            boolean isAdmin = user.getRole().equalsIgnoreCase("ADMIN");
+
+            // Kiểm tra và xử lý theo intent
+            switch (intent) {
+                case "stock_query":
+                    response = geminiService.checkStock(message,isAdmin);
+                    break;
+                case "price_query":
+                    response = geminiService.checkPriceAndCategory(message,isAdmin);
+                    break;
+                case "refund_policy":
+                    response = geminiService.refundPolicyForUser();
+                    break;
+                case "faqs":
+                    response = geminiService.faqShowForUser();
+                    break;
+                case "bestsellers":
+                    response = geminiService.checkTopProductsRevenueForUser(message,isAdmin);
+                    break;
+                case "shipping_issue":
+                    response = geminiService.shippingIssueResponseFoUser();
+                    break;
+                case "payment_method_change":
+                    response = geminiService.paymentMethodChangeInstructions();
+                    break;
+                case "payment_declined_reason":
+                    response = geminiService.paymentDeclinedReasonResponse();
+                    break;
+                case "delivery_time":
+                    response = geminiService.deliveryTimeResponse();
+                    break;
+                case "order_tracking":
+                    response = geminiService.orderTrackingResponse(message,principal);
+                    break;
+                case "return_policy":
+                    response = geminiService.returnPolicyResponse();
+                    break;
+                case "product_issue":
+                    response = geminiService.productIssueResponse();
+                    break;
+                case "refund_time":
+                    response = geminiService.refundTimeResponse();
+                    break;
+                case "change_product_model":
+                    response = geminiService.changeProductModelResponse();
+                    break;
+                case "recommend_product":
+                    response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie);
+                    break;
+                case "technical_support":
+                    response = geminiService.technicalSupportForStaffResponse();
+                    break;
+                default:
+                    response = geminiService.chatWithAI(message,isAdmin);
+                    break;
+            }
+
+            geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // Ghi log lỗi (nếu dùng logger)
+            e.printStackTrace();
+            // Trả về lỗi cho client
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Chat bot đang trong quá trình nên có một số lỗi và các tính năng chưa được khả dụng. Mong quý khách thông cảm !!!");
         }
-
-        Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
-        if (chatbot == null) {
-            return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
-        }
-
-        // Lưu message người dùng gửi
-        geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
-
-        // Trích xuất intent và entities
-        Map<String, String> extractedData = extractIntentAndEntities(message);
-        String intent = extractedData.get("intent");
-        String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
-        boolean isAdmin = user.getRole().equalsIgnoreCase("ADMIN");
-
-        // Kiểm tra và xử lý theo intent
-        switch (intent) {
-            case "stock_query":
-                response = geminiService.checkStock(message,isAdmin);
-                break;
-            case "price_query":
-                response = geminiService.checkPriceAndCategory(message,isAdmin);
-                break;
-            case "refund_policy":
-                response = geminiService.refundPolicyForUser();
-                break;
-            case "faqs":
-                response = geminiService.faqShowForUser();
-                break;
-            case "bestsellers":
-                response = geminiService.checkTopProductsRevenueForUser(message,isAdmin);
-                break;
-            case "shipping_issue":
-                response = geminiService.shippingIssueResponseFoUser();
-                break;
-            case "payment_method_change":
-                response = geminiService.paymentMethodChangeInstructions();
-                break;
-            case "payment_declined_reason":
-                response = geminiService.paymentDeclinedReasonResponse();
-                break;
-            case "delivery_time":
-                response = geminiService.deliveryTimeResponse();
-                break;
-            case "order_tracking":
-                response = geminiService.orderTrackingResponse(message,principal);
-                break;
-            case "return_policy":
-                response = geminiService.returnPolicyResponse();
-                break;
-            case "product_issue":
-                response = geminiService.productIssueResponse();
-                break;
-            case "refund_time":
-                response = geminiService.refundTimeResponse();
-                break;
-            case "change_product_model":
-                response = geminiService.changeProductModelResponse();
-                break;
-            case "recommend_product":
-                response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie);
-                break;
-            default:
-                response = geminiService.chatWithAI(message,isAdmin);
-                break;
-        }
-
-        geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
-
-        return ResponseEntity.ok(response);
     }
 
     // Hàm trích xuất intent và entities từ câu hỏi
@@ -185,6 +195,8 @@ public class GeminiController {
             result.put("intent", "change_product_model");
         } else if (isRecommendProductModelQuestion(lowerCaseMessage)) {
             result.put("intent", "recommend_product");
+        } else if (isTechnicalSupport(lowerCaseMessage)) {
+            result.put("intent", "technical_support");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
@@ -247,7 +259,12 @@ public class GeminiController {
     private boolean isStockQuery(String message) {
         return containsKeywords(message, "còn không", "còn hàng không", "có hàng không", "số lượng");
     }
-
+    private boolean isTechnicalSupport(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        return containsKeywords(message,"technical support"
+                ,"hỗ trợ kỹ thuật"
+                ,"lỗi hệ thống");
+    }
     private boolean isPrice(String message) {
         return containsKeywords(message, "giá", "bao nhiêu tiền", "khoảng", "tầm") ||
                 message.toLowerCase().matches(".*\\d+.*k.*") ||
@@ -365,14 +382,6 @@ public class GeminiController {
     }
 
 
-    private String convertEntitiesToJson(Map<String, String> entities) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(entities); // Chuyển đổi Map thành chuỗi JSON
-        } catch (JsonProcessingException e) {
-            return "{\"error\": \"Lỗi chuyển đổi entities thành JSON: " + e.getMessage() + "\"}";
-        }
-    }
     @GetMapping("/chatbot")
     public ModelAndView chatbotPage(Principal principal, Model model,HttpSession session) {
         Long userId = null;

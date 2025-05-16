@@ -189,10 +189,13 @@ public class GeminiService {
             String productOnClick = "onclick='window.location.href=\"/user/product-detail/" + productId + "\"'";
 
             // Thêm CSS animation inline
-            String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:150px; cursor:pointer; "
-                    + "transition: transform 0.3s, box-shadow 0.3s; "
-                    + "display:inline-block;";
+//            String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:150px; cursor:pointer; "
+//                    + "transition: transform 0.3s, box-shadow 0.3s; "
+//                    + "display:inline-block;";
 
+            String cardStyle = "border:1px solid #ccc; border-radius:8px; padding:10px; width:100%; cursor:pointer; "
+                    + "transition: transform 0.3s, box-shadow 0.3s; "
+                    + "flex: 0 0 calc(25% - 10px); box-sizing: border-box;";
             String cardHoverStyle = "this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';";
             String cardUnhoverStyle = "this.style.transform='scale(1)'; this.style.boxShadow='none';";
 
@@ -1298,7 +1301,13 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         String username = principal.getName();
         User user = userRepository.findByEmail(username);
 
-        List<Order> orders = orderRepository.findOrdersInCurrentMonthByUser(user.getId());
+        // Kiểm tra nếu người dùng là admin
+        List<Order> orders;
+        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            orders = orderRepository.findAllOrdersInCurrentMonth();
+        } else {
+            orders = orderRepository.findOrdersInCurrentMonthByUser(user.getId());
+        }
 
         Map<Order.OrderStatusType, List<Order>> groupedOrders = orders.stream()
                 .filter(order -> order.getStatus() == Order.OrderStatusType.PENDING
@@ -1308,7 +1317,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                 .collect(Collectors.groupingBy(Order::getStatus));
 
         StringBuilder responseBuilder = new StringBuilder();
-        responseBuilder.append("📦 Tình trạng đơn hàng của bạn trong tháng này:<br><br>");
+        responseBuilder.append("📦 Tình trạng đơn hàng trong tháng này:<br><br>");
 
         for (Order.OrderStatusType status : Arrays.asList(
                 Order.OrderStatusType.PENDING,
@@ -1322,17 +1331,16 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                     .append(": ").append(ordersByStatus.size()).append(" đơn<br>");
         }
 
-        // Tạo Map và thêm nội dung vào
         Map<String, String> result = new HashMap<>();
         result.put("aiResponse", responseBuilder.toString());
 
-        // Chuyển Map thành JSON
         try {
             return new ObjectMapper().writeValueAsString(result);
         } catch (JsonProcessingException e) {
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
 
     private String statusToText(Order.OrderStatusType status) {
         return switch (status) {
@@ -1365,6 +1373,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
             return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
         }
     }
+
 
     public String productIssueResponse() {
         String content = """
@@ -1432,6 +1441,83 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         }
     }
 
+    public String technicalSupportForStaffResponse() {
+        String content = """
+                <div style="max-width: 700px; margin: auto; font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2 style="color: #2E86C1;">HỖ TRỢ KỸ THUẬT (DÀNH CHO NHÂN VIÊN)</h2>
+                    <p>Nếu bạn gặp bất kỳ vấn đề nào liên quan đến hệ thống công nghệ thông tin, phần mềm nội bộ hoặc thiết bị tại nơi làm việc, vui lòng liên hệ bộ phận kỹ thuật để được hỗ trợ nhanh chóng và hiệu quả.</p>
+                    
+                    <h3>Quy trình hỗ trợ:</h3>
+                    <ol>
+                        <li>Gửi yêu cầu qua hệ thống Helpdesk hoặc gọi số nội bộ 103.</li>
+                        <li>Phòng kỹ thuật tiếp nhận và phản hồi trong vòng <strong>30 phút</strong> đến <strong>1 giờ</strong> làm việc.</li>
+                        <li>Kỹ thuật viên sẽ hỗ trợ trực tiếp hoặc lên lịch xử lý sự cố.</li>
+                        <li>Nhân viên xác nhận sự cố đã được giải quyết.</li>
+                    </ol>
+                    
+                    <h3>Thời gian làm việc của bộ phận kỹ thuật:</h3>
+                    <p><strong>Thứ 2 - Thứ 6:</strong> 8:00 - 17:30</p>
+                    <p><strong>Thứ 7, Chủ nhật & ngày lễ:</strong> Hỗ trợ khẩn cấp qua số nội bộ 103</p>
+                    
+                    <h3>Thông tin liên hệ nội bộ:</h3>
+                    <p>📞 <strong>Số nội bộ:</strong> 103 (Phòng kỹ thuật)</p>
+                    <p>📧 <strong>Email:</strong> it.support@mntfashion.com</p>
+                    <p>🛠️ <strong>Hệ thống yêu cầu hỗ trợ:</strong> <a href="https://intranet.mntfashion.store/helpdesk" target="_blank" rel="noopener noreferrer">intranet.mntfashion.store/helpdesk</a></p>
+                    
+                    <h3>Lưu ý:</h3>
+                    <ul>
+                        <li>Vui lòng cung cấp mô tả chi tiết về sự cố khi gửi yêu cầu để bộ phận kỹ thuật có thể xử lý nhanh hơn.</li>
+                        <li>Đảm bảo thiết bị và phần mềm được cập nhật bản mới nhất theo hướng dẫn của phòng IT.</li>
+                        <li>Không tự ý can thiệp vào hệ thống hoặc cấu hình máy tính khi chưa được sự đồng ý của phòng kỹ thuật.</li>
+                    </ul>
+                </div>
+                """;
+
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+
+    public String technicalSupportForCustomerResponse() {
+        String content = """
+        <div style="max-width: 700px; margin: auto; font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2 style="color: #28a745;">HỖ TRỢ KỸ THUẬT (DÀNH CHO KHÁCH HÀNG)</h2>
+            <p>Nếu bạn gặp sự cố hoặc cần trợ giúp liên quan đến sản phẩm, dịch vụ hoặc website của chúng tôi, đội ngũ kỹ thuật luôn sẵn sàng hỗ trợ bạn.</p>
+            <p>Chúng tôi cam kết phản hồi và giải quyết các vấn đề nhanh nhất có thể để đảm bảo trải nghiệm mua sắm và sử dụng dịch vụ của bạn luôn thuận tiện và hài lòng.</p>
+            
+            <h3>Phương thức liên hệ:</h3>
+            <ul>
+                <li>Gọi Hotline Kỹ Thuật: <strong>0765 599 103</strong> (24/7 hỗ trợ)</li>
+                <li>Gửi Email: <a href="mailto:techsupport@mntfashion.com">techsupport@mntfashion.com</a></li>
+                <li>Chat trực tiếp với nhân viên hỗ trợ: <a href="https://mntfashion.store/chat" target="_blank" rel="noopener noreferrer">https://mntfashion.store/chat</a></li>
+            </ul>
+            
+            <h3>Hướng dẫn khi liên hệ:</h3>
+            <ul>
+                <li>Vui lòng cung cấp mô tả chi tiết về vấn đề bạn gặp phải (ví dụ: lỗi, thông báo, bước thực hiện).</li>
+                <liChuẩn bị các thông tin về đơn hàng hoặc tài khoản để quá trình xử lý được nhanh chóng.</li>
+                <li>Đội ngũ kỹ thuật sẽ phản hồi trong vòng <strong>24 giờ</strong> làm việc.</li>
+            </ul>
+            
+            <p>Chúng tôi rất mong được đồng hành và hỗ trợ bạn trong suốt quá trình sử dụng sản phẩm và dịch vụ của MNT Fashion.</p>
+        </div>
+        """;
+
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", content);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+
     public String recommendProductBasedOnViewedResponse(@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
         if (viewedProductsCookie != null) {
             System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
@@ -1473,10 +1559,10 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                         List<ProductRevenueDto> topProducts = orderItemRepository.findTopProductsByRevenueAndCategory(
                                 startDate, endDate, category.getId());
 
-                        // Chỉ lấy top 3 sản phẩm
-                        List<ProductRevenueDto> top3 = topProducts.stream().limit(3).toList();
+                        // Chỉ lấy top 10 sản phẩm
+                        List<ProductRevenueDto> top10 = topProducts.stream().limit(10).toList();
 
-                        topProductsByCategory.put(category, top3);
+                        topProductsByCategory.put(category, top10);
                     }
 
                     // Gom tất cả top product DTO thành 1 list duy nhất để lấy product info
