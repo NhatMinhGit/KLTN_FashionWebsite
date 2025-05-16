@@ -90,6 +90,11 @@
                 <li><a class="dropdown-item" th:href="@{/user/user-order}">Hóa đơn của tôi</a></li>
                 <li><a class="dropdown-item" th:href="@{/user/voucher}">Voucher của tôi</a></li>
                 <li><hr class="dropdown-divider"></li>
+                <li sec:authorize="hasAuthority('ADMIN')">
+                    <a class="dropdown-item" th:href="@{/admin}">
+                        Quay lại trang Admin
+                    </a>
+                </li>
                 <li><a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a></li>
               </span>
               <!-- Nếu người dùng chưa đăng nhập -->

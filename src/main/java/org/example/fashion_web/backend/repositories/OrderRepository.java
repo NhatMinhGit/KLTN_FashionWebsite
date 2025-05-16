@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -72,4 +73,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE MONTH(o.orderDate) = MONTH(CURRENT_DATE) AND YEAR(o.orderDate) = YEAR(CURRENT_DATE)")
     List<Order> findAllOrdersInCurrentMonth();
+
+    @Query("SELECT o FROM Order o WHERE " +
+            "(:keyword IS NULL OR CAST(o.id AS string) LIKE %:keyword% OR LOWER(o.user.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:status IS NULL OR o.status = :status)")
+    List<Order> searchOrders(@Param("keyword") String keyword,
+                             @Param("status") Order.OrderStatusType status);
+
+
+    List<Order> findByOrderDateBetween(LocalDate startDate, LocalDate endDate);
+
 }

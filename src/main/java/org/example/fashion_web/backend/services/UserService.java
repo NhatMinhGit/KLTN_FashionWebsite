@@ -22,4 +22,9 @@ public interface UserService {
 
     List<User> getAllUsersExceptCurrent();
 
+    List<User> getUsersByRole(String role);
+
+    int getUserCount(String role);
+
+    List<User> searchUsersByKeyword(String keyword);
 }

@@ -20,11 +20,12 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1>Quản lý tài khoản khách hàng</h1>
     </div>
-    <!-- Thanh tìm kiếm -->
-    <div class="mb-3 d-flex">
-      <input type="text" id="searchInput" class="form-control me-2" placeholder="Tìm kiếm tài khoản khách hàng...">
-      <button class="btn btn-primary" onclick="searchUser()">Tìm kiếm</button>
-    </div>
+
+    <!-- Thanh tìm kiếm hợp nhất -->
+    <form method="get" th:action="@{/admin/account}" class="mb-3 d-flex">
+        <input type="text" name="keyword" placeholder="Tìm theo ID, tên, email hoặc vai trò" class="form-control me-2" th:value="${filterParam.keyword}">
+        <button class="btn btn-primary" type="submit">Tìm kiếm</button>
+    </form>
 
     <!-- Các nút điều hướng -->
     <div class="mb-3 d-flex">
@@ -53,29 +54,36 @@
         <td>
           <a class="btn btn-warning btn-sm" th:href="@{/admin/account/edit-account(id=${user.id})}">Sửa</a>
 
-          <button class="btn btn-success btn-sm" th:disabled="${user.status}"
-                  th:onclick="'changeStatus(' + ${user.id} + ', true)'">Khôi phục</button>
+          <button class="btn btn-success btn-sm" th:disabled="${user.status}" th:onclick="'changeStatus(' + ${user.id} + ', true)'">Khôi phục</button>
 
-          <button class="btn btn-danger btn-sm" th:disabled="${!user.status}"
-                  th:onclick="'changeStatus(' + ${user.id} + ', false)'">Chặn</button>
+          <button class="btn btn-danger btn-sm" th:disabled="${!user.status}" th:onclick="'changeStatus(' + ${user.id} + ', false)'">Chặn</button>
         </td>
+      </tr>
+      <tr th:if="${userPage.totalElements == 0}">
+        <td colspan="5" class="text-center text-muted">Không có tài khoản nào phù hợp.</td>
       </tr>
       </tbody>
     </table>
+
+    <!-- Pagination -->
     <nav aria-label="Page navigation">
       <div class="pagination-container">
         <ul class="pagination justify-content-center">
-          <!-- Nút "Trước" -->
           <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${currentPage - 1}, size=${pageSize})}">&laquo;</a>
+            <a class="page-link"
+               th:href="@{/admin/account(page=${currentPage - 1}, size=${pageSize}, keyword=${filterParam.keyword})}">&laquo;</a>
           </li>
+
           <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
               th:classappend="${currentPage == i} ? 'active'">
-            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
+            <a class="page-link"
+               th:href="@{/admin/account(page=${i}, size=${pageSize}, keyword=${filterParam.keyword})}"
+               th:text="${i + 1}"></a>
           </li>
-          <!-- Nút "Sau" -->
+
           <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
-            <a class="page-link" th:href="@{/admin/account/accounts-paging(page=${currentPage + 1}, size=${pageSize})}">&raquo;</a>
+            <a class="page-link"
+               th:href="@{/admin/account(page=${currentPage + 1}, size=${pageSize}, keyword=${filterParam.keyword})}">&raquo;</a>
           </li>
         </ul>
       </div>
@@ -86,29 +94,28 @@
 <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 <script>
   function changeStatus(userId, newStatus) {
-      fetch(`/admin/account/change-status/${userId}?status=${newStatus}`, {
-          method: 'PUT',
-          headers: {
-              'Content-Type': 'application/json'
-          }
-      })
-      .then(response => {
-          if (response.ok) {
-              return response.text();
-          }
-          throw new Error("Cập nhật thất bại!");
-      })
-      .then(data => {
-          alert(data);
-          location.reload(); // Tải lại trang để cập nhật giao diện
-      })
-      .catch(error => {
-          console.error("Lỗi:", error);
-          alert("Có lỗi xảy ra, vui lòng thử lại!");
-      });
+    fetch(`/admin/account/change-status/${userId}?status=${newStatus}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+            .then(response => {
+              if (response.ok) {
+                return response.text();
+              }
+              throw new Error("Cập nhật thất bại!");
+            })
+            .then(data => {
+              alert(data);
+              location.reload();
+            })
+            .catch(error => {
+              console.error("Lỗi:", error);
+              alert("Có lỗi xảy ra, vui lòng thử lại!");
+            });
   }
 </script>
 
 </body>
-
 </html>

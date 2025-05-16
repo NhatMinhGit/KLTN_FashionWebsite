@@ -12,11 +12,43 @@
 
     <div class="main-panel p-4">
         <div th:replace="~{fragments/header-admin :: header-admin}"></div>
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fw-bold mb-3">Quản lý hóa đơn</h1>
         </div>
 
-        <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4">
+        <!-- Bộ lọc tổng hợp -->
+        <form class="row g-3 align-items-end mb-4" method="get" th:action="@{/admin/order}">
+            <div class="col-md-3">
+                <label class="form-label">Tìm theo mã đơn hoặc khách hàng</label>
+                <input type="text" class="form-control" name="keyword" th:value="${param.keyword}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Trạng thái</label>
+                <select class="form-select" name="status">
+                    <option value="">-- Tất cả --</option>
+                    <option th:each="statusOpt : ${T(org.example.fashion_web.backend.models.Order.OrderStatusType).values()}"
+                            th:value="${statusOpt}" th:text="${statusOpt}"
+                            th:selected="${param.status == statusOpt.name()}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" class="form-control" name="startDate" th:value="${param.startDate}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" class="form-control" name="endDate" th:value="${param.endDate}">
+            </div>
+            <div class="col-md-2">
+                <input type="hidden" name="page" th:value="${currentPage}">
+                <input type="hidden" name="size" th:value="${pageSize}">
+                <button type="submit" class="btn btn-primary w-100">Lọc đơn hàng</button>
+            </div>
+        </form>
+
+        <!-- Bảng danh sách hóa đơn -->
+        <table class="table table-bordered mt-4">
             <thead>
             <tr>
                 <th>ID</th>
@@ -35,37 +67,40 @@
                 <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' ₫'">100.000 ₫</td>
                 <td th:text="${order.status}">PENDING</td>
                 <td>
-                    <a th:href="@{/admin/order/detail/{id}(id=${order.id})}" class="btn btn-primary btn-sm">
-                        Xem chi tiết
-                    </a>
+                    <a th:href="@{/admin/order/detail/{id}(id=${order.id})}" class="btn btn-primary btn-sm">Xem</a>
                 </td>
+            </tr>
+            <tr th:if="${orderPage.totalElements == 0}">
+                <td colspan="6" class="text-center text-muted">Không có đơn hàng nào.</td>
             </tr>
             </tbody>
         </table>
 
-        <!-- Pagination -->
+        <!-- Phân trang -->
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
-                <!-- Previous -->
                 <li class="page-item" th:classappend="${orderPage.first} ? 'disabled'">
                     <a class="page-link"
-                       th:href="${orderPage.first} ? '#' : @{/admin/order(page=${orderPage.number - 1}, size=${orderPage.size})}">
+                       th:href="@{/admin/order(page=${orderPage.number - 1}, size=${orderPage.size},
+                                  keyword=${param.keyword}, status=${param.status},
+                                  startDate=${param.startDate}, endDate=${param.endDate})}">
                         &laquo;
                     </a>
                 </li>
-
-                <!-- Page numbers -->
-                <li class="page-item" th:each="i : ${#numbers.sequence(0, orderPage.totalPages - 1)}"
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, orderPage.totalPages - 1)}"
                     th:classappend="${i == orderPage.number} ? 'active'">
                     <a class="page-link"
-                       th:href="@{/admin/order(page=${i}, size=${orderPage.size})}"
+                       th:href="@{/admin/order(page=${i}, size=${orderPage.size},
+                                  keyword=${param.keyword}, status=${param.status},
+                                  startDate=${param.startDate}, endDate=${param.endDate})}"
                        th:text="${i + 1}">1</a>
                 </li>
-
-                <!-- Next -->
                 <li class="page-item" th:classappend="${!orderPage.hasNext()} ? 'disabled'">
                     <a class="page-link"
-                       th:href="${!orderPage.hasNext()} ? '#' : @{/admin/order(page=${orderPage.number + 1}, size=${orderPage.size})}">
+                       th:href="@{/admin/order(page=${orderPage.number + 1}, size=${orderPage.size},
+                                  keyword=${param.keyword}, status=${param.status},
+                                  startDate=${param.startDate}, endDate=${param.endDate})}">
                         &raquo;
                     </a>
                 </li>
@@ -74,5 +109,4 @@
     </div>
 </div>
 </body>
-
-
+</html>

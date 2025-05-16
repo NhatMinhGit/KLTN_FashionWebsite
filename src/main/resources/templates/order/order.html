@@ -440,11 +440,12 @@
   ////
   function savePaymentInfo() {
     let addresss = document.getElementById("detailAddress").value || "Chưa có địa chỉ";
+    let totalPrice = document.getElementById("totalPrice").getAttribute("data-value");
     let paymentData = {
       userId: document.getElementById("userId").value,
       paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
       shippingAddress: addresss,
-      totalPrice: [[${totalOrderPrice}]],
+      totalPrice: totalPrice,
       voucherCode: document.getElementById("selectedVoucher").value.trim()
     };
     console.log("Dữ liệu thanh toán sẽ được gửi:", paymentData); // In dữ liệu ra console

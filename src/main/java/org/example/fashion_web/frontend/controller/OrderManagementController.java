@@ -13,10 +13,8 @@ import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.OrderService;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -32,9 +30,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -60,8 +61,36 @@ public class OrderManagementController {
     @Autowired
     private UserRepository userRepository;
 
+//    @GetMapping("/admin/order")
+//    public String listOrders(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            Model model,
+//            Principal principal) {
+//
+//        if (principal != null) {
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+//            model.addAttribute("user", userDetails);
+//        }
+//
+//        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+//        Page<Order> orderPage = orderRepository.findAll(pageable);
+//
+//        model.addAttribute("orderPage", orderPage);
+//        model.addAttribute("currentPage", page);
+//        model.addAttribute("pageSize", size);
+//
+//        return "order/order-management-paging";
+//    }
+
     @GetMapping("/admin/order")
-    public String listOrders(
+    public String listOrdersWithSearchAndPaging(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) Order.OrderStatusType status,
+            @RequestParam(value = "startDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model,
@@ -73,11 +102,39 @@ public class OrderManagementController {
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        Page<Order> orderPage = orderRepository.findAll(pageable);
+        Page<Order> orderPage;
+
+        // Nếu lọc theo khoảng thời gian
+        if (startDate != null && endDate != null) {
+            List<Order> filtered = orderService.findOrdersByDateRange(startDate, endDate)
+                    .stream()
+                    .sorted(Comparator.comparing(Order::getId).reversed())
+                    .collect(Collectors.toList());
+
+            int start = Math.min((int) pageable.getOffset(), filtered.size());
+            int end = Math.min((start + pageable.getPageSize()), filtered.size());
+            orderPage = new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
+        } else {
+            // Tìm kiếm theo keyword và status, phân trang
+            List<Order> filtered = orderService.searchOrders(keyword, status)
+                    .stream()
+                    .sorted(Comparator.comparing(Order::getId).reversed())
+                    .collect(Collectors.toList());
+
+            int start = Math.min((int) pageable.getOffset(), filtered.size());
+            int end = Math.min((start + pageable.getPageSize()), filtered.size());
+            orderPage = new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
+        }
 
         model.addAttribute("orderPage", orderPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
+        model.addAttribute("param", Map.of(
+                "keyword", keyword != null ? keyword : "",
+                "status", status != null ? status.name() : "",
+                "startDate", startDate != null ? startDate.toString() : "",
+                "endDate", endDate != null ? endDate.toString() : ""
+        ));
 
         return "order/order-management-paging";
     }
@@ -99,10 +156,11 @@ public class OrderManagementController {
     @RequestMapping("/admin/order/detail/{id}")
     public String orderDetail(@PathVariable("id") Long id, Model model) {
         Order order = orderRepository.findById(id).orElse(null);
+        List<OrderItem> orderItemList = orderItemRepository.findByOrder_Id(order.getId());
         if (order == null) {
             return "redirect:/admin/order?error=notfound";
         }
-
+        model.addAttribute("orderItemList", orderItemList);
         model.addAttribute("order", order);
         return "order/order-detail";
     }
@@ -153,4 +211,7 @@ public class OrderManagementController {
             builder.run();
         }
     }
+
+
+
 }

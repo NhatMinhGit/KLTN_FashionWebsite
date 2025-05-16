@@ -5,6 +5,7 @@ import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.models.User;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -30,4 +31,12 @@ public interface OrderService {
     List<Order> getAllOrders();
 
     boolean hasPayingOrder(User user);
+
+    int getTotalOrdersNotCancelled();
+
+    BigDecimal getTotalRevenueCompletedOrders();
+
+    List<Order> searchOrders(String keyword, Order.OrderStatusType status);
+
+    List<Order> findOrdersByDateRange(LocalDate startDate, LocalDate endDate);
 }

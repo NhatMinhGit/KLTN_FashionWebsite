@@ -83,5 +83,29 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<User> getUsersByRole(String role) {
+        return userRepository.findUsersByRole(role);
+    }
+
+    @Override
+    public int getUserCount(String role) {
+        return userRepository.findUsersByRole(role).size();
+    }
+
+    @Override
+    public List<User> searchUsersByKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) return userRepository.findAll();
+
+        String lowerKeyword = keyword.toLowerCase();
+        return userRepository.findAll().stream()
+                .filter(u -> String.valueOf(u.getId()).equals(keyword) ||
+                        u.getName().toLowerCase().contains(lowerKeyword) ||
+                        u.getEmail().toLowerCase().contains(lowerKeyword) ||
+                        u.getRole().toLowerCase().contains(lowerKeyword))
+                .collect(Collectors.toList());
+    }
+
+
 }
 
