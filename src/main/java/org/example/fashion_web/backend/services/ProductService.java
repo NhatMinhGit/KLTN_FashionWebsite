@@ -52,4 +52,5 @@ public interface ProductService {
 
     List<Product> filterProducts(String color, String size, BigDecimal maxPrice, String category);
 
+    List<Product> getProductsById(List<Long> viewedProductIds);
 }

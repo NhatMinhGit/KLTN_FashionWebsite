@@ -70,4 +70,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.user = :user AND o.status IN :statuses")
     List<Order> findByUserAndStatusIn(@Param("user") User user, @Param("statuses") List<Order.OrderStatusType> statuses);
 
+    @Query("SELECT o FROM Order o WHERE MONTH(o.orderDate) = MONTH(CURRENT_DATE) AND YEAR(o.orderDate) = YEAR(CURRENT_DATE)")
+    List<Order> findAllOrdersInCurrentMonth();
 }
