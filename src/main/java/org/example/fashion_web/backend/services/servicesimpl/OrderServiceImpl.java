@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.example.fashion_web.backend.dto.SimpleOrderDto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -130,6 +131,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public int getTotalOrdersNotCancelled() {
+        List<Order.OrderStatusType> list = new ArrayList<>();
+        list.add(Order.OrderStatusType.PAYING);
+        list.add(Order.OrderStatusType.PAID);
+        list.add(Order.OrderStatusType.COMPLETED);
+        list.add(Order.OrderStatusType.SHIPPED);
+        list.add(Order.OrderStatusType.PENDING);
+        return orderRepository.findByStatusIn(list).size();
+    }
+
+    @Override
     public void notifyNewOrders(List<Order> orders) {
         List<SimpleOrderDto> dtoList = orders.stream()
                 .map(order -> new SimpleOrderDto(order.getId(),
@@ -140,6 +152,25 @@ public class OrderServiceImpl implements OrderService {
         messagingTemplate.convertAndSend("/topic/orders", dtoList);
     }
 
+    @Override
+    public BigDecimal getTotalRevenueCompletedOrders() {
+        List<Order> completedOrders = orderRepository.findByStatus(Order.OrderStatusType.COMPLETED);
+        return completedOrders.stream()
+                .map(Order::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
+    @Override
+    public List<Order> searchOrders(String keyword, Order.OrderStatusType status) {
+        if ((keyword == null || keyword.trim().isEmpty()) && status == null) {
+            return orderRepository.findAll();
+        }
+        return orderRepository.searchOrders(keyword, status);
+    }
+
+    @Override
+    public List<Order> findOrdersByDateRange(LocalDate startDate, LocalDate endDate) {
+        return orderRepository.findByOrderDateBetween(startDate, endDate);
+    }
 
 }

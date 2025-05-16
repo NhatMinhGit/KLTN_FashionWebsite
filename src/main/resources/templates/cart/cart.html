@@ -51,19 +51,10 @@
         <div class="col-lg-8 bg-white p-4 rounded shadow-sm">
             <h5 class="fw-bold mb-3 text-center">Giao Hàng</h5>
             <hr class="border-dark">
-            <!-- Chọn tất cả -->
-            <div class="d-flex align-items-center mb-3">
-                <input type="checkbox" class="form-check-input me-2" checked>
-                <label class="form-check-label">Chọn tất cả</label>
-            </div>
 
             <!-- Danh sách sản phẩm -->
             <th:block th:each="item : ${cartItems}">
                 <div class="d-flex align-items-start border-top py-3">
-                    <!-- Checkbox -->
-                    <div class="pt-2">
-                        <input type="checkbox" class="form-check-input me-3" checked>
-                    </div>
                     <!-- Hình ảnh -->
                     <div class="me-3">
                         <img th:if="${#lists.size(productImages[item.product.id]) > 0}"

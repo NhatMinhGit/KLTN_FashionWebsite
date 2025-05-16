@@ -7,6 +7,7 @@ import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 
@@ -54,27 +56,33 @@ public class AccountManagementController {
 //        return "account/index";
 //    }
 
-    @GetMapping("admin/account")
+    @GetMapping("/admin/account")
     public String listUsersPaging(
+            @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size,
             Model model, Principal principal) {
+        if (principal != null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+            model.addAttribute("user", userDetails);
+        }
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> userPage = userService.getAllUsers(pageable);
+        List<User> filtered = userService.searchUsersByKeyword(keyword);
+        int start = Math.min((int) pageable.getOffset(), filtered.size());
+        int end = Math.min((start + pageable.getPageSize()), filtered.size());
+        Page<User> userPage = new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
 
         model.addAttribute("userPage", userPage);
         model.addAttribute("users", userPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
         model.addAttribute("totalPages", userPage.getTotalPages());
-
-        if (principal != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            model.addAttribute("user", userDetails);
-        }
+        model.addAttribute("filterParam", Map.of("keyword", keyword != null ? keyword : ""));
 
         return "account/accounts-paging";
     }
+
+
 
     @GetMapping("admin/account/add-account")
     public String createUser (Model model) {

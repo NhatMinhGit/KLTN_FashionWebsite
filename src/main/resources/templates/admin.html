@@ -20,77 +20,58 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fw-bold mb-3">Dashboard</h1>
         </div>
-        <div class="row" bis_skin_checked="1">
-            <div class="col-sm-6 col-md-3" bis_skin_checked="1">
-                <div class="card card-stats card-round" bis_skin_checked="1">
-                    <div class="card-body" bis_skin_checked="1">
-                        <div class="row align-items-center" bis_skin_checked="1">
-                            <div class="col-icon" bis_skin_checked="1">
-                                <div class="icon-big text-center icon-primary bubble-shadow-small" bis_skin_checked="1">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0" bis_skin_checked="1">
-                                <div class="numbers" bis_skin_checked="1">
-                                    <p class="card-category">Visitors</p>
-                                    <h4 class="card-title">1,294</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3" bis_skin_checked="1">
-                <div class="card card-stats card-round" bis_skin_checked="1">
-                    <div class="card-body" bis_skin_checked="1">
-                        <div class="row align-items-center" bis_skin_checked="1">
-                            <div class="col-icon" bis_skin_checked="1">
-                                <div class="icon-big text-center icon-info bubble-shadow-small" bis_skin_checked="1">
+        <div class="row" >
+            <div class="col-sm-6 col-md-3" >
+                <div class="card card-stats card-round" >
+                    <div class="card-body" >
+                        <div class="row align-items-center" >
+                            <div class="col-icon" >
+                                <div class="icon-big text-center icon-info bubble-shadow-small" >
                                     <i class="fas fa-user-check"></i>
                                 </div>
                             </div>
-                            <div class="col col-stats ms-3 ms-sm-0" bis_skin_checked="1">
-                                <div class="numbers" bis_skin_checked="1">
-                                    <p class="card-category">Subscribers</p>
-                                    <h4 class="card-title">1303</h4>
+                            <div class="col col-stats ms-3 ms-sm-0" >
+                                <div class="numbers" >
+                                    <p class="card-category">Tổng khách hàng</p>
+                                    <h4 class="card-title" th:text="${totalUser != 0} ? ${totalUser} : 'Chưa có dữ liệu'">1303</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-md-3" bis_skin_checked="1">
-                <div class="card card-stats card-round" bis_skin_checked="1">
-                    <div class="card-body" bis_skin_checked="1">
-                        <div class="row align-items-center" bis_skin_checked="1">
-                            <div class="col-icon" bis_skin_checked="1">
-                                <div class="icon-big text-center icon-success bubble-shadow-small" bis_skin_checked="1">
+            <div class="col-sm-6 col-md-3" >
+                <div class="card card-stats card-round" >
+                    <div class="card-body" >
+                        <div class="row align-items-center" >
+                            <div class="col-icon" >
+                                <div class="icon-big text-center icon-success bubble-shadow-small" >
                                     <i class="fas fa-luggage-cart"></i>
                                 </div>
                             </div>
-                            <div class="col col-stats ms-3 ms-sm-0" bis_skin_checked="1">
-                                <div class="numbers" bis_skin_checked="1">
-                                    <p class="card-category">Sales</p>
-                                    <h4 class="card-title">$ 1,345</h4>
+                            <div class="col col-stats ms-3 ms-sm-0" >
+                                <div class="numbers" >
+                                    <p class="card-category">Tổng doanh thu</p>
+                                    <h4 class="card-title" th:text="${revenuetotal != 0} ? ${#numbers.formatDecimal(revenuetotal, 0, 'COMMA', 0, 'POINT')} + ' đ' : 'Chưa có dữ liệu'">$ 1,345</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-md-3" bis_skin_checked="1">
-                <div class="card card-stats card-round" bis_skin_checked="1">
-                    <div class="card-body" bis_skin_checked="1">
-                        <div class="row align-items-center" bis_skin_checked="1">
-                            <div class="col-icon" bis_skin_checked="1">
-                                <div class="icon-big text-center icon-secondary bubble-shadow-small" bis_skin_checked="1">
+            <div class="col-sm-6 col-md-3" >
+                <div class="card card-stats card-round" >
+                    <div class="card-body" >
+                        <div class="row align-items-center" >
+                            <div class="col-icon" >
+                                <div class="icon-big text-center icon-secondary bubble-shadow-small" >
                                     <i class="far fa-check-circle"></i>
                                 </div>
                             </div>
-                            <div class="col col-stats ms-3 ms-sm-0" bis_skin_checked="1">
-                                <div class="numbers" bis_skin_checked="1">
-                                    <p class="card-category">Order</p>
-                                    <h4 class="card-title">576</h4>
+                            <div class="col col-stats ms-3 ms-sm-0" >
+                                <div class="numbers" >
+                                    <p class="card-category">Tổng đơn hàng</p>
+                                    <h4 class="card-title" th:text="${totalOrder != 0} ? ${totalOrder} : 'Chưa có dữ liệu'">576</h4>
                                 </div>
                             </div>
                         </div>
