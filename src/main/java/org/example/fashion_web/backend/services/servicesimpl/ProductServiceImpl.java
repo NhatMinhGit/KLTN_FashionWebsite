@@ -243,6 +243,11 @@ public Page<ProductDto> searchProducts(String keyword, Pageable pageable) {
         return productRepository.filterProducts(color,size,maxPrice, category);
     }
 
+    @Override
+    public List<Product> getProductsById(List<Long> viewedProductIds) {
+        return productRepository.findByIdIn(viewedProductIds);
+    }
+
 
 }
 

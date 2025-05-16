@@ -8,6 +8,8 @@
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <link th:href="@{/css/product-detail.css}" rel="stylesheet">
     <script th:src="@{/js/guide-modal.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/card.css}">
+    <link rel="stylesheet" th:href="@{/css/carousel.css}">
     <!-- Slick CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
     <!-- Slick Theme -->
@@ -76,13 +78,6 @@
                 <p>Không có ảnh cho màu đã chọn.</p>
             </div>
 
-<!--            <div class="d-flex justify-content-between mt-2 carousel-item" id="thumbnailContainer">-->
-<!--                <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"-->
-<!--                     th:src="@{${imageUri}}"-->
-<!--                     class="thumbnail"-->
-<!--                     th:alt="${product.name}"-->
-<!--                     onclick="changeImage(this)">-->
-<!--            </div>-->
             <div class="thumbnail-carousel">
                 <img th:each="imageUri : ${imagesByColor.containsKey(selectedColor) ? imagesByColor.get(selectedColor) : T(java.util.Collections).emptyList()}"
                      th:src="@{${imageUri}}"
@@ -139,8 +134,8 @@
                     <i class="fa-solid fa-ruler-combined text-white"></i> <span class="text-white">Hướng dẫn chọn size</span>
                 </button>
 
-                <div th:replace="fragments/size-guild-modal-fragment :: sizeGuideModal"></div>
-                <div th:replace="fragments/measure-size-guild-fragment :: measureGuideModal"></div>
+                <div th:insert="~{fragments/size-guild-modal-fragment :: sizeGuideModal}"></div>
+                <div th:insert="~{fragments/measure-size-guild-fragment :: measureGuideModal}"></div>
 
             </div>
             <!-- Số lượng -->
@@ -167,27 +162,6 @@
 <div class="container mt-5">
     <h4 class="mb-4">Bình luận</h4>
 
-<!--    <form th:action="@{/user/product-detail/{id}/comments(id=${product.id})}" method="post"-->
-<!--          class="mb-4 p-4 rounded shadow-sm bg-light">-->
-<!--        <div class="mb-3">-->
-<!--            <label class="form-label d-block mb-2 text-black">Đánh giá của bạn:</label>-->
-<!--            <div class="star-rating">-->
-<!--                <input type="radio" id="star5" name="rating" value="5" required><label for="star5">★</label>-->
-<!--                <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>-->
-<!--                <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>-->
-<!--                <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>-->
-<!--                <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>-->
-<!--            </div>-->
-<!--        </div>-->
-
-<!--        <div class="mb-3 text-black">-->
-<!--            <label for="commentContent" class="form-label">Bình luận của bạn:</label>-->
-<!--            <textarea class="form-control" id="commentContent" name="comment" rows="3" placeholder="Nhập bình luận..." required></textarea>-->
-<!--        </div>-->
-
-<!--        <button type="submit" class="btn btn-success">Gửi bình luận</button>-->
-<!--    </form>-->
-
     <div th:if="${#lists.isEmpty(feedbacks)}">
         <p class="text-white fst-italic">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
     </div>
@@ -207,11 +181,76 @@
         </div>
     </div>
 </div>
+<div class="container mt-5">
+    <!--    <hr class="featurette-divider">-->
+    <h2 class="text-center mb-4"> Sản Phẩm Đã Xem </h2>
 
+    <div id="discountCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+
+            <div th:each="groupStat : ${#numbers.sequence(0, viewedProducts.size() - 1, 4)}"
+                 th:class="'carousel-item ' + (${groupStat == 0} ? 'active' : '')">
+                <div class="row">
+                    <div th:each="innerProduct, innerStat : ${viewedProducts}"
+                         th:if="${innerStat.index >= groupStat and innerStat.index < groupStat + 4}"
+                         class="col-md-3 mb-3">
+                        <div class="carousel-item-wrapper h-100 shadow-sm">
+                            <div class="product-images" onmouseover="startSlideshow(this)" onmouseout="stopSlideshow(this)">
+                                <a th:href="@{/user/product-detail/{id}(id=${innerProduct.id})}">
+                                    <div class="image-slider">
+                                        <img th:each="variant, iterStat : ${innerProduct.variants}"
+                                             th:src="@{${viewedProductVariantImages[innerProduct.id]?.values()?.iterator()?.next()?.get(0)}}"
+                                             th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
+                                        <img th:each="variant, iterStat : ${innerProduct.variants}"
+                                             th:src="@{${viewedProductVariantImages[innerProduct.id]?.values()?.iterator()?.next()?.get(1)}}"
+                                             th:if="${iterStat.index == 0}" th:alt="${variant.color}" class="product-image" />
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="product-title" th:text="${innerProduct.name}"
+                                    th:attr="data-bs-toggle='tooltip', title=${innerProduct.name}">
+                                </h5>
+                                <p class="product-price">
+                                    <span class="discounted-price text-danger fw-bold"
+                                          th:text="${@currencyFormatter.formatVND(innerProduct.effectivePrice)}">
+                                    </span>
+
+                                    <del class="ms-2 text-muted fs-6"
+                                         th:if="${discountViewedPercents[innerProduct.id] != null and discountViewedPercents[innerProduct.id] != 0}"
+                                         th:text="${@currencyFormatter.formatVND(innerProduct.price)}">
+                                    </del>
+
+                                    <span class="discount-percentage badge bg-danger ms-2"
+                                          th:if="${discountViewedPercents[innerProduct.id] != null and discountViewedPercents[innerProduct.id] != 0}"
+                                          th:text="'-' + ${discountViewedPercents[innerProduct.id]} + '%'">
+                                    </span>
+                                </p>
+
+                                <p th:text="${innerProduct.description}" class="product-description text-black"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#discountCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+            <span class="visually-hidden">Trước</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#discountCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+            <span class="visually-hidden">Tiếp</span>
+        </button>
+    </div>
+</div>
 <!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script th:src="@{/js/product-detail.js}"></script>
+<script th:src="@{/js/carousel.js}"></script>
+<script th:src="@{/js/card-js.js}"></script>
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Slick JS -->
@@ -219,14 +258,6 @@
 
 </body>
 <script>
-    $(document).ready(function(){
-        $('.thumbnail-carousel').slick({
-            centerMode: true,
-            centerPadding: '40px',
-            slidesToShow: 2,
-            arrows: true,
-            focusOnSelect: true
-        });
-    });
+
 </script>
 </html>

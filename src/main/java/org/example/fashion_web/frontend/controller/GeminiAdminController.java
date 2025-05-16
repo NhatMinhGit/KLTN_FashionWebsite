@@ -9,6 +9,7 @@ import org.example.fashion_web.backend.services.ChatbotService;
 import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,117 +43,132 @@ public class GeminiAdminController {
 
     @GetMapping("/chat")
     public ResponseEntity<String> chat(@RequestParam String message, Principal principal) throws JsonProcessingException {
-        String response;
-        String userName = principal.getName();
-        User user = userService.findByEmail(userName);
+        try{
+            String response;
+            String userName = principal.getName();
+            User user = userService.findByEmail(userName);
 
-        if (user == null) {
-            return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
-        }
-
-        Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
-        if (chatbot == null) {
-            return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
-        }
-
-        // Lưu message người dùng gửi
-        geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
-
-        // Trích xuất intent và entities
-        Map<String, String> extractedData = extractIntentAndEntities(message);
-        String intent = extractedData.get("intent");
-        String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
-
-        // Xử lý phản hồi dựa trên intent
-        switch (intent) {
-            case "check_stock":
-                response = geminiService.checkStock(message);
-                break;
-            case "refund_policy":
-                response = geminiService.refundPolicyForStaff();
-                break;
-            case "faq":
-                response = geminiService.faqShowForStaff();
-                break;
-            case "monthly_revenue":
-                response = geminiService.checkMonthlyRevenue(message);
-                break;
-            case "yearly_revenue":
-                response = geminiService.checkYearlyRenvenue(message);
-                break;
-            case "business_plan": {
-                Map<String, Object> businessPlanResponse = new HashMap<>();
-
-                // 1. Top sản phẩm doanh thu cao
-                String topProducts = geminiService.checkTopProductsRevenueForOptimalPlan(message);
-                businessPlanResponse.put("topProducts", topProducts);
-
-                // 2. Gợi ý thời trang theo mùa
-                String weatherSuggestionJson = geminiService.getVietnamWeatherSuggestion(message);
-
-                // 3. Gợi ý thời trang theo sự kiện
-                String eventSuggestionJson = geminiService.getVietnamEventSuggestion(message);
-
-                ObjectMapper objectMapper = new ObjectMapper();
-
-                String aiResponse;
-                try {
-                    // Parse thời trang theo mùa
-                    Map<String, Object> weatherData = objectMapper.readValue(weatherSuggestionJson, Map.class);
-                    String currentSeason = (String) weatherData.get("currentSeason");
-                    List<String> currentSuggestions = ((List<?>) weatherData.get("currentSuggestions"))
-                            .stream()
-                            .map(Object::toString)
-                            .collect(Collectors.toList());
-
-
-                    String nextSeason = (String) weatherData.get("nextSeason");
-                    List<String> nextSuggestions = ((List<?>) weatherData.get("nextSuggestions"))
-                            .stream()
-                            .map(Object::toString)
-                            .collect(Collectors.toList());
-
-                    // Parse thời trang theo sự kiện
-                    Map<String, Object> eventData = objectMapper.readValue(eventSuggestionJson, Map.class);
-                    String eventSuggestion = (String) eventData.get("suggestion");
-
-                    // Format lại aiResponse
-                    aiResponse = "Đây là kế hoạch doanh nghiệp của bạn:<br><br>" +
-                            "🌤️ Gợi ý thời trang theo mùa hiện tại (" + currentSeason + "): " + String.join(", ", currentSuggestions) + "<br>" +
-                            "🍂 Chuẩn bị cho mùa tiếp theo (" + nextSeason + "): " + String.join(", ", nextSuggestions) + "<br>" +
-                            "🎉 Gợi ý thời trang theo sự kiện: " + eventSuggestion;
-
-                } catch (Exception e) {
-                    aiResponse = "Đây là kế hoạch doanh nghiệp của bạn, nhưng có lỗi khi xử lý gợi ý thời tiết hoặc sự kiện.";
-                }
-
-                businessPlanResponse.put("aiResponse", aiResponse);
-                Map<String, String> productInfoMap = objectMapper.readValue(topProducts, new TypeReference<Map<String, String>>() {});
-                String productInfoHtml = productInfoMap.get("productInfo");
-                businessPlanResponse.put("productInfo", productInfoHtml);
-
-
-
-                try {
-                    response = new ObjectMapper().writeValueAsString(businessPlanResponse);
-                } catch (JsonProcessingException e) {
-                    response = "{\"error\": \"Lỗi tạo JSON phản hồi: " + e.getMessage() + "\"}";
-                }
-                break;
+            if (user == null) {
+                return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
             }
 
-            case "check_bestsellers":
-                response = geminiService.checkTopProductsRevenueForUser(message);
-                break;
-            default:
-                response = geminiService.chatWithAI(message);
-                break;
+            Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
+            if (chatbot == null) {
+                return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
+            }
+
+            // Lưu message người dùng gửi
+            geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
+
+            // Trích xuất intent và entities
+            Map<String, String> extractedData = extractIntentAndEntities(message);
+            String intent = extractedData.get("intent");
+            String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
+            boolean isAdmin = user.getRole().equalsIgnoreCase("ADMIN");
+            // Xử lý phản hồi dựa trên intent
+            switch (intent) {
+                case "check_stock":
+                    response = geminiService.checkStock(message,isAdmin);
+                    break;
+                case "refund_policy":
+                    response = geminiService.refundPolicyForStaff();
+                    break;
+                case "faq":
+                    response = geminiService.faqShowForStaff();
+                    break;
+                case "monthly_revenue":
+                    response = geminiService.checkMonthlyRevenue(message);
+                    break;
+                case "yearly_revenue":
+                    response = geminiService.checkYearlyRenvenue(message);
+                    break;
+                case "order_tracking":
+                    response = geminiService.orderTrackingResponse(message,principal);
+                    break;
+                case "technical_support":
+                    response = geminiService.technicalSupportForStaffResponse();
+                    break;
+                case "business_plan": {
+                    Map<String, Object> businessPlanResponse = new HashMap<>();
+
+                    // 1. Top sản phẩm doanh thu cao
+                    String topProducts = geminiService.checkTopProductsRevenueForOptimalPlan(message,isAdmin);
+                    businessPlanResponse.put("topProducts", topProducts);
+
+                    // 2. Gợi ý thời trang theo mùa
+                    String weatherSuggestionJson = geminiService.getVietnamWeatherSuggestion(message);
+
+                    // 3. Gợi ý thời trang theo sự kiện
+                    String eventSuggestionJson = geminiService.getVietnamEventSuggestion(message);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+
+                    String aiResponse;
+                    try {
+                        // Parse thời trang theo mùa
+                        Map<String, Object> weatherData = objectMapper.readValue(weatherSuggestionJson, Map.class);
+                        String currentSeason = (String) weatherData.get("currentSeason");
+                        List<String> currentSuggestions = ((List<?>) weatherData.get("currentSuggestions"))
+                                .stream()
+                                .map(Object::toString)
+                                .collect(Collectors.toList());
+
+
+                        String nextSeason = (String) weatherData.get("nextSeason");
+                        List<String> nextSuggestions = ((List<?>) weatherData.get("nextSuggestions"))
+                                .stream()
+                                .map(Object::toString)
+                                .collect(Collectors.toList());
+
+                        // Parse thời trang theo sự kiện
+                        Map<String, Object> eventData = objectMapper.readValue(eventSuggestionJson, Map.class);
+                        String eventSuggestion = (String) eventData.get("suggestion");
+
+                        // Format lại aiResponse
+                        aiResponse = "Đây là kế hoạch doanh nghiệp của bạn:<br><br>" +
+                                "🌤️ Gợi ý thời trang theo mùa hiện tại (" + currentSeason + "): " + String.join(", ", currentSuggestions) + "<br>" +
+                                "🍂 Chuẩn bị cho mùa tiếp theo (" + nextSeason + "): " + String.join(", ", nextSuggestions) + "<br>" +
+                                "🎉 Gợi ý thời trang theo sự kiện: " + eventSuggestion;
+
+                    } catch (Exception e) {
+                        aiResponse = "Đây là kế hoạch doanh nghiệp của bạn, nhưng có lỗi khi xử lý gợi ý thời tiết hoặc sự kiện.";
+                    }
+
+                    businessPlanResponse.put("aiResponse", aiResponse);
+                    Map<String, String> productInfoMap = objectMapper.readValue(topProducts, new TypeReference<Map<String, String>>() {});
+                    String productInfoHtml = productInfoMap.get("productInfo");
+                    businessPlanResponse.put("productInfo", productInfoHtml);
+
+
+
+                    try {
+                        response = new ObjectMapper().writeValueAsString(businessPlanResponse);
+                    } catch (JsonProcessingException e) {
+                        response = "{\"error\": \"Lỗi tạo JSON phản hồi: " + e.getMessage() + "\"}";
+                    }
+                    break;
+                }
+
+                case "check_bestsellers":
+                    response = geminiService.checkTopProductsRevenueForUser(message,isAdmin);
+                    break;
+                default:
+
+                    response = geminiService.chatWithAI(message,isAdmin);
+                    break;
+            }
+
+            // Lưu phản hồi từ chatbot
+            geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // Ghi log lỗi (nếu dùng logger)
+            e.printStackTrace();
+            // Trả về lỗi cho client
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Chat bot đang trong quá trình nên có một số lỗi và các tính năng chưa được khả dụng. Mong quý khách thông cảm !!!");
         }
-
-        // Lưu phản hồi từ chatbot
-        geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
-
-        return ResponseEntity.ok(response);
     }
 
     // Hàm trích xuất intent và entities từ câu hỏi
@@ -169,8 +185,12 @@ public class GeminiAdminController {
             result.put("intent", "faq");
         } else if (isMonthlyRevenue(lowerCaseMessage)) {
             result.put("intent", "monthly_revenue");
+        } else if (isOrderTracking(lowerCaseMessage)) {
+            result.put("intent", "order_tracking");
         } else if (isYearlyRevenue(lowerCaseMessage)) {
             result.put("intent", "yearly_revenue");
+        } else if (isTechnicalSupport(lowerCaseMessage)) {
+            result.put("intent", "technical_support");
         } else if (isOptimalBusinessPlan(lowerCaseMessage)) {
             result.put("intent", "business_plan");
         } else if (isBESTSELLERS(lowerCaseMessage)) {
@@ -208,86 +228,91 @@ public class GeminiAdminController {
 
         return entities;
     }
+
+    private boolean isOrderTracking(String message) {
+        return containsKeywords(message,
+                "kiểm tra đơn hàng",
+                "theo dõi đơn hàng",
+                "đơn hàng đang ở đâu",
+                "track đơn hàng",
+                "tra cứu vận đơn",
+                "check order",
+                "đơn hàng đã giao chưa",
+                "track");
+    }
     private boolean isBESTSELLERS(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("best sellers") ||
-                lowerCaseMessage.contains("bán chạy") ||
-                lowerCaseMessage.contains("được yêu thích") ||
-                lowerCaseMessage.contains("trending");
+        return containsKeywords(message,"best sellers"
+                ,"bán chạy"
+                ,"được yêu thích"
+                ,"trending");
+    }
+    private boolean isTechnicalSupport(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        return containsKeywords(message,"technical support"
+                ,"hỗ trợ kỹ thuật"
+                ,"lỗi hệ thống");
     }
     private boolean isRefundPolicy(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("refund policy") ||
-                lowerCaseMessage.contains("hoàn phí") ||
-                lowerCaseMessage.contains("chính sách hoàn phí") ||
-                lowerCaseMessage.contains("refund");
+        return containsKeywords(message,"refund policy"
+                ,"hoàn phí"
+                ,"chính sách hoàn phí"
+                ,"refund");
     }
     private boolean isFAQS(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return  lowerCaseMessage.contains("faqs") ||
-                lowerCaseMessage.contains("thắc mắc") ||
-                lowerCaseMessage.contains("sử dụng") ||
-                lowerCaseMessage.contains("hướng dẫn") ||
-                lowerCaseMessage.contains("hướng dẫn sử dụng");
+        return containsKeywords(message,"faqs"
+                ,"thắc mắc"
+                ,"sử dụng"
+                ,"hướng dẫn"
+                ,"hướng dẫn sử dụng");
     }
 
 
     private boolean isStockQuery(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("còn không") ||
-                lowerCaseMessage.contains("còn hàng không") ||
-                lowerCaseMessage.contains("có hàng không") ||
-                lowerCaseMessage.contains("số lượng");
+        return containsKeywords(message,"còn không"
+                ,"còn hàng không"
+                ,"có hàng không"
+                ,"số lượng");
 
     }
     private boolean isMonthlyRevenue(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("doanh thu") ||
-                lowerCaseMessage.contains("tình hình tháng này") ||
-                lowerCaseMessage.contains("tháng này") ||
-                lowerCaseMessage.contains("this month revenue") ||
-                lowerCaseMessage.contains("phân tích doanh thu");
+        return containsKeywords(message
+                ,"tình hình tháng này"
+                ,"tháng này"
+                ,"this month revenue"
+                ,"phân tích doanh thu");
     }
 
     private boolean isYearlyRevenue(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("doanh thu") ||
-                lowerCaseMessage.contains("tình hình năm này") ||
-                lowerCaseMessage.contains("năm này") ||
-                lowerCaseMessage.contains("this year revenue") ||
-                lowerCaseMessage.contains("phân tích doanh thu");
+        return containsKeywords(message,"doanh thu"
+                ,"tình hình năm này"
+                ,"năm này"
+                ,"this year revenue"
+                ,"doanh thu năm nay");
     }
     private boolean isOptimalBusinessPlan(String message) {
         // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
-        String lowerCaseMessage = message.toLowerCase();
-
-        // Kiểm tra nếu câu hỏi có chứa các từ khóa liên quan đến số lượng tồn kho
-        return lowerCaseMessage.contains("chiến lược") ||
-                lowerCaseMessage.contains("bussiness plan") ||
-                lowerCaseMessage.contains("optimal bussiness plan") ||
-                lowerCaseMessage.contains("tương lai") ||
-                lowerCaseMessage.contains("phân tích chiến lược") ||
-                lowerCaseMessage.contains("tăng doanh số");
+        return containsKeywords(message,"chiến lược"
+                ,"bussiness plan"
+                ,"optimal bussiness plan"
+                ,"tương lai"
+                ,"phân tích chiến lược"
+                ,"tăng doanh số");
     }
-
+    private boolean containsKeywords(String message, String... keywords) {
+        String lowerCaseMessage = message.toLowerCase();
+        for (String keyword : keywords) {
+            if (lowerCaseMessage.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
     @GetMapping("/chatbot")
     public ModelAndView chatbotPage(Principal principal, Model model) {
         Long userId = null;

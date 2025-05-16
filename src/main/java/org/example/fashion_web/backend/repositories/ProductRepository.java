@@ -50,6 +50,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product>findByPriceBetweenAndCategoryName(long priceMin,long priceMax,String name);
 
+    List<Product> findByIdIn(List<Long> ids);
 
 
     @Query("""

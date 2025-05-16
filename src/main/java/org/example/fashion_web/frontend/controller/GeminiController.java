@@ -1,19 +1,15 @@
 package org.example.fashion_web.frontend.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.services.servicesimpl.GeminiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
@@ -63,71 +59,104 @@ public class GeminiController {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private ProductVariantService productVariantService;
+
 
 
     @GetMapping("/chat")
-    public ResponseEntity<String> chat(@RequestParam String message, Principal principal) {
-        String response;
-        String userName = principal.getName();
-        User user = userService.findByEmail(userName);
+    public ResponseEntity<String> chat(@RequestParam String message, Principal principal,@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
+        try {
+            String response;
+            String userName = principal.getName();
+            User user = userService.findByEmail(userName);
 
-        if (user == null) {
-            return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
+            if (user == null) {
+                return ResponseEntity.badRequest().body("Người dùng không tồn tại.");
+            }
+
+            Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
+            if (chatbot == null) {
+                return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
+            }
+
+            // Lưu message người dùng gửi
+            geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
+
+            // Trích xuất intent và entities
+            Map<String, String> extractedData = extractIntentAndEntities(message);
+            String intent = extractedData.get("intent");
+            String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
+            boolean isAdmin = user.getRole().equalsIgnoreCase("ADMIN");
+
+            // Kiểm tra và xử lý theo intent
+            switch (intent) {
+                case "stock_query":
+                    response = geminiService.checkStock(message,isAdmin);
+                    break;
+                case "price_query":
+                    response = geminiService.checkPriceAndCategory(message,isAdmin);
+                    break;
+                case "refund_policy":
+                    response = geminiService.refundPolicyForUser();
+                    break;
+                case "faqs":
+                    response = geminiService.faqShowForUser();
+                    break;
+                case "bestsellers":
+                    response = geminiService.checkTopProductsRevenueForUser(message,isAdmin);
+                    break;
+                case "shipping_issue":
+                    response = geminiService.shippingIssueResponseFoUser();
+                    break;
+                case "payment_method_change":
+                    response = geminiService.paymentMethodChangeInstructions();
+                    break;
+                case "payment_declined_reason":
+                    response = geminiService.paymentDeclinedReasonResponse();
+                    break;
+                case "delivery_time":
+                    response = geminiService.deliveryTimeResponse();
+                    break;
+                case "order_tracking":
+                    response = geminiService.orderTrackingResponse(message,principal);
+                    break;
+                case "return_policy":
+                    response = geminiService.returnPolicyResponse();
+                    break;
+                case "product_issue":
+                    response = geminiService.productIssueResponse();
+                    break;
+                case "refund_time":
+                    response = geminiService.refundTimeResponse();
+                    break;
+                case "change_product_model":
+                    response = geminiService.changeProductModelResponse();
+                    break;
+                case "recommend_product":
+                    response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie);
+                    break;
+                case "technical_support":
+                    response = geminiService.technicalSupportForStaffResponse();
+                    break;
+                default:
+                    response = geminiService.chatWithAI(message,isAdmin);
+                    break;
+            }
+
+            geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // Ghi log lỗi (nếu dùng logger)
+            e.printStackTrace();
+            // Trả về lỗi cho client
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Chat bot đang trong quá trình nên có một số lỗi và các tính năng chưa được khả dụng. Mong quý khách thông cảm !!!");
         }
-
-        Chatbot chatbot = chatbotService.findChatBotByUserId(user.getId());
-        if (chatbot == null) {
-            return ResponseEntity.badRequest().body("Chatbot không tồn tại cho người dùng này.");
-        }
-
-        // Lưu message người dùng gửi
-        geminiService.saveConversation(chatbot, "USER", message, "text", null, null);
-
-        // Trích xuất intent và entities
-        Map<String, String> extractedData = extractIntentAndEntities(message);
-        String intent = extractedData.get("intent");
-        String entities = extractedData.get("entities"); // Hoặc nếu bạn không cần entities, có thể là null
-
-        // Kiểm tra và xử lý theo intent
-        switch (intent) {
-            case "stock_query":
-                response = geminiService.checkStock(message);
-                break;
-            case "price_query":
-                response = geminiService.checkPriceAndCategory(message);
-                break;
-            case "refund_policy":
-                response = geminiService.refundPolicyForUser();
-                break;
-            case "faqs":
-                response = geminiService.faqShowForUser();
-                break;
-            case "bestsellers":
-                response = geminiService.checkTopProductsRevenueForUser(message);
-                break;
-            case "shipping_issue":
-                response = geminiService.shippingIssueResponseFoUser();
-                break;
-            case "payment_method_change":
-                response = geminiService.paymentMethodChangeInstructions();
-                break;
-            case "payment_declined_reason":
-                response = geminiService.paymentDeclinedReasonResponse();
-                break;
-            case "delivery_time":
-                response = geminiService.deliveryTimeResponse();
-                break;
-            case "order_tracking":
-                response = geminiService.orderTrackingResponse(message,principal);
-                break;
-            default:
-                response = geminiService.chatWithAI(message);
-                break;
-        }
-
-        geminiService.saveConversation(chatbot, "BOT", response, "text", intent, entities);
-
-        return ResponseEntity.ok(response);
     }
 
     // Hàm trích xuất intent và entities từ câu hỏi
@@ -156,10 +185,21 @@ public class GeminiController {
             result.put("intent", "delivery_time");
         } else if (isOrderTracking(lowerCaseMessage)) {
             result.put("intent", "order_tracking");
+        } else if (isReturnPolicyQuestion(lowerCaseMessage)) {
+            result.put("intent", "return_policy");
+        } else if (isProductIssueQuestion(lowerCaseMessage)) {
+            result.put("intent", "product_issue");
+        } else if (isRefundTimeQuestion(lowerCaseMessage)) {
+            result.put("intent", "refund_time");
+        } else if (isChangeProductModelQuestion(lowerCaseMessage)) {
+            result.put("intent", "change_product_model");
+        } else if (isRecommendProductModelQuestion(lowerCaseMessage)) {
+            result.put("intent", "recommend_product");
+        } else if (isTechnicalSupport(lowerCaseMessage)) {
+            result.put("intent", "technical_support");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
-
         // Trích xuất các thực thể (entities) từ câu hỏi (dùng message gốc)
         Map<String, String> extractedEntities = extractEntities(message);
 
@@ -219,7 +259,12 @@ public class GeminiController {
     private boolean isStockQuery(String message) {
         return containsKeywords(message, "còn không", "còn hàng không", "có hàng không", "số lượng");
     }
-
+    private boolean isTechnicalSupport(String message) {
+        // Chuyển câu hỏi về dạng chữ thường để so sánh dễ hơn
+        return containsKeywords(message,"technical support"
+                ,"hỗ trợ kỹ thuật"
+                ,"lỗi hệ thống");
+    }
     private boolean isPrice(String message) {
         return containsKeywords(message, "giá", "bao nhiêu tiền", "khoảng", "tầm") ||
                 message.toLowerCase().matches(".*\\d+.*k.*") ||
@@ -267,6 +312,15 @@ public class GeminiController {
                 "không trả tiền được",
                 "thanh toán thất bại");
     }
+    private boolean isAddToCart(String message) {
+        return containsKeywords(message,
+                "tại sao thanh toán bị từ chối",
+                "thanh toán bị từ chối",
+                "không thanh toán được",
+                "lỗi thanh toán",
+                "không trả tiền được",
+                "thanh toán thất bại");
+    }
 
     private boolean isRefundPolicy(String message) {
         return containsKeywords(message, "refund policy", "hoàn phí", "chính sách hoàn phí", "chính sách đổi trả", "refund");
@@ -288,6 +342,34 @@ public class GeminiController {
                 "có thể đổi thanh toán không",
                 "đổi thanh toán");
     }
+    private boolean isRecommendProductModelQuestion(String message) {
+        return containsKeywords(message,
+                "gợi ý", "gợi ý sản phẩm", "giới thiệu");
+    }
+    // Ý định 1: Chính sách đổi trả
+    private boolean isReturnPolicyQuestion(String message) {
+        return containsKeywords(message,
+                "chính sách đổi trả", "đổi trả", "chính sách hoàn hàng", "đổi hàng", "trả hàng");
+    }
+
+    // Ý định 2: Sản phẩm bị lỗi hoặc không đúng mô tả
+    private boolean isProductIssueQuestion(String message) {
+        return containsKeywords(message,
+                "sản phẩm bị lỗi", "không đúng mô tả", "hư hỏng", "lỗi sản phẩm", "sai mô tả");
+    }
+
+    // Ý định 3: Thời gian hoàn tiền
+    private boolean isRefundTimeQuestion(String message) {
+        return containsKeywords(message,
+                "thời gian hoàn tiền", "hoàn tiền mất bao lâu", "khi nào nhận được tiền", "bao lâu hoàn tiền");
+    }
+
+    // Ý định 4: Đổi sang mẫu khác
+    private boolean isChangeProductModelQuestion(String message) {
+        return containsKeywords(message,
+                "đổi sang mẫu khác", "đổi mẫu", "đổi size", "đổi màu", "thay sản phẩm");
+    }
+
 
     private boolean containsKeywords(String message, String... keywords) {
         String lowerCaseMessage = message.toLowerCase();
@@ -300,14 +382,6 @@ public class GeminiController {
     }
 
 
-    private String convertEntitiesToJson(Map<String, String> entities) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(entities); // Chuyển đổi Map thành chuỗi JSON
-        } catch (JsonProcessingException e) {
-            return "{\"error\": \"Lỗi chuyển đổi entities thành JSON: " + e.getMessage() + "\"}";
-        }
-    }
     @GetMapping("/chatbot")
     public ModelAndView chatbotPage(Principal principal, Model model,HttpSession session) {
         Long userId = null;
@@ -395,7 +469,7 @@ public class GeminiController {
             product.setEffectivePrice(effectivePrice);
         }
 
-// Lọc các sản phẩm khuyến mãi (đã có giá hiệu lực hợp lệ)
+        // Lọc các sản phẩm khuyến mãi (đã có giá hiệu lực hợp lệ)
         List<Product> preSaleProducts = products.stream()
                 .filter(p -> p.getPrice() != null
                         && p.getEffectivePrice() != null
@@ -410,9 +484,6 @@ public class GeminiController {
                 .collect(Collectors.toList()); // Thu thập thành danh sách
 
         model.addAttribute("preSaleProducts", preSaleProducts); // Đưa vào model để hiển thị trên giao diện
-
-
-
 
 
         if (principal != null) {
@@ -455,6 +526,25 @@ public class GeminiController {
         model.addAttribute("productImages", productImages);
         model.addAttribute("cartItems", cart);
         System.out.println("Items cart sau khi load trang cart: " + cart);
+
+
+
+        // Lấy danh sách đơn hàng đã giao hoặc đang giao
+        User user = userService.findByEmail(principal.getName());
+        List<Order> trackingOrders = orderService.findOrdersByUserAndStatusIn(
+                user,
+                Arrays.asList(Order.OrderStatusType.SHIPPED, Order.OrderStatusType.COMPLETED)
+        );
+        model.addAttribute("trackingOrders", trackingOrders != null ? trackingOrders : new ArrayList<>());
+
+        // Lấy danh sách đơn hàng đang chờ được xử lý
+        List<Order> pendingOrders = orderService.findOrdersByUserAndStatusIn(
+                user,
+                Arrays.asList(Order.OrderStatusType.PENDING)
+        );
+        model.addAttribute("pendingOrders", pendingOrders != null ? pendingOrders : new ArrayList<>());
+
+
 
         return new ModelAndView("ai_chatbot/chat-window");
     }
