@@ -231,7 +231,7 @@ public class OrderController {
             // Add validation
             if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
                 model.addAttribute("errorMessage", "Invalid order information");
-                return "redirect:/user/order";
+                return "redirect:/user/user-order";
             }
 
             // Validate order total
@@ -243,6 +243,16 @@ public class OrderController {
             User user = userRepository.findById(userDetail.getUser().getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            Order order = (Order) orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
+            if (order == null) {
+                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
+                return "redirect:user/user-order";
+            }
+            UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
+            if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || userProfile.getDob() == null  || address == "Chưa cập nhật!") {
+                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
+                return "redirect:user/order";
+            }
             Order newOrder = new Order();
             newOrder.setUser(user);
             newOrder.setOrderDate(LocalDate.now());
@@ -266,10 +276,6 @@ public class OrderController {
                 paymentRepository.save(payment);
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 //bắt lỗi nếu người dùng chưa thực hiện xong thanh toán trước đó
-                if (orderService.hasPayingOrder(user)) {
-                    model.addAttribute("errorMessage", "Invalid order total");
-                    return "redirect:/user/order/checkout";
-                }
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
                 orderRepository.save(newOrder);
 

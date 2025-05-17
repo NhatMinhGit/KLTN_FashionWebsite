@@ -95,7 +95,13 @@
                     <tbody>
                     <tr th:each="item : ${cartItems}">
                         <td>
-                            <img th:src="@{/images/default.jpg}" th:alt="${item.product.name}" class="product-img">
+                            <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
+                                 th:src="@{${productImages[item.product.id][0]}}"
+                                 class="img-fluid rounded-3"
+                                 th:alt="${item.product.name}"
+                                 width="50"
+                                 height="50">
+                            <span th:if="${#lists.size(productImages[item.product.id]) == 0}">No image available</span>
                         </td>
                         <td th:text="${item.product.name}">Tên SP</td>
                         <td th:text="${item.product.category.name}">Danh mục</td>
