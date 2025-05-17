@@ -1,7 +1,7 @@
 package org.example.fashion_web.backend.repositories;
 
-import org.example.fashion_web.backend.models.UserVoucherAssignment;
 import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.models.UserVoucherAssignment;
 import org.example.fashion_web.backend.models.Voucher;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -17,6 +17,9 @@ public interface UserVoucherAssignmentRepository extends JpaRepository<UserVouch
 
     List<UserVoucherAssignment> getAssignmentsByVoucherId(Long id);
 
-    List<UserVoucherAssignment> getAssignmentsByUserId(Long id);
+    List<UserVoucherAssignment> findByUserIdAndIsUsed(Long userId, Boolean isUsed);
+
+    Optional<UserVoucherAssignment> findByUserIdAndVoucherId(Long userId, Long voucherId);
+
 
 }

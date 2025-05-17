@@ -1,7 +1,9 @@
 package org.example.fashion_web.backend.dto;
 
-import lombok.*;
-import org.example.fashion_web.backend.models.User;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -18,4 +20,5 @@ public class OrderDto {
     private String paymentMethod;
     private String voucherCode;
     private String vnpId;
+    private String userVoucherAssignmentId;
 }

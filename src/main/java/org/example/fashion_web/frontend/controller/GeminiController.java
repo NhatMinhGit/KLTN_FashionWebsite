@@ -140,7 +140,7 @@ public class GeminiController {
                     response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie);
                     break;
                 case "technical_support":
-                    response = geminiService.technicalSupportForStaffResponse();
+                    response = geminiService.technicalSupportForCustomerResponse();
                     break;
                 default:
                     response = geminiService.chatWithAI(message,isAdmin);
@@ -172,7 +172,7 @@ public class GeminiController {
         } else if (isRefundPolicy(lowerCaseMessage)) {
             result.put("intent", "refund_policy");
         } else if (isFAQS(lowerCaseMessage)) {
-            result.put("intent", "faq");
+            result.put("intent", "faqs");
         } else if (isBESTSELLERS(lowerCaseMessage)) {
             result.put("intent", "bestsellers");
         } else if (isShippingDelayed(lowerCaseMessage)) {
