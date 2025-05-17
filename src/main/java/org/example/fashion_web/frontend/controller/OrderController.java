@@ -157,7 +157,7 @@ public class OrderController {
         : "Chưa cập nhật!";
 
         // Lấy danh sách voucher dùng chung (không gán cho người dùng nào)
-        List<Voucher> generalVouchers = voucherService.getGeneralVouchers();
+        List<Voucher> generalVouchers = voucherService.getGeneralVouchers(user.getId());
 
         // Lấy danh sách voucher riêng được gán cho người dùng
         List<UserVoucherAssignment> userVoucherAssignments = userVoucherAssignmentRepository.findByUserIdAndIsUsed(user.getId(), false);
@@ -267,9 +267,9 @@ public class OrderController {
             User user = userRepository.findById(userDetail.getUser().getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            Order order = (Order) orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
-            if (order == null) {
-                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
+            List<Order> orders = orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
+            if (orders != null) {
+                model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
                 return "redirect:user/user-order";
             }
             UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());

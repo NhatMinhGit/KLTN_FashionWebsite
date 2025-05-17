@@ -2,7 +2,9 @@ package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.VoucherDto;
 import org.example.fashion_web.backend.models.UserVoucher;
+import org.example.fashion_web.backend.models.UserVoucherAssignment;
 import org.example.fashion_web.backend.models.Voucher;
+import org.example.fashion_web.backend.repositories.UserVoucherAssignmentRepository;
 import org.example.fashion_web.backend.repositories.UserVoucherRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
 import org.example.fashion_web.backend.services.VoucherService;
@@ -73,8 +75,46 @@ public class VoucherServiceImpl implements VoucherService {
                 .collect(Collectors.toList());
     }
     @Override
-    public List<Voucher> getGeneralVouchers() {
-        return voucherRepository.findGeneralVouchers();
+    public List<Voucher> getGeneralVouchers(Long userId) {
+        List<Voucher> vouchers = voucherRepository.findGeneralVouchers();
+        List<UserVoucher> userVouchers = userVoucherRepository.findByUser_Id(userId);
+
+        // Lấy ID của các voucher đã sử dụng
+        List<Long> usedVoucherIds = userVouchers.stream()
+                .map(uv -> uv.getVoucher().getId())
+                .toList();
+
+        // Trả về các voucher còn hiệu lực, còn lượt sử dụng và chưa từng được dùng
+        return voucherRepository.findAll().stream()
+                .filter(v ->
+                        !v.getEndDate().isBefore(LocalDate.now()) &&
+                                v.getUsageLimit() > 0 &&
+                                !usedVoucherIds.contains(v.getId())
+                )
+                .toList();
+    }
+
+    @Override
+    public List<Voucher> getVoucherAvilable() {
+        // Trả về các voucher còn hiệu lực, còn lượt sử dụng và chưa từng được dùng
+        return voucherRepository.findAll().stream()
+                .filter(v ->
+                        !v.getEndDate().isBefore(LocalDate.now()) &&
+                                v.getUsageLimit() > 0
+                )
+                .toList();
+    }
+
+    @Override
+    public List<Voucher> getVoucherNotAssign() {
+        List<Voucher> list = voucherRepository.findGeneralVouchers();
+
+        return list.stream()
+                .filter(v ->
+                        !v.getEndDate().isBefore(LocalDate.now()) &&
+                                v.getUsageLimit() > 0
+                )
+                .toList();
     }
 
 }
