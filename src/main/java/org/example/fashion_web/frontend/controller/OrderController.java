@@ -205,7 +205,7 @@ public class OrderController {
         BigDecimal priceWithVoucher = totalOrderPrice;
         BigDecimal discountAmount = BigDecimal.valueOf(0);
         Voucher voucher = voucherRepository.findByVoucherCode(voucherCode);
-        voucher.setUsageLimit(voucher.getUsageLimit()-1);
+//        voucher.setUsageLimit(voucher.getUsageLimit()-1);*
         voucherRepository.save(voucher);
         if (voucher.getDiscountType().equals("percentage")) {
             BigDecimal discountRate = voucher.getDiscountValue().divide(BigDecimal.valueOf(100));
