@@ -180,7 +180,7 @@ public class OrderManagementController {
     public String completeOrder(@PathVariable("id") Long id) {
         Order order = orderRepository.findById(id).orElse(null);
         if (order != null) {
-            order.setStatus(Order.OrderStatusType.SHIPPED);
+            order.setStatus(Order.OrderStatusType.COMPLETED);
             orderRepository.save(order);
         }
 
