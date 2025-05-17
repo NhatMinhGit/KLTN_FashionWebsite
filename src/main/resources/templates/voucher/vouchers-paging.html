@@ -21,18 +21,37 @@
             <h1 class="fw-bold mb-3">Quản lý Voucher</h1>
         </div>
 
-        <div class="mb-3 d-flex">
-            <input type="text" id="searchInput" class="form-control me-2" placeholder="Tìm kiếm voucher...">
-            <button class="btn btn-primary" onclick="searchVoucher()">Tìm kiếm</button>
-        </div>
+        <!-- Form tìm kiếm nâng cao -->
+        <form method="get" th:action="@{/admin/voucher}" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">Tìm kiếm theo Id, mã voucher, tên voucher</label>
+                <input type="text" name="keyword" class="form-control" th:value="${param.keyword}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Loại giảm giá</label>
+                <select name="discountType" class="form-select">
+                    <option value="">-- Tất cả loại --</option>
+                    <option value="percentage" th:selected="${param.discountType == 'percentage'}">Phần trăm</option>
+                    <option value="fixed" th:selected="${param.discountType == 'fixed'}">Cố định</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Trạng thái</label>
+                <select name="status" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="active" th:selected="${param.status == 'active'}">Đang hoạt động</option>
+                    <option value="inactive" th:selected="${param.status == 'inactive'}">Không hoạt động</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="hidden" name="page" th:value="${currentPage}">
+                <input type="hidden" name="size" th:value="${pageSize}">
+                <button type="submit" class="btn btn-primary w-100">Lọc Voucher</button>
+            </div>
+        </form>
 
-        <div class="mb-3 d-flex">
-            <a class="btn btn-primary me-2" th:href="@{/admin/voucher/add-voucher}">
-                <i class="fas fa-plus"></i> Thêm voucher
-            </a>
-        </div>
-
-        <table class="table table-bordered table-head-bg-info table-bordered-bd-info mt-4" id="voucherTable">
+        <!-- Bảng -->
+        <table class="table table-bordered mt-4">
             <thead>
             <tr>
                 <th>ID</th>
@@ -59,34 +78,45 @@
                     <button class="btn btn-danger btn-sm">Xóa</button>
                 </td>
             </tr>
+            <tr th:if="${voucherPage.totalElements == 0 && filterMessage == null}">
+                <td colspan="8" class="text-center text-muted">Không có voucher nào phù hợp.</td>
+            </tr>
+            <tr th:if="${voucherPage.totalElements == 0 && filterMessage != null}">
+                <td colspan="8" class="text-center text-muted" th:text="${filterMessage}"></td>
+            </tr>
             </tbody>
         </table>
+
+        <!-- Phân trang -->
         <nav aria-label="Page navigation">
-            <div class="pagination-container">
-                <ul class="pagination justify-content-center">
-                    <!-- Trước -->
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/voucher(page=${currentPage - 1}, size=${pageSize})}">&laquo;</a>
-                    </li>
-
-                    <!-- Số trang -->
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                        th:classappend="${currentPage == i} ? 'active'">
-                        <a class="page-link" th:href="@{/admin/voucher(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
-                    </li>
-
-                    <!-- Sau -->
-                    <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/voucher(page=${currentPage + 1}, size=${pageSize})}">&raquo;</a>
-                    </li>
-                </ul>
-            </div>
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/voucher(page=${currentPage - 1}, size=${voucherPage.size},
+                                keyword=${param.keyword},
+    discountType=${param.discountType},
+    status=${param.status})}">&laquo;</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${voucherPage.number == i} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/admin/voucher(page=${i}, size=${voucherPage.size},
+                                keyword=${param.keyword},
+    discountType=${param.discountType},
+    status=${param.status})}"
+                       th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!voucherPage.hasNext()} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/voucher(page=${currentPage + 1}, size=${voucherPage.size},
+                keyword=${param.keyword},
+    discountType=${param.discountType},
+    status=${param.status})}">&raquo;</a>
+                </li>
+            </ul>
         </nav>
     </div>
-
 </div>
-
 <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 </body>
-
 </html>

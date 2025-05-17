@@ -47,18 +47,12 @@ public class UserController {
     @Autowired
     private DiscountService discountService;
 
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
-    @Autowired
-    private CartService cartService;
 
     @Autowired
     private ProductVariantService productVariantService;
 
     @Autowired
-    private ProductVariantRepository productVariantRepository;
-
+    private OrderService orderService;
 
 
     @GetMapping("/registration")
@@ -222,6 +216,9 @@ public class UserController {
     @GetMapping("admin")
     public String adminPage (Model model, Principal principal) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+        model.addAttribute("totalOrder", orderService.getTotalOrdersNotCancelled());
+        model.addAttribute("totalUser", userService.getUserCount("USER"));
+        model.addAttribute("revenuetotal", orderService.getTotalRevenueCompletedOrders());
         model.addAttribute("user", userDetails);
         model.addAttribute("userList", userService.findAll());
         return "admin";

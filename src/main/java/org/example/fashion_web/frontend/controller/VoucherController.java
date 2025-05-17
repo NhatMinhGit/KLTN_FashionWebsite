@@ -3,6 +3,7 @@ package org.example.fashion_web.frontend.controller;
 import jakarta.validation.Valid;
 import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.dto.VoucherDto;
+import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.UserRepository;
@@ -11,8 +12,10 @@ import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -24,7 +27,8 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class VoucherController {
@@ -56,33 +60,86 @@ public class VoucherController {
 
     @GetMapping("/admin/voucher")
     public String listVouchersPaging(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "discountType", required = false) String discountType,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size,
             Model model, Principal principal) {
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Voucher> voucherPage = voucherService.getAllVouchers(pageable);
-        if (voucherPage == null) {
-            model.addAttribute("vouchers", List.of());
-        } else {
-            model.addAttribute("vouchers", voucherPage.getContent());
-            model.addAttribute("totalPages", voucherPage.getTotalPages());
+
+        List<Voucher> filtered = voucherService.searchVouchersByKeyword(keyword);
+        List<Voucher> original = filtered;
+
+        // Lọc theo discountType
+        if (discountType != null && (discountType.equals("percentage") || discountType.equals("fixed"))) {
+            filtered = filtered.stream()
+                    .filter(v -> v.getDiscountType().equals(discountType))
+                    .collect(Collectors.toList());
         }
 
+        // Xử lý status
+        if (status != null) {
+            status = status.trim().toLowerCase();
+            // Chỉ chấp nhận giá trị hợp lệ
+            if (!status.equals("active") && !status.equals("inactive")) {
+                status = null; // Bỏ qua nếu status không hợp lệ
+            }
+        }
+
+        if ("active".equals(status)) {
+            filtered = filtered.stream()
+                    .filter(v -> !v.getStartDate().isAfter(LocalDate.now()) &&
+                            !v.getEndDate().isBefore(LocalDate.now()) &&
+                            v.getUsageLimit() > 0)
+                    .collect(Collectors.toList());
+            if (filtered.size() == original.size() && filtered.containsAll(original)) {
+                filtered = new ArrayList<>();
+                model.addAttribute("filterMessage", "Voucher với các tiêu chí tìm kiếm đang hoạt động");
+            }
+        } else if ("inactive".equals(status)) {
+            filtered = filtered.stream()
+                    .filter(v -> v.getEndDate().isBefore(LocalDate.now()) ||
+                            v.getUsageLimit() <= 0)
+                    .collect(Collectors.toList());
+            if (filtered.size() == original.size() && filtered.containsAll(original)) {
+                filtered = new ArrayList<>();
+                model.addAttribute("filterMessage", "Voucher với các tiêu chí tìm kiếm đang không hoạt động.");
+            }
+        }
+
+        // Phân trang
+        int start = Math.min((int) pageable.getOffset(), filtered.size());
+        int end = Math.min((start + pageable.getPageSize()), filtered.size());
+        Page<Voucher> voucherPage = new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
+
+        // Thêm các thuộc tính vào model
+        model.addAttribute("vouchers", voucherPage.getContent());
         model.addAttribute("voucherPage", voucherPage);
+        model.addAttribute("totalPages", voucherPage.getTotalPages());
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
 
+        model.addAttribute("param", Map.of(
+                "keyword", keyword != null ? keyword : "",
+                "status", status != null ? status : "",
+                "discountType", discountType != null ? discountType : ""
+        ));
+
+        // Xử lý thông tin người dùng
         if (principal != null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
                 model.addAttribute("user", userDetails);
             } catch (Exception e) {
-                model.addAttribute("user", new User()); // Tránh lỗi
+                model.addAttribute("user", new User());
             }
         }
 
         return "voucher/vouchers-paging";
     }
+
 
     @GetMapping("admin/voucher/add-voucher")
     public String createUser (Model model) {

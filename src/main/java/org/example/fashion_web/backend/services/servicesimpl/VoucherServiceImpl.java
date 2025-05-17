@@ -11,10 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -59,5 +58,18 @@ public class VoucherServiceImpl implements VoucherService {
                                 !usedVoucherIds.contains(v.getId())
                 )
                 .toList();
+    }
+
+    @Override
+    public List<Voucher> searchVouchersByKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) return voucherRepository.findAll();
+
+        String lowerKeyword = keyword.toLowerCase();
+        return voucherRepository.findAll().stream()
+                .filter(u -> String.valueOf(u.getId()).equals(keyword) ||
+                        u.getVoucherCode().toLowerCase().contains(lowerKeyword) ||
+                        u.getVoucherName().toLowerCase().contains(lowerKeyword) ||
+                        u.getDiscountType().toLowerCase().contains(lowerKeyword))
+                .collect(Collectors.toList());
     }
 }

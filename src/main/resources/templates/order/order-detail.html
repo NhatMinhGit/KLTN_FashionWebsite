@@ -53,6 +53,34 @@
                 <div class="col-md-3 order-label">Trạng thái:</div>
                 <div class="col-md-9 order-value" th:text="${order.status}">PAID</div>
             </div>
+            <div class="row order-detail-row mb-4">
+                <div class="col-md-3 order-label">Sản phẩm trong đơn hàng</div>
+                <div class="col-md-9 order-value">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Màu</th>
+                            <th>Size</th>
+                            <th>Số lượng</th>
+                            <th>Giá mỗi cái</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${orderItemList}">
+                            <td th:text="${item.product.name}">Áo thun</td>
+                            <td th:text="${item.variant.color}">Đen</td>
+                            <td th:text="${item.size.sizeName}">M</td>
+                            <td th:text="${item.quantity}">2</td>
+                            <td th:text="${#numbers.formatDecimal(item.pricePerUnit, 0, 'COMMA', 2, 'POINT')} + ' ₫'">100.000 ₫</td>
+                            <td th:text="${#numbers.formatDecimal(item.pricePerUnit * item.quantity, 0, 'COMMA', 2, 'POINT')} + ' ₫'">200.000 ₫</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
 
             <div class="d-flex justify-content-start">
                 <form th:action="@{/admin/order/approve/{id}(id=${order.id})}" method="post"
@@ -62,13 +90,13 @@
                         <p>Duyệt đơn hàng</p>
                     </button>
                 </form>
-                <a class="btn btn-secondary" th:href="@{/admin/order}">
+                <a class="btn btn-danger btn-space" th:href="@{/admin/order/export-invoice-pdf/{id}(id=${order.id})}">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <p>Xuất hóa đơn</p>
+                </a>
+                <a class="btn btn-secondary btn-space" th:href="@{/admin/order}">
                     <i class="fas fa-arrow-left"></i>
                     <p>Quay lại danh sách</p>
-                </a>
-                <a class="btn btn-secondary" th:href="@{/admin/order/export-invoice-pdf/{id}(id=${order.id})}">
-                    <i class="fas fa-arrow-left"></i>
-                    <p>Xuất hóa đơn</p>
                 </a>
             </div>
         </div>

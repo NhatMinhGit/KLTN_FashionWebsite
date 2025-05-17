@@ -299,228 +299,229 @@ public class ProductManagementController {
     }
 
 
-    // Xem chi tiết sản phẩm theo ID
-    @GetMapping("/user/product-detail/{id}")
-    public String viewProduct(@PathVariable Long id, Model model, Principal principal,@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
-        try {
-            // Lấy thông tin người dùng
-            UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
-            model.addAttribute("user", userDetails);
-            // Lấy sản phẩm theo ID
-            Product product = productService.getProductById(id).orElse(null);
-            if (product == null) {
-                return "redirect:/user"; // Nếu không có sản phẩm, redirect
-            }
-            // Lấy giảm giá cho sản phẩm
-            List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
+        // Xem chi tiết sản phẩm theo ID
+        @GetMapping("/user/product-detail/{id}")
+        public String viewProduct(@PathVariable Long id, Model model, Principal principal,@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
+            try {
+                // Lấy thông tin người dùng
+                UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
+                model.addAttribute("user", userDetails);
+                // Lấy sản phẩm theo ID
+                Product product = productService.getProductById(id).orElse(null);
+                if (product == null) {
+                    return "redirect:/user"; // Nếu không có sản phẩm, redirect
+                }
+                // Lấy giảm giá cho sản phẩm
+                List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
 
-            // Lấy giảm giá cho category
-            List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
+                // Lấy giảm giá cho category
+                List<ProductDiscount> categoryDiscounts = discountService.getActiveDiscountsForCategory(product.getCategory());
 
-            // Gộp cả 2 danh sách
-            Stream<ProductDiscount> allDiscounts = Stream.concat(
-                    productDiscounts.stream(),
-                    categoryDiscounts.stream()
-            );
+                // Gộp cả 2 danh sách
+                Stream<ProductDiscount> allDiscounts = Stream.concat(
+                        productDiscounts.stream(),
+                        categoryDiscounts.stream()
+                );
 
-            // Tìm giảm giá cao nhất
-            Optional<ProductDiscount> maxDiscount = allDiscounts
-                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+                // Tìm giảm giá cao nhất
+                Optional<ProductDiscount> maxDiscount = allDiscounts
+                        .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
 
-            // Áp dụng giảm giá cao nhất (nếu có)
-            BigDecimal effectivePrice = maxDiscount
-                    .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
-                    .orElse(product.getPrice());
+                // Áp dụng giảm giá cao nhất (nếu có)
+                BigDecimal effectivePrice = maxDiscount
+                        .map(discount -> discountService.applyDiscount(product.getPrice(), discount))
+                        .orElse(product.getPrice());
 
-            product.setEffectivePrice(effectivePrice);
-
-
-
-            // Lấy các variant của sản phẩm
-            List<ProductVariant> productVariants = productVariantService.findAllByProductId(product.getId());
-
-            if (productVariants.isEmpty()) {
-                return "redirect:/user"; // Redirect nếu không có variants
-            }
+                product.setEffectivePrice(effectivePrice);
 
 
-            Map<String, List<String>> imagesByColor = new HashMap<>();
-            Map<String, Long> variantIdByColor = new HashMap<>();
 
-            for (ProductVariant productVariant : productVariants) {
-                List<Image> imageList = imageService.findImagesByProductVariantId(productVariant.getId());
-                if (imageList != null && !imageList.isEmpty()) {
-                    List<String> imageUrls = imageList.stream()
-                            .map(Image::getImageUri)
-                            .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))
-                            .toList();
+                // Lấy các variant của sản phẩm
+                List<ProductVariant> productVariants = productVariantService.findAllByProductId(product.getId());
 
-                    String color = productVariant.getColor();
-                    if (color != null) {
-                        imagesByColor.computeIfAbsent(color, k -> new ArrayList<>()).addAll(imageUrls);
+                if (productVariants.isEmpty()) {
+                    return "redirect:/user"; // Redirect nếu không có variants
+                }
 
-                        // Gán variantId đầu tiên cho mỗi màu (nếu chưa có)
-                        variantIdByColor.putIfAbsent(color, productVariant.getId());
+
+                Map<String, List<String>> imagesByColor = new HashMap<>();
+                Map<String, Long> variantIdByColor = new HashMap<>();
+
+                for (ProductVariant productVariant : productVariants) {
+                    List<Image> imageList = imageService.findImagesByProductVariantId(productVariant.getId());
+                    if (imageList != null && !imageList.isEmpty()) {
+                        List<String> imageUrls = imageList.stream()
+                                .map(Image::getImageUri)
+                                .filter(imageUri -> imageUri.startsWith("https://res.cloudinary.com"))
+                                .toList();
+
+                        String color = productVariant.getColor();
+                        if (color != null) {
+                            imagesByColor.computeIfAbsent(color, k -> new ArrayList<>()).addAll(imageUrls);
+
+                            // Gán variantId đầu tiên cho mỗi màu (nếu chưa có)
+                            variantIdByColor.putIfAbsent(color, productVariant.getId());
+                        }
                     }
                 }
-            }
 
-            model.addAttribute("imagesByColor", imagesByColor);
-            model.addAttribute("variantIdByColor", variantIdByColor);
+                model.addAttribute("imagesByColor", imagesByColor);
+                model.addAttribute("variantIdByColor", variantIdByColor);
 
-            Map<String, List<SizeInfo>> sizesByColor = new HashMap<>();
+                Map<String, List<SizeInfo>> sizesByColor = new HashMap<>();
 
-            for (ProductVariant variant : productVariants) {
-                if (variant == null || variant.getColor() == null) {
-                    System.out.println("Skipping null variant or color for variant ID: " + (variant != null ? variant.getId() : "unknown"));
-                    continue;
-                }
-                List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
-                if (sizes == null) {
-                    System.out.println("Sizes are null for variant ID: " + variant.getId());
-                    continue;
-                }
-                String color = variant.getColor();
-                List<SizeInfo> sizeInfos = sizesByColor.getOrDefault(color, new ArrayList<>());
-
-                for (Size size : sizes) {
-                    if (size == null || size.getSizeName() == null) {
-                        System.out.println("Skipping null size or size name for variant ID: " + variant.getId());
+                for (ProductVariant variant : productVariants) {
+                    if (variant == null || variant.getColor() == null) {
+                        System.out.println("Skipping null variant or color for variant ID: " + (variant != null ? variant.getId() : "unknown"));
                         continue;
                     }
-                    SizeInfo sizeInfo = new SizeInfo(color, size.getSizeName(), size.getStockQuantity());
-                    sizeInfos.add(sizeInfo);
-                }
-
-                sizesByColor.put(color, sizeInfos);
-            }
-
-            // Tiếp tục với các đoạn mã bên dưới
-            model.addAttribute("sizesByColor", sizesByColor);
-
-            // Lấy feedbacks của sản phẩm
-            List<Feedback> feedbacks = feedBackService.findByProductIdOrderByCreateAtDesc(id);
-            model.addAttribute("feedbacks", feedbacks);
-
-            // Lấy màu sắc đầu tiên từ sizesByColor (màu mặc định)
-            String selectedColor = sizesByColor.keySet().stream().findFirst().orElse("Red"); // mặc định "Red"
-            System.out.println("sizesByColor keys:");
-            sizesByColor.keySet().forEach(System.out::println);
-            System.out.println("Selected color: " + selectedColor);
-            System.out.println("Sizes by color: " + sizesByColor);
-
-            // Thêm màu sắc đã chọn vào model
-            model.addAttribute("selectedColor", selectedColor);
-
-            double averageRating = 0.0;
-            if (feedbacks != null && !feedbacks.isEmpty()) {
-                double sum = 0;
-                for (Feedback feedback : feedbacks) {
-                    sum += feedback.getRating();
-                }
-                averageRating = sum / feedbacks.size();
-            }
-            model.addAttribute("averageRating", averageRating);
-
-            // Thêm sản phẩm vào model
-            model.addAttribute("product", product);
-
-            if (viewedProductsCookie != null) {
-                System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                    // Parse JSON string thành List<String>
-                    List<String> viewedProductIdsStr = mapper.readValue(viewedProductsCookie, new TypeReference<List<String>>() {});
-                    System.out.println("Viewed products list: " + viewedProductIdsStr);
-
-                    // Convert List<String> thành List<Long>, bỏ qua id không hợp lệ
-                    List<Long> viewedProductIds = viewedProductIdsStr.stream()
-                            .map(idStr -> {
-                                try {
-                                    return Long.parseLong(idStr);
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                    return null;
-                                }
-                            })
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-
-                    // Lấy danh sách sản phẩm theo id
-                    List<Product> viewedProducts = productService.getProductsById(viewedProductIds);
-                    // Lấy giảm giá cho sản phẩm
-                    for (Product viewedProduct : viewedProducts) {
-                        List<ProductDiscount> viewedProductDiscounts = discountService.getActiveDiscountsForProduct(viewedProduct);
-
-                        // Lấy giảm giá cho danh mục
-                        List<ProductDiscount> viewedCategoryDiscounts = discountService.getActiveDiscountsForCategory(viewedProduct.getCategory());
-
-                        // Gộp cả 2 danh sách giảm giá
-                        Stream<ProductDiscount> viewedAllDiscounts = Stream.concat(
-                                viewedProductDiscounts.stream(),
-                                viewedCategoryDiscounts.stream()
-                        );
-
-                        // Tìm giảm giá cao nhất
-                        Optional<ProductDiscount> viewedMaxDiscount = viewedAllDiscounts
-                                .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
-
-                        // Áp dụng giảm giá cao nhất (nếu có)
-                        BigDecimal viewedEffectivePrice = viewedMaxDiscount
-                                .map(discount -> discountService.applyDiscount(viewedProduct.getPrice(), discount))
-                                .orElse(viewedProduct.getPrice());
-
-                        // Cập nhật giá hiệu lực cho sản phẩm
-                        viewedProduct.setEffectivePrice(viewedEffectivePrice);
-//                        viewedProduct.setDescription(viewedProduct.getDescription());
+                    List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                    if (sizes == null) {
+                        System.out.println("Sizes are null for variant ID: " + variant.getId());
+                        continue;
                     }
-                    Map<Long, Integer> discountViewedPercents = new HashMap<>();
-                    for (Product viewedProduct : viewedProducts) {
-                        if (viewedProduct.getEffectivePrice() != null && viewedProduct.getEffectivePrice().compareTo(viewedProduct.getPrice()) < 0) {
-                            BigDecimal discount = viewedProduct.getPrice().subtract(viewedProduct.getEffectivePrice());
-                            BigDecimal percent = discount.divide(viewedProduct.getPrice(), 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-                            discountViewedPercents.put(viewedProduct.getId(), percent.intValue());
-                        } else {
-                            discountViewedPercents.put(viewedProduct.getId(), 0);
+                    String color = variant.getColor();
+                    List<SizeInfo> sizeInfos = sizesByColor.getOrDefault(color, new ArrayList<>());
+
+                    for (Size size : sizes) {
+                        if (size == null || size.getSizeName() == null) {
+                            System.out.println("Skipping null size or size name for variant ID: " + variant.getId());
+                            continue;
                         }
+                        SizeInfo sizeInfo = new SizeInfo(color, size.getSizeName(), size.getStockQuantity());
+                        sizeInfos.add(sizeInfo);
                     }
-                    model.addAttribute("discountViewedPercents", discountViewedPercents);
-                    Map<Long, Map<Long, List<String>>> viewedProductVariantImages = new HashMap<>();
 
-                    for (Product viewedProduct : viewedProducts) {
-                        List<ProductVariant> viewedVariants = productVariantService.findAllByProductId(viewedProduct.getId());
-                        Map<Long, List<String>> variantImageMap = new HashMap<>();
-
-                        for (ProductVariant viewedVariant : viewedVariants) {
-                            List<Image> images = imageService.findImagesByProductVariantId(viewedVariant.getId());
-                            List<String> imageUrls = images.stream()
-                                    .map(Image::getImageUri)
-                                    .collect(Collectors.toList());
-                            variantImageMap.put(viewedVariant.getId(), imageUrls);
-                        }
-
-                        viewedProductVariantImages.put(viewedProduct.getId(), variantImageMap);
-                    }
-                    // Gửi danh sách ảnh theo productId vào model
-                    model.addAttribute("viewedProductVariantImages", viewedProductVariantImages);
-                    // Gán các attribute vào model
-                    model.addAttribute("viewedProductIds", viewedProductIds);
-                    model.addAttribute("viewedProducts", viewedProducts);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    sizesByColor.put(color, sizeInfos);
                 }
-            } else {
-                System.out.println("No viewedProducts cookie found.");
+
+                // Tiếp tục với các đoạn mã bên dưới
+                model.addAttribute("sizesByColor", sizesByColor);
+
+                // Lấy feedbacks của sản phẩm
+                List<Feedback> feedbacks = feedBackService.findByProductIdOrderByCreateAtDesc(id);
+                model.addAttribute("feedbacks", feedbacks);
+
+                // Lấy màu sắc đầu tiên từ sizesByColor (màu mặc định)
+                String selectedColor = sizesByColor.keySet().stream().findFirst().orElse("Red"); // mặc định "Red"
+                System.out.println("sizesByColor keys:");
+                sizesByColor.keySet().forEach(System.out::println);
+                System.out.println("Selected color: " + selectedColor);
+                System.out.println("Sizes by color: " + sizesByColor);
+
+                // Thêm màu sắc đã chọn vào model
+                model.addAttribute("selectedColor", selectedColor);
+
+                double averageRating = 0.0;
+                if (feedbacks != null && !feedbacks.isEmpty()) {
+                    double sum = 0;
+                    for (Feedback feedback : feedbacks) {
+                        sum += feedback.getRating();
+                    }
+                    averageRating = sum / feedbacks.size();
+                }
+                model.addAttribute("averageRating", averageRating);
+
+                // Thêm sản phẩm vào model
+                model.addAttribute("product", product);
+
+                if (viewedProductsCookie != null) {
+                    System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
+                    ObjectMapper mapper = new ObjectMapper();
+                    try {
+                        // Parse JSON string thành List<String>
+                        List<String> viewedProductIdsStr = mapper.readValue(viewedProductsCookie, new TypeReference<List<String>>() {});
+                        System.out.println("Viewed products list: " + viewedProductIdsStr);
+
+                        // Convert List<String> thành List<Long>, bỏ qua id không hợp lệ
+                        List<Long> viewedProductIds = viewedProductIdsStr.stream()
+                                .map(idStr -> {
+                                    try {
+                                        return Long.parseLong(idStr);
+                                    } catch (NumberFormatException e) {
+                                        e.printStackTrace();
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+
+                        // Lấy danh sách sản phẩm theo id
+                        List<Product> viewedProducts = productService.getProductsById(viewedProductIds);
+                        // Lấy giảm giá cho sản phẩm
+                        for (Product viewedProduct : viewedProducts) {
+                            List<ProductDiscount> viewedProductDiscounts = discountService.getActiveDiscountsForProduct(viewedProduct);
+
+                            // Lấy giảm giá cho danh mục
+                            List<ProductDiscount> viewedCategoryDiscounts = discountService.getActiveDiscountsForCategory(viewedProduct.getCategory());
+
+                            // Gộp cả 2 danh sách giảm giá
+                            Stream<ProductDiscount> viewedAllDiscounts = Stream.concat(
+                                    viewedProductDiscounts.stream(),
+                                    viewedCategoryDiscounts.stream()
+                            );
+
+                            // Tìm giảm giá cao nhất
+                            Optional<ProductDiscount> viewedMaxDiscount = viewedAllDiscounts
+                                    .max(Comparator.comparing(ProductDiscount::getDiscountPercent));
+
+                            // Áp dụng giảm giá cao nhất (nếu có)
+                            BigDecimal viewedEffectivePrice = viewedMaxDiscount
+                                    .map(discount -> discountService.applyDiscount(viewedProduct.getPrice(), discount))
+                                    .orElse(viewedProduct.getPrice());
+
+                            // Cập nhật giá hiệu lực cho sản phẩm
+                            viewedProduct.setEffectivePrice(viewedEffectivePrice);
+    //                        viewedProduct.setDescription(viewedProduct.getDescription());
+                        }
+                        Map<Long, Integer> discountViewedPercents = new HashMap<>();
+                        for (Product viewedProduct : viewedProducts) {
+                            if (viewedProduct.getEffectivePrice() != null && viewedProduct.getEffectivePrice().compareTo(viewedProduct.getPrice()) < 0) {
+                                BigDecimal discount = viewedProduct.getPrice().subtract(viewedProduct.getEffectivePrice());
+                                BigDecimal percent = discount.divide(viewedProduct.getPrice(), 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+                                discountViewedPercents.put(viewedProduct.getId(), percent.intValue());
+                            } else {
+                                discountViewedPercents.put(viewedProduct.getId(), 0);
+                            }
+                        }
+                        model.addAttribute("discountViewedPercents", discountViewedPercents);
+                        Map<Long, Map<Long, List<String>>> viewedProductVariantImages = new HashMap<>();
+
+                        for (Product viewedProduct : viewedProducts) {
+                            List<ProductVariant> viewedVariants = productVariantService.findAllByProductId(viewedProduct.getId());
+                            Map<Long, List<String>> variantImageMap = new HashMap<>();
+
+                            for (ProductVariant viewedVariant : viewedVariants) {
+                                List<Image> images = imageService.findImagesByProductVariantId(viewedVariant.getId());
+                                List<String> imageUrls = images.stream()
+                                        .map(Image::getImageUri)
+                                        .collect(Collectors.toList());
+                                variantImageMap.put(viewedVariant.getId(), imageUrls);
+                            }
+
+                            viewedProductVariantImages.put(viewedProduct.getId(), variantImageMap);
+                        }
+                        // Gửi danh sách ảnh theo productId vào model
+                        model.addAttribute("viewedProductVariantImages", viewedProductVariantImages);
+                        // Gán các attribute vào model
+                        model.addAttribute("viewedProductIds", viewedProductIds);
+                        model.addAttribute("viewedProducts", viewedProducts);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("No viewedProducts cookie found.");
+
+                }
+                return "product/product-detail";
+            } catch (Exception e) {
+                model.addAttribute("errorMessage", "An error occurred while retrieving the product: " + e.getMessage());
+                e.printStackTrace();
+                System.out.println("========================================" + e.getMessage());
+                return "redirect:/user";
             }
-            return "product/product-detail";
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", "An error occurred while retrieving the product: " + e.getMessage());
-            e.printStackTrace();
-            System.out.println("========================================" + e.getMessage());
-            return "redirect:/user";
         }
-    }
     // Hàm chuẩn hóa tên sản phẩm thành slug
     public static String encodeForCloudinary(String input) {
         try {
