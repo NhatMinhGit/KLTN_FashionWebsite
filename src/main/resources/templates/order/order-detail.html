@@ -83,6 +83,7 @@
             </div>
 
             <div class="d-flex justify-content-start">
+                <!-- Form duyệt đơn khi trạng thái là PAID hoặc PENDING -->
                 <form th:action="@{/admin/order/approve/{id}(id=${order.id})}" method="post"
                       th:if="${order.status.name() == 'PAID' or order.status.name() == 'PENDING'}">
                     <button type="submit" class="btn btn-success btn-space">
@@ -90,6 +91,16 @@
                         <p>Duyệt đơn hàng</p>
                     </button>
                 </form>
+
+                <!-- Form hoàn tất đơn hàng khi trạng thái là SHIPPED -->
+                <form th:action="@{/admin/order/complete/{id}(id=${order.id})}" method="post"
+                      th:if="${order.status.name() == 'SHIPPED'}">
+                    <button type="submit" class="btn btn-primary btn-space">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Hoàn tất đơn hàng</p>
+                    </button>
+                </form>
+
                 <a class="btn btn-danger btn-space" th:href="@{/admin/order/export-invoice-pdf/{id}(id=${order.id})}">
                     <i class="fa-solid fa-file-pdf"></i>
                     <p>Xuất hóa đơn</p>
@@ -99,6 +110,7 @@
                     <p>Quay lại danh sách</p>
                 </a>
             </div>
+
         </div>
     </div>
 </div>
