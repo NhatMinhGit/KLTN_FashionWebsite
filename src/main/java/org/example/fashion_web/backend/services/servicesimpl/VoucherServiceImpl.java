@@ -72,4 +72,9 @@ public class VoucherServiceImpl implements VoucherService {
                         u.getDiscountType().toLowerCase().contains(lowerKeyword))
                 .collect(Collectors.toList());
     }
+    @Override
+    public List<Voucher> getGeneralVouchers() {
+        return voucherRepository.findGeneralVouchers();
+    }
+
 }

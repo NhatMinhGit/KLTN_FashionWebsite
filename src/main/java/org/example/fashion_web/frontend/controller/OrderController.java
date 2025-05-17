@@ -96,6 +96,10 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+
+    @Autowired
+    private UserVoucherAssignmentRepository userVoucherAssignmentRepository;
+
     private BigDecimal totalOrderPrice = BigDecimal.valueOf(0);
 
     private  String address;
@@ -152,16 +156,36 @@ public class OrderController {
         userProfile.getWard().getDistrict().getCity().getCityName()
         : "Chưa cập nhật!";
 
-        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(user.getId()); // Lấy danh sách voucher từ service
+        // Lấy danh sách voucher dùng chung (không gán cho người dùng nào)
+        List<Voucher> generalVouchers = voucherService.getGeneralVouchers();
 
+        // Lấy danh sách voucher riêng được gán cho người dùng
+        List<UserVoucherAssignment> userVoucherAssignments = userVoucherAssignmentRepository.findByUserIdAndIsUsed(user.getId(), false);
+
+        // Lấy danh sách các userVoucherAssignmentId
+        List<Long> userVoucherAssignmentIds = userVoucherAssignments.stream()
+                .map(UserVoucherAssignment::getAssignmentId)
+                .collect(Collectors.toList());
+
+        // Trích voucher từ UserVoucher
+        List<Voucher> privateVouchers = userVoucherAssignments.stream()
+                .map(UserVoucherAssignment::getVoucher)
+                .collect(Collectors.toList());
+
+        // Gộp cả hai loại voucher
+        List<Voucher> vouchers = new ArrayList<>();
+        vouchers.addAll(generalVouchers);
+        vouchers.addAll(privateVouchers);
+        model.addAttribute("userVoucherAssignmentIds", userVoucherAssignmentIds);
+
+// Add vào model như trước
         model.addAttribute("detailaddress", address);
         model.addAttribute("vouchers", vouchers);
         model.addAttribute("totalOrderPrice", totalOrderPrice);
         model.addAttribute("productImages", productImages);
         model.addAttribute("cartItems", cart);
-        System.out.println("Items cart sau khi load trang cart: " + cart);
-
         model.addAttribute("cities", cities);
+
 
         return "order/order";
     }
@@ -187,7 +211,7 @@ public class OrderController {
         BigDecimal priceWithVoucher = totalOrderPrice;
         BigDecimal discountAmount = BigDecimal.valueOf(0);
         Voucher voucher = voucherRepository.findByVoucherCode(voucherCode);
-        voucher.setUsageLimit(voucher.getUsageLimit()-1);
+//        voucher.setUsageLimit(voucher.getUsageLimit()-1);*
         voucherRepository.save(voucher);
         if (voucher.getDiscountType().equals("percentage")) {
             BigDecimal discountRate = voucher.getDiscountValue().divide(BigDecimal.valueOf(100));
@@ -353,6 +377,16 @@ public class OrderController {
                 userVoucher.setVoucher(voucher);
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
+
+                Optional<UserVoucherAssignment> assignmentOpt = userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
+                if (assignmentOpt.isPresent()) {
+                    UserVoucherAssignment assignment = assignmentOpt.get();
+                    assignment.setIsUsed(true);
+                    assignment.setAssignedAt(LocalDateTime.now());
+                    userVoucherAssignmentRepository.save(assignment);
+                } else {
+                    throw new RuntimeException("UserVoucherAssignment không tồn tại với userId: " + user.getId() + " và voucherId: " + voucher.getId());
+                }
             }
 
             // Gửi email

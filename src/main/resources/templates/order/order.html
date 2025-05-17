@@ -430,12 +430,14 @@
                 // Cập nhật hiển thị đã format
                 totalPriceElement.innerHTML = data.newTotal.toLocaleString("vi-VN") + " đ";
                 discountElement.innerHTML = "- " + data.discountAmount.toLocaleString("vi-VN") + " đ";
+
               } else {
                 alert("Mã giảm giá không hợp lệ!");
               }
             })
             .catch(error => console.error("Lỗi:", error));
   }
+
 
   ////
   function savePaymentInfo() {

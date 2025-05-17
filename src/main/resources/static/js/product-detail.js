@@ -5,22 +5,44 @@
 //     // Thêm class 'active' vào ảnh được chọn
 //     imgElement.classList.add('active');
 // }
+// function changeImage(imgElement) {
+//     const mainImage = document.getElementById('mainImage');
+//
+//     // Thêm lớp fade-out để làm mờ ảnh
+//     mainImage.classList.add('fade-out');
+//
+//     // Sau 300ms, đổi src và xóa fade-out (hiện ảnh mới)
+//     setTimeout(() => {
+//         mainImage.src = imgElement.src;
+//         mainImage.classList.remove('fade-out');
+//     }, 300);
+//
+//     // Xử lý active thumbnail
+//     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+//     imgElement.classList.add('active');
+// }
+// function changeImage(thumbnail) {
+//     mainImage.src = thumbnail.src;
+// }
 function changeImage(imgElement) {
     const mainImage = document.getElementById('mainImage');
 
-    // Thêm lớp fade-out để làm mờ ảnh
+    // Thêm hiệu ứng mờ
     mainImage.classList.add('fade-out');
 
-    // Sau 300ms, đổi src và xóa fade-out (hiện ảnh mới)
+    // Đợi hiệu ứng hoàn thành rồi thay đổi ảnh và xóa hiệu ứng
     setTimeout(() => {
         mainImage.src = imgElement.src;
         mainImage.classList.remove('fade-out');
     }, 300);
 
-    // Xử lý active thumbnail
+    // Xóa class 'active' khỏi tất cả các thumbnail
     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+
+    // Thêm class 'active' vào thumbnail được click
     imgElement.classList.add('active');
 }
+
 // add-to-cart
 function addToCart() {
     const productElement = document.getElementById("product-details");
@@ -149,10 +171,6 @@ async function updateProductImages(selectedColor) {
         mainImage.alt = "Lỗi khi tải ảnh";
         thumbnailContainer.innerHTML = "<p>Lỗi khi tải ảnh</p>";
     }
-}
-
-function changeImage(thumbnail) {
-    mainImage.src = thumbnail.src;
 }
 
 // Assuming you have a function or way to fetch stock data for the selected size
