@@ -1444,7 +1444,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
     public String technicalSupportForStaffResponse() {
         String content = """
                 <div style="max-width: 700px; margin: auto; font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2 style="color: #2E86C1;">HỖ TRỢ KỸ THUẬT (DÀNH CHO NHÂN VIÊN)</h2>
+                    <h2">HỖ TRỢ KỸ THUẬT (DÀNH CHO NHÂN VIÊN)</h2>
                     <p>Nếu bạn gặp bất kỳ vấn đề nào liên quan đến hệ thống công nghệ thông tin, phần mềm nội bộ hoặc thiết bị tại nơi làm việc, vui lòng liên hệ bộ phận kỹ thuật để được hỗ trợ nhanh chóng và hiệu quả.</p>
                     
                     <h3>Quy trình hỗ trợ:</h3>
@@ -1486,7 +1486,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
     public String technicalSupportForCustomerResponse() {
         String content = """
         <div style="max-width: 700px; margin: auto; font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2 style="color: #28a745;">HỖ TRỢ KỸ THUẬT (DÀNH CHO KHÁCH HÀNG)</h2>
+            <h2">HỖ TRỢ KỸ THUẬT (DÀNH CHO KHÁCH HÀNG)</h2>
             <p>Nếu bạn gặp sự cố hoặc cần trợ giúp liên quan đến sản phẩm, dịch vụ hoặc website của chúng tôi, đội ngũ kỹ thuật luôn sẵn sàng hỗ trợ bạn.</p>
             <p>Chúng tôi cam kết phản hồi và giải quyết các vấn đề nhanh nhất có thể để đảm bảo trải nghiệm mua sắm và sử dụng dịch vụ của bạn luôn thuận tiện và hài lòng.</p>
             

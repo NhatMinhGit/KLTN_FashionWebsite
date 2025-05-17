@@ -2,12 +2,9 @@ package org.example.fashion_web.backend.configurations;
 
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.models.UserProfile;
-import org.example.fashion_web.backend.models.UserVoucher;
+import org.example.fashion_web.backend.models.UserVoucherAssignment;
 import org.example.fashion_web.backend.models.Voucher;
-import org.example.fashion_web.backend.repositories.OrderRepository;
-import org.example.fashion_web.backend.repositories.UserProfileRepository;
-import org.example.fashion_web.backend.repositories.UserVoucherRepository;
-import org.example.fashion_web.backend.repositories.VoucherRepository;
+import org.example.fashion_web.backend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,6 +23,9 @@ public class DefaultVoucherConfig {
     private VoucherRepository voucherRepository;
     @Autowired
     private OrderRepository orderRepository; // Order là bắt buộc trong UserVoucher
+    @Autowired
+    private UserVoucherAssignmentRepository userVoucherAssignmentRepository;
+
 
     // Chạy lúc 00:01 mỗi ngày
     @Scheduled(cron = "0 1 0 * * *")
@@ -53,12 +53,13 @@ public class DefaultVoucherConfig {
         for (UserProfile profile : birthdayUsers) {
             User user = profile.getUser();
 
-            UserVoucher userVoucher = new UserVoucher();
-            userVoucher.setUser(user);
-            userVoucher.setVoucher(voucher);
-            userVoucher.setUsedDate(LocalDate.now().atStartOfDay());
+            UserVoucherAssignment userVoucherAssignment = new UserVoucherAssignment();
+            userVoucherAssignment.setUser(user);
+            userVoucherAssignment.setVoucher(voucher);
+            userVoucherAssignment.setAssignedAt(LocalDate.now().atStartOfDay());
+            userVoucherAssignment.setIsUsed(false);
 
-            userVoucherRepository.save(userVoucher);
+            userVoucherAssignmentRepository.save(userVoucherAssignment);
         }
     }
 }

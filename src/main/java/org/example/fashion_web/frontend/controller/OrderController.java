@@ -160,7 +160,12 @@ public class OrderController {
         List<Voucher> generalVouchers = voucherService.getGeneralVouchers();
 
         // Lấy danh sách voucher riêng được gán cho người dùng
-        List<UserVoucherAssignment> userVoucherAssignments = userVoucherAssignmentRepository.getAssignmentsByUserId(user.getId());
+        List<UserVoucherAssignment> userVoucherAssignments = userVoucherAssignmentRepository.findByUserIdAndIsUsed(user.getId(), false);
+
+        // Lấy danh sách các userVoucherAssignmentId
+        List<Long> userVoucherAssignmentIds = userVoucherAssignments.stream()
+                .map(UserVoucherAssignment::getAssignmentId)
+                .collect(Collectors.toList());
 
         // Trích voucher từ UserVoucher
         List<Voucher> privateVouchers = userVoucherAssignments.stream()
@@ -171,6 +176,7 @@ public class OrderController {
         List<Voucher> vouchers = new ArrayList<>();
         vouchers.addAll(generalVouchers);
         vouchers.addAll(privateVouchers);
+        model.addAttribute("userVoucherAssignmentIds", userVoucherAssignmentIds);
 
 // Add vào model như trước
         model.addAttribute("detailaddress", address);
@@ -377,6 +383,16 @@ public class OrderController {
                 userVoucher.setVoucher(voucher);
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
+
+                Optional<UserVoucherAssignment> assignmentOpt = userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
+                if (assignmentOpt.isPresent()) {
+                    UserVoucherAssignment assignment = assignmentOpt.get();
+                    assignment.setIsUsed(true);
+                    assignment.setAssignedAt(LocalDateTime.now());
+                    userVoucherAssignmentRepository.save(assignment);
+                } else {
+                    throw new RuntimeException("UserVoucherAssignment không tồn tại với userId: " + user.getId() + " và voucherId: " + voucher.getId());
+                }
             }
 
             // Gửi email
