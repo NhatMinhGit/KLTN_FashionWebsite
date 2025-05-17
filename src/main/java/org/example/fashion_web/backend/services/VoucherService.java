@@ -6,7 +6,6 @@ import org.example.fashion_web.backend.models.Voucher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface VoucherService {
@@ -16,4 +15,7 @@ public interface VoucherService {
     List<Voucher> getAllVouchersAvilable(Long userId);
 
     List<Voucher> searchVouchersByKeyword(String keyword);
+
+    public List<Voucher> getGeneralVouchers();
+
 }

@@ -53,6 +53,11 @@
             <label for="usageLimit" class="form-label">Giới Hạn Sử Dụng</label>
             <input type="number" class="form-control" id="usageLimit" th:field="*{usageLimit}" min="1">
         </div>
+        <div class="mb-3" th:if="*{userId} != null">
+            <label for="userId" class="form-label">Người Dùng Áp Dụng (User ID)</label>
+            <input type="number" class="form-control" id="userId" th:field="*{userId}">
+            <p th:if="${#fields.hasErrors('userId')}" class="text-danger" th:errors="*{userId}"></p>
+        </div>
         <div class="d-flex justify-content-between">
             <a href="/admin/voucher" class="btn btn-secondary">Quay lại</a>
             <button type="submit" class="btn btn-primary">Lưu</button>

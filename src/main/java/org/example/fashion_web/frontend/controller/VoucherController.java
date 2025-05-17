@@ -3,26 +3,28 @@ package org.example.fashion_web.frontend.controller;
 import jakarta.validation.Valid;
 import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.dto.VoucherDto;
-import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.models.User;
+import org.example.fashion_web.backend.models.UserVoucherAssignment;
 import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.UserRepository;
+import org.example.fashion_web.backend.repositories.UserVoucherAssignmentRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
-import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.time.LocalDate;
@@ -40,6 +42,12 @@ public class VoucherController {
 
     @Autowired
     private VoucherRepository voucherRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserVoucherAssignmentRepository userVoucherAssignmentRepository;
 
 //    @RequestMapping("admin/voucher")
 //    public String voucherIndex(Model model, Principal principal) {
@@ -114,6 +122,20 @@ public class VoucherController {
         int end = Math.min((start + pageable.getPageSize()), filtered.size());
         Page<Voucher> voucherPage = new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
 
+        // Map voucherId -> List tên user assigned (nếu có)
+        Map<Long, List<String>> voucherAssignments = new HashMap<>();
+        for (Voucher v : voucherPage.getContent()) {
+            List<UserVoucherAssignment> assignments = userVoucherAssignmentRepository.getAssignmentsByVoucherId(v.getId());
+            if (assignments != null && !assignments.isEmpty()) {
+                List<String> userNames = assignments.stream()
+                        .map(a -> a.getUser().getName()) // giả sử User có method getName()
+                        .collect(Collectors.toList());
+                voucherAssignments.put(v.getId(), userNames);
+            } else {
+                // Nếu không có assignment thì có thể để rỗng hoặc null
+                voucherAssignments.put(v.getId(), Collections.emptyList());
+            }
+        }
         // Thêm các thuộc tính vào model
         model.addAttribute("vouchers", voucherPage.getContent());
         model.addAttribute("voucherPage", voucherPage);
@@ -126,6 +148,9 @@ public class VoucherController {
                 "status", status != null ? status : "",
                 "discountType", discountType != null ? discountType : ""
         ));
+
+        model.addAttribute("voucherAssignments", voucherAssignments);
+
 
         // Xử lý thông tin người dùng
         if (principal != null) {
@@ -149,36 +174,81 @@ public class VoucherController {
         return "voucher/add-voucher";
     }
 
-    @PostMapping("admin/voucher/add-voucher")
-    public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
-                                BindingResult result, Model model) {
-        // Kiểm tra xem mã voucher đã tồn tại chưa
-        if (voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
-            result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
-        }
-
-        // Kiểm tra lỗi validation
-        if (result.hasErrors()) {
-            model.addAttribute("voucherDto", voucherDto); // Đảm bảo dữ liệu không bị mất khi có lỗi
-            return "voucher/add-voucher";
-        }
-
-        // Chuyển đổi DTO thành entity và lưu vào database
-        Voucher voucher = new Voucher();
-        voucher.setVoucherCode(voucherDto.getVoucherCode());
-        voucher.setVoucherName(voucherDto.getVoucherName());
-        voucher.setDiscountType(voucherDto.getDiscountType());
-        voucher.setDiscountValue(voucherDto.getDiscountValue());
-        voucher.setMinOrderValue(voucherDto.getMinOrderValue());
-        voucher.setStartDate(LocalDate.from(voucherDto.getStartDate()));
-        voucher.setEndDate(LocalDate.from(voucherDto.getEndDate()));
-        voucher.setUsageLimit(voucherDto.getUsageLimit());
-        voucher.setCreatedAt(LocalDateTime.now());
-        voucher.setUpdatedAt(LocalDateTime.now());
-        voucherRepository.save(voucher);
-
-        return "redirect:/admin/voucher";
+//    @PostMapping("admin/voucher/add-voucher")
+//    public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
+//                                BindingResult result, Model model) {
+//        // Kiểm tra xem mã voucher đã tồn tại chưa
+//        if (voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
+//            result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
+//        }
+//
+//        // Kiểm tra lỗi validation
+//        if (result.hasErrors()) {
+//            model.addAttribute("voucherDto", voucherDto); // Đảm bảo dữ liệu không bị mất khi có lỗi
+//            return "voucher/add-voucher";
+//        }
+//
+//        // Chuyển đổi DTO thành entity và lưu vào database
+//        Voucher voucher = new Voucher();
+//        voucher.setVoucherCode(voucherDto.getVoucherCode());
+//        voucher.setVoucherName(voucherDto.getVoucherName());
+//        voucher.setDiscountType(voucherDto.getDiscountType());
+//        voucher.setDiscountValue(voucherDto.getDiscountValue());
+//        voucher.setMinOrderValue(voucherDto.getMinOrderValue());
+//        voucher.setStartDate(LocalDate.from(voucherDto.getStartDate()));
+//        voucher.setEndDate(LocalDate.from(voucherDto.getEndDate()));
+//        voucher.setUsageLimit(voucherDto.getUsageLimit());
+//        voucher.setCreatedAt(LocalDateTime.now());
+//        voucher.setUpdatedAt(LocalDateTime.now());
+//        voucherRepository.save(voucher);
+//
+//        return "redirect:/admin/voucher";
+//    }
+@PostMapping("admin/voucher/add-voucher")
+public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
+                            BindingResult result, Model model) {
+    // Kiểm tra xem mã voucher đã tồn tại chưa
+    if (voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
+        result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
     }
+
+    // Kiểm tra lỗi validation
+    if (result.hasErrors()) {
+        model.addAttribute("voucherDto", voucherDto);
+        return "voucher/add-voucher";
+    }
+
+    // Tạo entity Voucher và lưu
+    Voucher voucher = new Voucher();
+    voucher.setVoucherCode(voucherDto.getVoucherCode());
+    voucher.setVoucherName(voucherDto.getVoucherName());
+    voucher.setDiscountType(voucherDto.getDiscountType());
+    voucher.setDiscountValue(voucherDto.getDiscountValue());
+    voucher.setMinOrderValue(voucherDto.getMinOrderValue());
+    voucher.setStartDate(voucherDto.getStartDate());
+    voucher.setEndDate(voucherDto.getEndDate());
+    voucher.setUsageLimit(voucherDto.getUsageLimit());
+    voucher.setCreatedAt(LocalDateTime.now());
+    voucher.setUpdatedAt(LocalDateTime.now());
+    voucherRepository.save(voucher);
+
+    // Nếu có userId thì tạo thêm UserVoucherAssignment
+    if (voucherDto.getUserId() != null) {
+        User user = userRepository.findById(voucherDto.getUserId())
+                .orElse(null);
+        if (user != null) {
+            UserVoucherAssignment assignment = new UserVoucherAssignment();
+            assignment.setUser(user);
+            assignment.setVoucher(voucher);
+            assignment.setAssignedAt(LocalDateTime.now());
+            assignment.setIsUsed(false);
+            userVoucherAssignmentRepository.save(assignment);
+        }
+    }
+
+    return "redirect:/admin/voucher";
+}
+
 
     @GetMapping("admin/voucher/edit-voucher")
     public String editVoucher(Model model, @RequestParam Long id) {
