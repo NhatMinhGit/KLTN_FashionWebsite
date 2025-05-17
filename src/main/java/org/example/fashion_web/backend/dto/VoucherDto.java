@@ -21,4 +21,5 @@ public class VoucherDto {
     private int usageLimit;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long userId;
 }

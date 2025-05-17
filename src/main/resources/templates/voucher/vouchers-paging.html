@@ -65,6 +65,7 @@
                 <th>Giá trị giảm</th>
                 <th>Ngày bắt đầu</th>
                 <th>Ngày kết thúc</th>
+                <th>Áp dụng cho</th>
                 <th>Hành động</th>
             </tr>
             </thead>
@@ -77,6 +78,16 @@
                 <td th:text="${voucher.discountValue}"></td>
                 <td th:text="${voucher.startDate}"></td>
                 <td th:text="${voucher.endDate}"></td>
+                <td>
+                    <div th:if="${voucherAssignments[voucher.id].size() > 0}">
+                        <ul>
+                            <li th:each="name : ${voucherAssignments[voucher.id]}" th:text="${name}"></li>
+                        </ul>
+                    </div>
+                    <div th:if="${voucherAssignments[voucher.id].size() == 0}">
+                        <span>Cho tất cả người dùng</span>
+                    </div>
+                </td>
                 <td>
                     <a class="btn btn-warning btn-sm" th:href="@{/admin/voucher/edit-voucher(id=${voucher.id})}">Sửa</a>
                     <button class="btn btn-danger btn-sm">Xóa</button>
