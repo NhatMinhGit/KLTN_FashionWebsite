@@ -179,7 +179,7 @@ public class OrderController {
         model.addAttribute("userVoucherAssignmentIds", userVoucherAssignmentIds);
 //        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(user.getId());
 
-// Add vào model như trước
+        // Add vào model như trước
         model.addAttribute("detailaddress", address);
         model.addAttribute("vouchers", vouchers);
         model.addAttribute("totalOrderPrice", totalOrderPrice);

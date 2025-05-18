@@ -86,10 +86,6 @@ public class VoucherServiceImpl implements VoucherService {
                 .collect(Collectors.toList());
     }
     @Override
-
-    public List<Voucher> getGeneralVouchers() {
-        return voucherRepository.findGeneralVouchers();
-
     public List<Voucher> getGeneralVouchers(Long userId) {
         // Tất cả voucher trong hệ thống
         List<Voucher> allVouchers = voucherRepository.findAll();

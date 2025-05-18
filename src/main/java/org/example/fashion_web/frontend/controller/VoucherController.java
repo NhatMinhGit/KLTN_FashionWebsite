@@ -1,7 +1,6 @@
 package org.example.fashion_web.frontend.controller;
 
 import jakarta.validation.Valid;
-import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.dto.UserVoucherAssignmentDto;
 import org.example.fashion_web.backend.dto.VoucherDto;
 import org.example.fashion_web.backend.models.User;
@@ -10,6 +9,7 @@ import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.repositories.UserVoucherAssignmentRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
+import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

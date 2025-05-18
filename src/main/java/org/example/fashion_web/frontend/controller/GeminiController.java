@@ -137,7 +137,7 @@ public class GeminiController {
                     response = geminiService.changeProductModelResponse();
                     break;
                 case "recommend_product":
-                    response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie);
+                    response = geminiService.recommendProductBasedOnViewedResponse(viewedProductsCookie,user.getId());
                     break;
                 case "technical_support":
                     response = geminiService.technicalSupportForCustomerResponse();
