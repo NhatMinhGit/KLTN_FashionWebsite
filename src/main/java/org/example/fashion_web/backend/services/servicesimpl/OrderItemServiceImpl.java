@@ -44,7 +44,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         List<CategoryRevenueDto> result = orderItemRepository.findTopCategoriesByRevenue(monthStart, monthEnd);
 
         // Giới hạn kết quả chỉ lấy 10 danh mục có doanh thu cao nhất
-        return result.size() > 10 ? result.subList(0, 10) : result;
+        return result.size() > 3 ? result.subList(0, 3) : result;
     }
 
     @Override

@@ -43,7 +43,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     );
 
 
-    @Query("SELECT new org.example.fashion_web.backend.dto.ProductRevenueDto(p.id,p.name,p.brand.name,p.category.name,SUM(oi.pricePerUnit * oi.quantity)) " +
+    @Query("SELECT new org.example.fashion_web.backend.dto.CategoryRevenueDto(c.name, SUM(oi.pricePerUnit * oi.quantity)) " +
             "FROM OrderItem oi " +
             "JOIN oi.order o " +
             "JOIN oi.product p " +

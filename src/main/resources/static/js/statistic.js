@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedYearForCategoriesSpan.innerText = item.innerText;
             const month = parseInt(selectedMonthForCategoriesSpan.innerText.replace("Tháng ", ""));
             fetchSalesByCategories(year, month);
-            fetchOrderStatusChart(year, month);
+            // fetchOrderStatusChart(year, month);
         });
     });
 
@@ -372,13 +372,18 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedMonthForCategoriesSpan.innerText = item.innerText;
             const year = parseInt(selectedYearForCategoriesSpan.innerText.trim());
             fetchSalesByCategories(year, month);
-            fetchOrderStatusChart(year, month);
+            // fetchOrderStatusChart(year, month);
         });
     });
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // Lưu ý: getMonth() trả về từ 0 đến 11
+
+    fetchOrderStatusChart(currentYear, currentMonth);
+
     // Initialize default data fetch
     fetchRevenueByYear(2025);
     fetchRevenueByYears();
-    fetchOrderStatusChart(2025, 5);
     fetchSalesByProducts(2025,5);
     fetchLowSalesByProducts(2025,5);
     fetchSalesByCategories(2025,5);

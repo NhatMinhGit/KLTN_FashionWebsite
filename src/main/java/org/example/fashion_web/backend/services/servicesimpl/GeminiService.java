@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -1444,7 +1445,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
     public String technicalSupportForStaffResponse() {
         String content = """
                 <div style="max-width: 700px; margin: auto; font-family: Arial, sans-serif; line-height: 1.6;">
-                    <h2">HỖ TRỢ KỸ THUẬT (DÀNH CHO NHÂN VIÊN)</h2>
+                    <h2>HỖ TRỢ KỸ THUẬT (DÀNH CHO NHÂN VIÊN)</h2>
                     <p>Nếu bạn gặp bất kỳ vấn đề nào liên quan đến hệ thống công nghệ thông tin, phần mềm nội bộ hoặc thiết bị tại nơi làm việc, vui lòng liên hệ bộ phận kỹ thuật để được hỗ trợ nhanh chóng và hiệu quả.</p>
                     
                     <h3>Quy trình hỗ trợ:</h3>
@@ -1460,10 +1461,9 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                     <p><strong>Thứ 7, Chủ nhật & ngày lễ:</strong> Hỗ trợ khẩn cấp qua số nội bộ 103</p>
                     
                     <h3>Thông tin liên hệ nội bộ:</h3>
-                    <p>📞 <strong>Số nội bộ:</strong> 103 (Phòng kỹ thuật)</p>
+                    <p>📞 <strong>Số nội bộ:</strong>0765 599 103 (Phòng kỹ thuật)</p>
                     <p>📧 <strong>Email:</strong> it.support@mntfashion.com</p>
-                    <p>🛠️ <strong>Hệ thống yêu cầu hỗ trợ:</strong> <a href="https://intranet.mntfashion.store/helpdesk" target="_blank" rel="noopener noreferrer">intranet.mntfashion.store/helpdesk</a></p>
-                    
+                                        
                     <h3>Lưu ý:</h3>
                     <ul>
                         <li>Vui lòng cung cấp mô tả chi tiết về sự cố khi gửi yêu cầu để bộ phận kỹ thuật có thể xử lý nhanh hơn.</li>
@@ -1486,15 +1486,14 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
     public String technicalSupportForCustomerResponse() {
         String content = """
         <div style="max-width: 700px; margin: auto; font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2">HỖ TRỢ KỸ THUẬT (DÀNH CHO KHÁCH HÀNG)</h2>
+            <h2>HỖ TRỢ KỸ THUẬT (DÀNH CHO KHÁCH HÀNG)</h2>
             <p>Nếu bạn gặp sự cố hoặc cần trợ giúp liên quan đến sản phẩm, dịch vụ hoặc website của chúng tôi, đội ngũ kỹ thuật luôn sẵn sàng hỗ trợ bạn.</p>
             <p>Chúng tôi cam kết phản hồi và giải quyết các vấn đề nhanh nhất có thể để đảm bảo trải nghiệm mua sắm và sử dụng dịch vụ của bạn luôn thuận tiện và hài lòng.</p>
             
             <h3>Phương thức liên hệ:</h3>
             <ul>
-                <li>Gọi Hotline Kỹ Thuật: <strong>0765 599 103</strong> (24/7 hỗ trợ)</li>
-                <li>Gửi Email: <a href="mailto:techsupport@mntfashion.com">techsupport@mntfashion.com</a></li>
-                <li>Chat trực tiếp với nhân viên hỗ trợ: <a href="https://mntfashion.store/chat" target="_blank" rel="noopener noreferrer">https://mntfashion.store/chat</a></li>
+                <li>📞 Gọi Hotline Kỹ Thuật: <strong>0765 599 103</strong> (24/7 hỗ trợ)</li>
+                <li>📧 Gửi Email: <a href="mailto:techsupport@mntfashion.com">techsupport@mntfashion.com</a></li>
             </ul>
             
             <h3>Hướng dẫn khi liên hệ:</h3>
@@ -1518,7 +1517,8 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         }
     }
 
-    public String recommendProductBasedOnViewedResponse(@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie) {
+    public String recommendProductBasedOnViewedResponse(@CookieValue(value = "viewedProducts", required = false) String viewedProductsCookie,
+                                                        @RequestParam("userId") Long userId) {
         if (viewedProductsCookie != null) {
             System.out.println("Cookie viewedProducts: " + viewedProductsCookie);
             ObjectMapper mapper = new ObjectMapper();
@@ -1548,8 +1548,8 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                             .filter(Objects::nonNull)
                             .collect(Collectors.toSet());
 
-                    // Xác định khoảng thời gian 3 tháng gần đây
-                    LocalDate startDate = LocalDate.now().minusMonths(3);
+                    // Xác định khoảng thời gian 1 tháng gần đây
+                    LocalDate startDate = LocalDate.now().minusMonths(1);
                     LocalDate endDate = LocalDate.now();
 
                     // Map chứa top sản phẩm theo từng danh mục
@@ -1560,7 +1560,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                                 startDate, endDate, category.getId());
 
                         // Chỉ lấy top 10 sản phẩm
-                        List<ProductRevenueDto> top10 = topProducts.stream().limit(10).toList();
+                        List<ProductRevenueDto> top10 = topProducts.stream().limit(7).toList();
 
                         topProductsByCategory.put(category, top10);
                     }
@@ -1578,23 +1578,6 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                             .toList();
 
                     List<Product> relatedProducts = productService.getProductsById(topProductIds);
-
-                    // Lấy ảnh cho từng variant của top products
-//                    Map<Long, Map<Long, List<String>>> topProductVariantImages = new HashMap<>();
-//
-//                    for (Product product : relatedProducts) {
-//                        List<ProductVariant> variants = productVariantService.findAllByProductId(product.getId());
-//                        Map<Long, List<String>> variantImageMap = new HashMap<>();
-//
-//                        for (ProductVariant variant : variants) {
-//                            List<Image> images = imageService.findImagesByProductVariantId(variant.getId());
-//                            List<String> imageUrls = images.stream()
-//                                    .map(Image::getImageUri)
-//                                    .toList();
-//                            variantImageMap.put(variant.getId(), imageUrls);
-//                        }
-//                        topProductVariantImages.put(product.getId(), variantImageMap);
-//                    }
 
                     // Tạo phần text AI response
                     StringBuilder aiResponse = new StringBuilder("Danh sách các sản phẩm bạn có thể thích "
@@ -1627,7 +1610,6 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
                 throw new RuntimeException("Lỗi xử lý JSON cookie: " + e.getMessage(), e);
             }
         }
-
         // Nếu không có cookie hoặc lỗi, trả về chuỗi rỗng hoặc thông báo phù hợp
         return "{\"aiResponse\":\"Không có sản phẩm đã xem hoặc dữ liệu không hợp lệ.\"}";
     }
