@@ -375,11 +375,13 @@ public class ProductManagementController {
                         System.out.println("Skipping null variant or color for variant ID: " + (variant != null ? variant.getId() : "unknown"));
                         continue;
                     }
+
                     List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
                     if (sizes == null) {
                         System.out.println("Sizes are null for variant ID: " + variant.getId());
                         continue;
                     }
+
                     String color = variant.getColor();
                     List<SizeInfo> sizeInfos = sizesByColor.getOrDefault(color, new ArrayList<>());
 
@@ -388,12 +390,21 @@ public class ProductManagementController {
                             System.out.println("Skipping null size or size name for variant ID: " + variant.getId());
                             continue;
                         }
-                        SizeInfo sizeInfo = new SizeInfo(color, size.getSizeName(), size.getStockQuantity());
+
+                        // Tạo đối tượng SizeInfo với variantId
+                        SizeInfo sizeInfo = new SizeInfo(
+                                variant.getId(),     // variantId
+                                color,               // color
+                                size.getSizeName(),  // sizeName
+                                size.getStockQuantity()
+                        );
+
                         sizeInfos.add(sizeInfo);
                     }
 
                     sizesByColor.put(color, sizeInfos);
                 }
+
 
                 // Tiếp tục với các đoạn mã bên dưới
                 model.addAttribute("sizesByColor", sizesByColor);

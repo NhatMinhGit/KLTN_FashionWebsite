@@ -25,6 +25,23 @@ public class SizeManagementController {
     @Autowired
     private ImageService imageService;
 
+//    @GetMapping("/api/sizes/{productId}/{color}")
+//    @ResponseBody
+//    public List<SizeInfo> getSizesByColor(@PathVariable Long productId, @PathVariable String color) {
+//        List<ProductVariant> productVariants = productVariantService.findAllByProductId(productId);
+//        List<SizeInfo> sizeInfos = new ArrayList<>();
+//
+//        for (ProductVariant variant : productVariants) {
+//            if (variant.getColor().equalsIgnoreCase(color)) {
+//                List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+//                for (Size size : sizes) {
+//                    sizeInfos.add(new SizeInfo(color, size.getSizeName(), size.getStockQuantity()));
+//                }
+//            }
+//        }
+//
+//        return sizeInfos;
+//    }
     @GetMapping("/api/sizes/{productId}/{color}")
     @ResponseBody
     public List<SizeInfo> getSizesByColor(@PathVariable Long productId, @PathVariable String color) {
@@ -35,13 +52,13 @@ public class SizeManagementController {
             if (variant.getColor().equalsIgnoreCase(color)) {
                 List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
                 for (Size size : sizes) {
-                    sizeInfos.add(new SizeInfo(color, size.getSizeName(), size.getStockQuantity()));
+                    sizeInfos.add(new SizeInfo(variant.getId(), color, size.getSizeName(), size.getStockQuantity()));
                 }
             }
         }
-
         return sizeInfos;
     }
+
 
     @GetMapping("/api/images/{productId}/{color}")
     @ResponseBody

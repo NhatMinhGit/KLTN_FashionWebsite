@@ -274,7 +274,7 @@ public class OrderController {
                 return "redirect:/user/user-order";
             }
             UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
-            if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || userProfile.getDob() == null  || address == "Chưa cập nhật!") {
+            if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || address == "Chưa cập nhật!") {
                 model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
                 return "redirect:/user/order";
             }
@@ -342,7 +342,7 @@ public class OrderController {
                 productOpt.ifPresentOrElse(product -> {
                     // Tìm variant tương ứng với sản phẩm
                     Optional<ProductVariant> variantOpt = product.getVariants().stream()
-                            .filter(variant -> variant.getId() == item.getVariant().getId()) // so sánh theo ID variant
+                            .filter(variant -> variant.getId().equals(item.getVariant().getId())) // so sánh theo ID variant
                             .findFirst();
 
                     variantOpt.ifPresentOrElse(variant -> {
