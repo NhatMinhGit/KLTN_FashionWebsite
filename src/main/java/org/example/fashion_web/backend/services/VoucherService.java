@@ -16,6 +16,12 @@ public interface VoucherService {
 
     List<Voucher> searchVouchersByKeyword(String keyword);
 
-    public List<Voucher> getGeneralVouchers();
+    List<Voucher> getGeneralVouchers();
+
+    List<Voucher> getGeneralVouchers(Long userId);
+
+    List<Voucher> getVoucherAvilable();
+
+    List<Voucher> getVoucherNotAssign();
 
 }

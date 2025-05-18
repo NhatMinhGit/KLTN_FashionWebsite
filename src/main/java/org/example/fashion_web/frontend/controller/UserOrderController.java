@@ -61,7 +61,7 @@ public class UserOrderController {
     @GetMapping("user/user-order")
     public String userOrderIndex(Model model,
                                  @AuthenticationPrincipal CustomUserDetails userDetail) {
-        List<Order> orders = orderRepository.findByUser_IdOrderByIdDesc(userDetail.getUser().getId());
+        List<Order> orders = orderService.getAllOrders(userDetail.getUser().getId());
 
         model.addAttribute("ordersAll", orders);
         model.addAttribute("ordersPaid", filterByStatus(orders, Order.OrderStatusType.PAID));
@@ -73,6 +73,18 @@ public class UserOrderController {
 
         model.addAttribute("currencyFormatter", currencyFormatter);
         model.addAttribute("currentPage", "orders");
+        // Tính thời gian còn lại (seconds) cho mỗi đơn hàng trạng thái PAYING
+        LocalDateTime now = LocalDateTime.now();
+        Map<Long, Long> orderRemainingSeconds = new HashMap<>();
+        for (Order order : filterByStatus(orders, Order.OrderStatusType.PAYING)) {
+            if (order.getExpireDate() != null && order.getExpireDate().isAfter(now)) {
+                long secondsLeft = java.time.Duration.between(now, order.getExpireDate()).getSeconds();
+                orderRemainingSeconds.put(order.getId(), secondsLeft);
+            } else {
+                orderRemainingSeconds.put(order.getId(), 0L);
+            }
+        }
+        model.addAttribute("orderRemainingSeconds", orderRemainingSeconds);
 
         return "user-order/user-order";
     }

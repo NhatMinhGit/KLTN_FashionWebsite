@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -219,11 +220,24 @@ public class PaymentController {
     }
 
     @GetMapping("/user/order/continue-payment")
-    public String continuePayment(HttpSession session, HttpServletRequest request) {
+    public String continuePayment(HttpSession session, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+
         Long orderId = (Long) session.getAttribute("paymentOrderId");
+
         if (orderId == null) {
-            return "redirect:/user/order";
+            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy đơn hàng.");
+            return "redirect:/user/user-order";
         }
+        Order order = orderRepository.findById(orderId).get();
+        if (order.getExpireDate() != null && order.getExpireDate().isBefore(LocalDateTime.now())) {
+            // Đơn đã hết hạn, tiến hành hủy đơn hàng
+            order.setStatus(Order.OrderStatusType.CANCELLED);
+            orderRepository.save(order);
+
+            redirectAttributes.addFlashAttribute("errorMessage", "Đơn hàng #" + orderId + " đã hết hạn và bị hủy.");
+            return "redirect:/user/user-order";
+        }
+
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         return "redirect:" + vnPayService.createOrder(session, request, orderId, baseUrl);
     }

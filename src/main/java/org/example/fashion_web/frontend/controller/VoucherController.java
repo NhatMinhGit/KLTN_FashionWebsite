@@ -2,6 +2,7 @@ package org.example.fashion_web.frontend.controller;
 
 import jakarta.validation.Valid;
 import org.example.fashion_web.backend.dto.UserDto;
+import org.example.fashion_web.backend.dto.UserVoucherAssignmentDto;
 import org.example.fashion_web.backend.dto.VoucherDto;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.models.UserVoucherAssignment;
@@ -45,6 +46,9 @@ public class VoucherController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private UserVoucherAssignmentRepository userVoucherAssignmentRepository;
@@ -151,7 +155,6 @@ public class VoucherController {
 
         model.addAttribute("voucherAssignments", voucherAssignments);
 
-
         // Xử lý thông tin người dùng
         if (principal != null) {
             try {
@@ -168,45 +171,16 @@ public class VoucherController {
 
     @GetMapping("admin/voucher/add-voucher")
     public String createUser (Model model) {
-        UserDto userDto = new UserDto();
         VoucherDto voucherDto = new VoucherDto();
         model.addAttribute("voucherDto", voucherDto);
+        List<User> users = userService.getUsersByRole("USER"); // hoặc lấy user phù hợp
+        model.addAttribute("users", users);
         return "voucher/add-voucher";
     }
 
-//    @PostMapping("admin/voucher/add-voucher")
-//    public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
-//                                BindingResult result, Model model) {
-//        // Kiểm tra xem mã voucher đã tồn tại chưa
-//        if (voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
-//            result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
-//        }
-//
-//        // Kiểm tra lỗi validation
-//        if (result.hasErrors()) {
-//            model.addAttribute("voucherDto", voucherDto); // Đảm bảo dữ liệu không bị mất khi có lỗi
-//            return "voucher/add-voucher";
-//        }
-//
-//        // Chuyển đổi DTO thành entity và lưu vào database
-//        Voucher voucher = new Voucher();
-//        voucher.setVoucherCode(voucherDto.getVoucherCode());
-//        voucher.setVoucherName(voucherDto.getVoucherName());
-//        voucher.setDiscountType(voucherDto.getDiscountType());
-//        voucher.setDiscountValue(voucherDto.getDiscountValue());
-//        voucher.setMinOrderValue(voucherDto.getMinOrderValue());
-//        voucher.setStartDate(LocalDate.from(voucherDto.getStartDate()));
-//        voucher.setEndDate(LocalDate.from(voucherDto.getEndDate()));
-//        voucher.setUsageLimit(voucherDto.getUsageLimit());
-//        voucher.setCreatedAt(LocalDateTime.now());
-//        voucher.setUpdatedAt(LocalDateTime.now());
-//        voucherRepository.save(voucher);
-//
-//        return "redirect:/admin/voucher";
-//    }
-@PostMapping("admin/voucher/add-voucher")
-public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
-                            BindingResult result, Model model) {
+    @PostMapping("admin/voucher/add-voucher")
+    public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
+                                BindingResult result, Model model) {
     // Kiểm tra xem mã voucher đã tồn tại chưa
     if (voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
         result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
@@ -232,13 +206,13 @@ public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto vouc
     voucher.setUpdatedAt(LocalDateTime.now());
     voucherRepository.save(voucher);
 
-    // Nếu có userId thì tạo thêm UserVoucherAssignment
+
+    // Nếu có userId (khác null và khác rỗng), tạo thêm UserVoucherAssignment
     if (voucherDto.getUserId() != null) {
-        User user = userRepository.findById(voucherDto.getUserId())
-                .orElse(null);
-        if (user != null) {
+        Optional<User> userOpt = userRepository.findById(voucherDto.getUserId());
+        if (userOpt.isPresent()) {
             UserVoucherAssignment assignment = new UserVoucherAssignment();
-            assignment.setUser(user);
+            assignment.setUser(userOpt.get());
             assignment.setVoucher(voucher);
             assignment.setAssignedAt(LocalDateTime.now());
             assignment.setIsUsed(false);
@@ -268,6 +242,16 @@ public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto vouc
         voucherDto.setEndDate(voucher.getEndDate());
         voucherDto.setUsageLimit(voucher.getUsageLimit());
 
+        // Lấy danh sách user để dropdown chọn người dùng áp dụng
+        List<User> users = userService.getUsersByRole("USER");
+        model.addAttribute("users", users);
+
+        // Tìm userId đã được gán voucher này (nếu có)
+        List<UserVoucherAssignment> assignments = userVoucherAssignmentRepository.getAssignmentsByVoucherId(voucher.getId());
+        if (assignments != null && !assignments.isEmpty()) {
+            voucherDto.setUserId(assignments.get(0).getUser().getId());
+        }
+
         model.addAttribute("voucherDto", voucherDto);
 
         return "voucher/edit-voucher";
@@ -291,10 +275,13 @@ public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto vouc
         }
 
         if (result.hasErrors()) {
+            List<User> users = userService.getUsersByRole("USER");
+            model.addAttribute("users", users);
             model.addAttribute("voucherDto", voucherDto);
             return "voucher/edit-voucher";
         }
 
+        // Cập nhật các trường voucher
         voucher.setVoucherCode(voucherDto.getVoucherCode());
         voucher.setVoucherName(voucherDto.getVoucherName());
         voucher.setDiscountType(voucherDto.getDiscountType());
@@ -303,13 +290,46 @@ public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto vouc
         voucher.setStartDate(voucherDto.getStartDate());
         voucher.setEndDate(voucherDto.getEndDate());
         voucher.setUsageLimit(voucherDto.getUsageLimit());
-        voucher.setCreatedAt(voucherDto.getCreatedAt());
         voucher.setUpdatedAt(LocalDateTime.now());
 
         voucherRepository.save(voucher);
 
+        // Xử lý user assignment
+        Long userId = voucherDto.getUserId();
+        List<UserVoucherAssignment> existingAssignmentOpt = userVoucherAssignmentRepository.getAssignmentsByVoucherId(voucher.getId());
+        if (userId != null) {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                if (existingAssignmentOpt != null && !existingAssignmentOpt.isEmpty()) {
+                    // Cập nhật user trong assignment nếu khác
+                    UserVoucherAssignment existingAssignment = existingAssignmentOpt.get(0);
+                    if (!existingAssignment.getUser().getId().equals(userId)) {
+                        existingAssignment.setUser(userOpt.get());
+                        existingAssignment.setAssignedAt(LocalDateTime.now());
+                        existingAssignment.setIsUsed(false);
+                        userVoucherAssignmentRepository.save(existingAssignment);
+                    }
+                } else {
+                    // Tạo mới assignment nếu chưa có
+                    UserVoucherAssignment assignment = new UserVoucherAssignment();
+                    assignment.setUser(userOpt.get());
+                    assignment.setVoucher(voucher);
+                    assignment.setAssignedAt(LocalDateTime.now());
+                    assignment.setIsUsed(false);
+                    userVoucherAssignmentRepository.save(assignment);
+                }
+            }
+        } else {
+            if (existingAssignmentOpt != null && !existingAssignmentOpt.isEmpty()) {
+                for (UserVoucherAssignment assignment : existingAssignmentOpt) {
+                    userVoucherAssignmentRepository.delete(assignment);
+                }
+            }
+        }
+
         return "redirect:/admin/voucher";
     }
+
 
     @GetMapping("admin/voucher/delete-voucher")
     public String deleteVoucher(@RequestParam Long id) {
@@ -320,6 +340,68 @@ public String createVoucher(@Valid @ModelAttribute("voucherDto") VoucherDto vouc
         }
 
         return "redirect:/admin/voucher";
+    }
+
+    @GetMapping("/admin/voucher/assign")
+    public String showAssignVoucherForm(Model model) {
+        // Lấy danh sách user & voucher để dropdown
+        List<User> users = userService.getUsersByRole("USER");
+        List<Voucher> vouchers = voucherService.getVoucherNotAssign();
+
+        model.addAttribute("users", users);
+        model.addAttribute("vouchers", vouchers);
+        model.addAttribute("assignmentDto", new UserVoucherAssignmentDto());
+
+        return "voucher/assign-voucher";
+    }
+
+    @PostMapping("/admin/voucher/assign")
+    public String assignVoucherToUser(@Valid @ModelAttribute("assignmentDto") UserVoucherAssignmentDto assignmentDto,
+                                      BindingResult result,
+                                      Model model) {
+        List<User> users = userService.getUsersByRole("USER");
+        List<Voucher> vouchers = voucherService.getVoucherAvilable();
+        if (result.hasErrors()) {
+            // Nếu có lỗi validation, trả lại danh sách để render dropdown
+            model.addAttribute("users", users);
+            model.addAttribute("vouchers", vouchers);
+            return "voucher/assign-voucher";
+        }
+
+        Optional<User> userOpt = userRepository.findById(assignmentDto.getUserId());
+        Optional<Voucher> voucherOpt = voucherRepository.findById(assignmentDto.getVoucherId());
+
+        if (userOpt.isEmpty()) {
+            result.rejectValue("userId", "error.assignmentDto", "Người dùng không tồn tại.");
+        }
+        if (voucherOpt.isEmpty()) {
+            result.rejectValue("voucherId", "error.assignmentDto", "Voucher không tồn tại.");
+        }
+
+        if (result.hasErrors()) {
+            model.addAttribute("users", userRepository.findAll());
+            model.addAttribute("vouchers", voucherRepository.findAll());
+            return "voucher/assign-voucher";
+        }
+
+        // Kiểm tra xem đã có assignment cho user và voucher chưa (unique constraint)
+        boolean exists = userVoucherAssignmentRepository.existsByUserIdAndVoucherId(assignmentDto.getUserId(), assignmentDto.getVoucherId());
+        if (exists) {
+            result.rejectValue("voucherId", "error.assignmentDto", "Voucher này đã được gán cho người dùng.");
+            model.addAttribute("users", userRepository.findAll());
+            model.addAttribute("vouchers", voucherRepository.findAll());
+            return "voucher/assign-voucher";
+        }
+
+        UserVoucherAssignment assignment = new UserVoucherAssignment();
+        assignment.setUser(userOpt.get());
+        assignment.setVoucher(voucherOpt.get());
+        assignment.setAssignedAt(LocalDateTime.now());
+        assignment.setIsUsed(false);
+
+        userVoucherAssignmentRepository.save(assignment);
+
+        return "redirect:/admin/voucher?success=assign";
     }
 
 }

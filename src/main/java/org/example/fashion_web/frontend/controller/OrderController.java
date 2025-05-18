@@ -157,7 +157,7 @@ public class OrderController {
         : "Chưa cập nhật!";
 
         // Lấy danh sách voucher dùng chung (không gán cho người dùng nào)
-        List<Voucher> generalVouchers = voucherService.getGeneralVouchers();
+        List<Voucher> generalVouchers = voucherService.getGeneralVouchers(user.getId());
 
         // Lấy danh sách voucher riêng được gán cho người dùng
         List<UserVoucherAssignment> userVoucherAssignments = userVoucherAssignmentRepository.findByUserIdAndIsUsed(user.getId(), false);
@@ -255,7 +255,7 @@ public class OrderController {
             // Add validation
             if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
                 model.addAttribute("errorMessage", "Invalid order information");
-                return "redirect:/user/order";
+                return "redirect:/user/user-order";
             }
 
             // Validate order total
@@ -267,6 +267,16 @@ public class OrderController {
             User user = userRepository.findById(userDetail.getUser().getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            List<Order> orders = orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
+            if (orders != null) {
+                model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
+                return "redirect:user/user-order";
+            }
+            UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
+            if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || userProfile.getDob() == null  || address == "Chưa cập nhật!") {
+                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
+                return "redirect:user/order";
+            }
             Order newOrder = new Order();
             newOrder.setUser(user);
             newOrder.setOrderDate(LocalDate.now());
@@ -290,10 +300,6 @@ public class OrderController {
                 paymentRepository.save(payment);
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 //bắt lỗi nếu người dùng chưa thực hiện xong thanh toán trước đó
-                if (orderService.hasPayingOrder(user)) {
-                    model.addAttribute("errorMessage", "Invalid order total");
-                    return "redirect:/user/order/checkout";
-                }
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
                 orderRepository.save(newOrder);
 

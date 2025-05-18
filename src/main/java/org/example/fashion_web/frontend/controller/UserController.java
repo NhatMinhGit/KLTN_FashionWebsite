@@ -9,6 +9,9 @@ import org.example.fashion_web.backend.repositories.ProductVariantRepository;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
@@ -54,12 +57,18 @@ public class UserController {
     @Autowired
     private OrderService orderService;
 
-
     @GetMapping("/registration")
-    public String getRegistrationPage(@ModelAttribute("register_user") UserDto userDto) {
+    public String registrationPage(@ModelAttribute("register_user") UserDto userDto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
+                return "redirect:/admin";
+            } else {
+                return "redirect:/user";
+            }
+        }
         return "register";
     }
-
     @PostMapping("/registration")
     public String saveUser(@ModelAttribute("register_user") UserDto userDto, RedirectAttributes redirectAttributes) {
         User user = userRepository.findByEmail(userDto.getEmail());
@@ -74,10 +83,18 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String loginPage() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            // Người dùng đã đăng nhập -> chuyển hướng sang trang phù hợp
+            if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
+                return "redirect:/admin";
+            } else {
+                return "redirect:/user";
+            }
+        }
         return "login";
     }
-
 
     @GetMapping("/users")
     @ResponseBody

@@ -118,4 +118,80 @@
         </ul>
       </div>
     </nav>
-  </div>
+
+  <!-- Sweet Alert -->
+  <script th:src="@{/assets/js/plugin/sweetalert/sweetalert.min.js}"></script>
+  <!-- Popup session timeout SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    const sessionTimeoutMs = 20 * 60 * 1000;
+    const warningBeforeMs = 3 * 60 * 1000;
+
+    let timeoutWarningTimer;
+    let timeoutLogoutTimer;
+
+    function startSessionTimers() {
+      clearTimeout(timeoutWarningTimer);
+      clearTimeout(timeoutLogoutTimer);
+
+      // Timer cảnh báo trước
+      timeoutWarningTimer = setTimeout(() => {
+        showTimeoutWarning();
+      }, sessionTimeoutMs - warningBeforeMs);
+    }
+
+    function showTimeoutWarning() {
+      Swal.fire({
+        title: 'Phiên làm việc sắp hết hạn!',
+        text: 'Phiên làm việc của bạn sẽ tự động đăng xuất sau 2 phút. Bạn có muốn giữ phiên làm việc không?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Tôi còn ở đây',
+        cancelButtonText: 'Đăng xuất ngay',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Gửi request làm mới session
+          fetch('/keep-session-alive', { method: 'POST', credentials: 'same-origin' })
+                  .then(() => {
+                    startSessionTimers(); // Reset timer
+                    Swal.fire('Đã giữ phiên làm việc!', '', 'success');
+                  })
+                  .catch(() => {
+                    Swal.fire('Lỗi khi giữ phiên làm việc!', '', 'error');
+                  });
+        } else {
+          // Người dùng chọn đăng xuất ngay
+          redirectToLogout();
+        }
+      });
+
+      // Timer tự logout nếu không tương tác
+      timeoutLogoutTimer = setTimeout(() => {
+        Swal.fire({
+          title: 'Phiên làm việc đã hết hạn!',
+          text: 'Bạn sẽ được chuyển đến trang đăng nhập để đăng nhập lại.',
+          icon: 'error',
+          confirmButtonText: 'Đăng nhập lại',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        }).then(() => {
+          redirectToLogout();
+        });
+      }, warningBeforeMs);
+    }
+
+    function redirectToLogout() {
+      // Chuyển về logout hoặc login
+      window.location.href = '/logout';
+    }
+
+    // Bắt đầu tính giờ khi load trang
+    document.addEventListener('DOMContentLoaded', startSessionTimers);
+  </script>
+
+</div>
