@@ -10,7 +10,6 @@ import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.repositories.UserVoucherAssignmentRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
-import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -206,6 +205,7 @@ public class VoucherController {
     voucher.setCreatedAt(LocalDateTime.now());
     voucher.setUpdatedAt(LocalDateTime.now());
     voucherRepository.save(voucher);
+
 
     // Nếu có userId (khác null và khác rỗng), tạo thêm UserVoucherAssignment
     if (voucherDto.getUserId() != null) {

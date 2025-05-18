@@ -75,6 +75,10 @@ public class VoucherServiceImpl implements VoucherService {
                 .collect(Collectors.toList());
     }
     @Override
+
+    public List<Voucher> getGeneralVouchers() {
+        return voucherRepository.findGeneralVouchers();
+
     public List<Voucher> getGeneralVouchers(Long userId) {
         List<Voucher> vouchers = voucherRepository.findGeneralVouchers();
         List<UserVoucher> userVouchers = userVoucherRepository.findByUser_Id(userId);
