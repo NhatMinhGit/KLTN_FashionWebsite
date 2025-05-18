@@ -257,78 +257,165 @@ public class VoucherController {
         return "voucher/edit-voucher";
     }
 
-    @PostMapping("admin/voucher/edit-voucher")
-    public String editVoucher(
-            Model model,
-            @RequestParam Long id,
-            @Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
-            BindingResult result) {
+//    @PostMapping("admin/voucher/edit-voucher")
+//    public String editVoucher(
+//            Model model,
+//            @RequestParam Long id,
+//            @Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
+//            BindingResult result) {
+//
+//        Voucher voucher = voucherRepository.findById(id).orElse(null);
+//        if (voucher == null) {
+//            return "redirect:/admin/voucher";
+//        }
+//
+//        if (!voucher.getVoucherCode().equals(voucherDto.getVoucherCode()) &&
+//                voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
+//            result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
+//        }
+//
+//        if (result.hasErrors()) {
+//            List<User> users = userService.getUsersByRole("USER");
+//            model.addAttribute("users", users);
+//            model.addAttribute("voucherDto", voucherDto);
+//            return "voucher/edit-voucher";
+//        }
+//
+//        // Cập nhật các trường voucher
+//        voucher.setVoucherCode(voucherDto.getVoucherCode());
+//        voucher.setVoucherName(voucherDto.getVoucherName());
+//        voucher.setDiscountType(voucherDto.getDiscountType());
+//        voucher.setDiscountValue(voucherDto.getDiscountValue());
+//        voucher.setMinOrderValue(voucherDto.getMinOrderValue());
+//        voucher.setStartDate(voucherDto.getStartDate());
+//        voucher.setEndDate(voucherDto.getEndDate());
+//        voucher.setUsageLimit(voucherDto.getUsageLimit());
+//        voucher.setUpdatedAt(LocalDateTime.now());
+//
+//        voucherRepository.save(voucher);
+//
+//        // Xử lý user assignment
+//        Long userId = voucherDto.getUserId();
+//        List<UserVoucherAssignment> existingAssignmentOpt = userVoucherAssignmentRepository.getAssignmentsByVoucherId(voucher.getId());
+//        if (userId != null) {
+//            Optional<User> userOpt = userRepository.findById(userId);
+//            if (userOpt.isPresent()) {
+//                if (existingAssignmentOpt != null && !existingAssignmentOpt.isEmpty()) {
+//                    // Cập nhật user trong assignment nếu khác
+//                    UserVoucherAssignment existingAssignment = existingAssignmentOpt.get(0);
+//                    if (!existingAssignment.getUser().getId().equals(userId)) {
+//                        existingAssignment.setUser(userOpt.get());
+//                        existingAssignment.setAssignedAt(LocalDateTime.now());
+//                        existingAssignment.setIsUsed(false);
+//                        userVoucherAssignmentRepository.save(existingAssignment);
+//                    }
+//                } else {
+//                    // Tạo mới assignment nếu chưa có
+//                    UserVoucherAssignment assignment = new UserVoucherAssignment();
+//                    assignment.setUser(userOpt.get());
+//                    assignment.setVoucher(voucher);
+//                    assignment.setAssignedAt(LocalDateTime.now());
+//                    assignment.setIsUsed(false);
+//                    userVoucherAssignmentRepository.save(assignment);
+//                }
+//            }
+//        } else {
+//            if (existingAssignmentOpt != null && !existingAssignmentOpt.isEmpty()) {
+//                for (UserVoucherAssignment assignment : existingAssignmentOpt) {
+//                    userVoucherAssignmentRepository.delete(assignment);
+//                }
+//            }
+//        }
+//
+//        return "redirect:/admin/voucher";
+//    }
+@PostMapping("admin/voucher/edit-voucher")
+public String editVoucher(
+        Model model,
+        @RequestParam Long id,
+        @Valid @ModelAttribute("voucherDto") VoucherDto voucherDto,
+        BindingResult result) {
 
-        Voucher voucher = voucherRepository.findById(id).orElse(null);
-        if (voucher == null) {
-            return "redirect:/admin/voucher";
-        }
-
-        if (!voucher.getVoucherCode().equals(voucherDto.getVoucherCode()) &&
-                voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null) {
-            result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
-        }
-
-        if (result.hasErrors()) {
-            List<User> users = userService.getUsersByRole("USER");
-            model.addAttribute("users", users);
-            model.addAttribute("voucherDto", voucherDto);
-            return "voucher/edit-voucher";
-        }
-
-        // Cập nhật các trường voucher
-        voucher.setVoucherCode(voucherDto.getVoucherCode());
-        voucher.setVoucherName(voucherDto.getVoucherName());
-        voucher.setDiscountType(voucherDto.getDiscountType());
-        voucher.setDiscountValue(voucherDto.getDiscountValue());
-        voucher.setMinOrderValue(voucherDto.getMinOrderValue());
-        voucher.setStartDate(voucherDto.getStartDate());
-        voucher.setEndDate(voucherDto.getEndDate());
-        voucher.setUsageLimit(voucherDto.getUsageLimit());
-        voucher.setUpdatedAt(LocalDateTime.now());
-
-        voucherRepository.save(voucher);
-
-        // Xử lý user assignment
-        Long userId = voucherDto.getUserId();
-        List<UserVoucherAssignment> existingAssignmentOpt = userVoucherAssignmentRepository.getAssignmentsByVoucherId(voucher.getId());
-        if (userId != null) {
-            Optional<User> userOpt = userRepository.findById(userId);
-            if (userOpt.isPresent()) {
-                if (existingAssignmentOpt != null && !existingAssignmentOpt.isEmpty()) {
-                    // Cập nhật user trong assignment nếu khác
-                    UserVoucherAssignment existingAssignment = existingAssignmentOpt.get(0);
-                    if (!existingAssignment.getUser().getId().equals(userId)) {
-                        existingAssignment.setUser(userOpt.get());
-                        existingAssignment.setAssignedAt(LocalDateTime.now());
-                        existingAssignment.setIsUsed(false);
-                        userVoucherAssignmentRepository.save(existingAssignment);
-                    }
-                } else {
-                    // Tạo mới assignment nếu chưa có
-                    UserVoucherAssignment assignment = new UserVoucherAssignment();
-                    assignment.setUser(userOpt.get());
-                    assignment.setVoucher(voucher);
-                    assignment.setAssignedAt(LocalDateTime.now());
-                    assignment.setIsUsed(false);
-                    userVoucherAssignmentRepository.save(assignment);
-                }
-            }
-        } else {
-            if (existingAssignmentOpt != null && !existingAssignmentOpt.isEmpty()) {
-                for (UserVoucherAssignment assignment : existingAssignmentOpt) {
-                    userVoucherAssignmentRepository.delete(assignment);
-                }
-            }
-        }
-
+    // 1. Lấy thông tin voucher hiện tại từ DB
+    Voucher existingVoucher = voucherRepository.findById(id).orElse(null);
+    if (existingVoucher == null) {
         return "redirect:/admin/voucher";
     }
+
+    // 2. Kiểm tra trùng mã voucher nếu mã được sửa
+    boolean isCodeChanged = !existingVoucher.getVoucherCode().equals(voucherDto.getVoucherCode());
+    boolean isCodeDuplicated = voucherRepository.findByVoucherCode(voucherDto.getVoucherCode()) != null;
+    if (isCodeChanged && isCodeDuplicated) {
+        result.addError(new FieldError("voucherDto", "voucherCode", "Mã voucher đã tồn tại!"));
+    }
+
+    // 3. Nếu có lỗi validate, trả về lại form chỉnh sửa
+    if (result.hasErrors()) {
+        model.addAttribute("users", userService.getUsersByRole("USER"));
+        model.addAttribute("voucherDto", voucherDto);
+        return "voucher/edit-voucher";
+    }
+
+    // 4. Cập nhật thông tin voucher
+    existingVoucher.setVoucherCode(voucherDto.getVoucherCode());
+    existingVoucher.setVoucherName(voucherDto.getVoucherName());
+    existingVoucher.setDiscountType(voucherDto.getDiscountType());
+    existingVoucher.setDiscountValue(voucherDto.getDiscountValue());
+    existingVoucher.setMinOrderValue(voucherDto.getMinOrderValue());
+    existingVoucher.setStartDate(voucherDto.getStartDate());
+    existingVoucher.setEndDate(voucherDto.getEndDate());
+    existingVoucher.setUsageLimit(voucherDto.getUsageLimit());
+    existingVoucher.setUpdatedAt(LocalDateTime.now());
+    voucherRepository.save(existingVoucher);
+
+    // 5. Xử lý gán user (nếu có)
+    Long selectedUserId = voucherDto.getUserId();
+    List<UserVoucherAssignment> currentAssignments =
+            userVoucherAssignmentRepository.getAssignmentsByVoucherId(existingVoucher.getId());
+
+    // Nếu có chọn user
+    if (selectedUserId != null) {
+        Optional<User> selectedUserOpt = userRepository.findById(selectedUserId);
+
+        if (selectedUserOpt.isPresent()) {
+            User selectedUser = selectedUserOpt.get();
+
+            if (!currentAssignments.isEmpty()) {
+                // Nếu đã có assignment → kiểm tra và cập nhật nếu khác user
+                UserVoucherAssignment currentAssignment = currentAssignments.get(0);
+
+                boolean isDifferentUser = !currentAssignment.getUser().getId().equals(selectedUserId);
+                if (isDifferentUser) {
+                    currentAssignment.setUser(selectedUser);
+                    currentAssignment.setAssignedAt(LocalDateTime.now());
+                    currentAssignment.setIsUsed(false);
+                    userVoucherAssignmentRepository.save(currentAssignment);
+                }
+
+            } else {
+                // Nếu chưa có assignment → tạo mới
+                UserVoucherAssignment newAssignment = new UserVoucherAssignment();
+                newAssignment.setUser(selectedUser);
+                newAssignment.setVoucher(existingVoucher);
+                newAssignment.setAssignedAt(LocalDateTime.now());
+                newAssignment.setIsUsed(false);
+                userVoucherAssignmentRepository.save(newAssignment);
+            }
+        }
+
+    } else {
+        // Nếu không chọn user → xóa tất cả assignment hiện có
+        if (!currentAssignments.isEmpty()) {
+            for (UserVoucherAssignment assignment : currentAssignments) {
+                userVoucherAssignmentRepository.delete(assignment);
+            }
+        }
+    }
+
+    // 6. Chuyển hướng về danh sách voucher sau khi cập nhật thành công
+    return "redirect:/admin/voucher";
+}
+
 
 
     @GetMapping("admin/voucher/delete-voucher")

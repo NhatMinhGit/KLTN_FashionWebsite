@@ -156,7 +156,7 @@ public class OrderController {
         userProfile.getWard().getDistrict().getCity().getCityName()
         : "Chưa cập nhật!";
 
-        // Lấy danh sách voucher dùng chung (không gán cho người dùng nào)
+//        // Lấy danh sách voucher dùng chung (không gán cho người dùng nào)
         List<Voucher> generalVouchers = voucherService.getGeneralVouchers(user.getId());
 
         // Lấy danh sách voucher riêng được gán cho người dùng
@@ -177,6 +177,7 @@ public class OrderController {
         vouchers.addAll(generalVouchers);
         vouchers.addAll(privateVouchers);
         model.addAttribute("userVoucherAssignmentIds", userVoucherAssignmentIds);
+//        List<Voucher> vouchers = voucherService.getAllVouchersAvilable(user.getId());
 
 // Add vào model như trước
         model.addAttribute("detailaddress", address);
@@ -268,14 +269,14 @@ public class OrderController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             List<Order> orders = orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
-            if (orders != null) {
+            if (!orders.isEmpty()) {
                 model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
-                return "redirect:user/user-order";
+                return "redirect:/user/user-order";
             }
             UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
             if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || userProfile.getDob() == null  || address == "Chưa cập nhật!") {
                 model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
-                return "redirect:user/order";
+                return "redirect:/user/order";
             }
             Order newOrder = new Order();
             newOrder.setUser(user);
@@ -353,7 +354,8 @@ public class OrderController {
 
                         sizeOpt.ifPresentOrElse(size -> {
                             if (size.getStockQuantity() >= item.getQuantity()) {
-                                size.setStockQuantity(size.getStockQuantity() - item.getQuantity()); // Giảm tồn kho size
+//                                size.setStockQuantity(size.getStockQuantity() - item.getQuantity()); // Giảm tồn kho size
+                                size.setStockQuantity(size.getStockQuantity());
                                 sizeRepository.save(size); // Lưu lại size đã cập nhật
                             } else {
                                 throw new RuntimeException("Not enough stock for size: " + size.getSizeName());
@@ -383,16 +385,6 @@ public class OrderController {
                 userVoucher.setVoucher(voucher);
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
-
-                Optional<UserVoucherAssignment> assignmentOpt = userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
-                if (assignmentOpt.isPresent()) {
-                    UserVoucherAssignment assignment = assignmentOpt.get();
-                    assignment.setIsUsed(true);
-                    assignment.setAssignedAt(LocalDateTime.now());
-                    userVoucherAssignmentRepository.save(assignment);
-                } else {
-                    throw new RuntimeException("UserVoucherAssignment không tồn tại với userId: " + user.getId() + " và voucherId: " + voucher.getId());
-                }
             }
 
             // Gửi email
