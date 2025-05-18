@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -25,6 +26,8 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Autowired
     private UserVoucherRepository userVoucherRepository;
+    @Autowired
+    private UserVoucherAssignmentRepository userVoucherAssignmentRepository;
 
     @Override
     public Voucher save(VoucherDto voucherDto) {
@@ -42,25 +45,33 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherRepository.findAll();
     }
 
-    @Override
     public List<Voucher> getAllVouchersAvilable(Long userId) {
-        // Lấy danh sách các voucher đã được người dùng sử dụng
-        List<UserVoucher> userVouchers = userVoucherRepository.findByUser_Id(userId);
+        List<Voucher> allVouchers = voucherRepository.findAll();
 
-        // Lấy ID của các voucher đã sử dụng
-        List<Long> usedVoucherIds = userVouchers.stream()
+        List<UserVoucherAssignment> userAssignments = userVoucherAssignmentRepository
+                .findByUserIdAndIsUsed(userId, false);
+
+        Set<Long> usedVoucherIds = userVoucherRepository
+                .findAll()
+                .stream()
                 .map(uv -> uv.getVoucher().getId())
-                .toList();
+                .collect(Collectors.toSet());
 
-        // Trả về các voucher còn hiệu lực, còn lượt sử dụng và chưa từng được dùng
-        return voucherRepository.findAll().stream()
+        LocalDate today = LocalDate.now();
+
+        return allVouchers.stream()
                 .filter(v ->
-                        !v.getEndDate().isBefore(LocalDate.now()) &&
-                                v.getUsageLimit() > 0 &&
-                                !usedVoucherIds.contains(v.getId())
+                        // 1. Là voucher trong danh sách assignment của user
+                        userAssignments.stream()
+                                .anyMatch(uva -> uva.getVoucher().getId().equals(v.getId()))
+                                // 2. Không nằm trong danh sách voucher đã dùng
+                                && !usedVoucherIds.contains(v.getId())
+                                // 3. Còn hạn sử dụng
+                                && !v.getEndDate().isBefore(today)
                 )
-                .toList();
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public List<Voucher> searchVouchersByKeyword(String keyword) {
@@ -80,23 +91,32 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherRepository.findGeneralVouchers();
 
     public List<Voucher> getGeneralVouchers(Long userId) {
-        List<Voucher> vouchers = voucherRepository.findGeneralVouchers();
-        List<UserVoucher> userVouchers = userVoucherRepository.findByUser_Id(userId);
+        // Tất cả voucher trong hệ thống
+        List<Voucher> allVouchers = voucherRepository.findAll();
 
-        // Lấy ID của các voucher đã sử dụng
+        // Danh sách voucher đã được assign cho bất kỳ ai
+        List<Voucher> voucherAssignments = voucherRepository.findAssignedVouchers();
+        List<Long> voucherAssignmentIds = voucherAssignments.stream()
+                .map(Voucher::getId)
+                .toList();
+
+        // Danh sách voucher người dùng đã dùng
+        List<UserVoucher> userVouchers = userVoucherRepository.findByUser_Id(userId);
         List<Long> usedVoucherIds = userVouchers.stream()
                 .map(uv -> uv.getVoucher().getId())
                 .toList();
 
-        // Trả về các voucher còn hiệu lực, còn lượt sử dụng và chưa từng được dùng
-        return voucherRepository.findAll().stream()
+        // Lọc ra các voucher còn hạn, còn lượt, không bị assign và chưa từng dùng
+        return allVouchers.stream()
                 .filter(v ->
                         !v.getEndDate().isBefore(LocalDate.now()) &&
                                 v.getUsageLimit() > 0 &&
-                                !usedVoucherIds.contains(v.getId())
+                                !usedVoucherIds.contains(v.getId()) &&
+                                !voucherAssignmentIds.contains(v.getId())
                 )
                 .toList();
     }
+
 
     @Override
     public List<Voucher> getVoucherAvilable() {

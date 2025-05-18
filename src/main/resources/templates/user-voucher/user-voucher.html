@@ -2,130 +2,127 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Danh sách Voucher</title>
-  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
-  <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+  <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet" />
+  <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}" />
   <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 
   <style>
     body {
-      background-color: #f8f9fa;
+      background-color: #f4f6f9;
     }
 
-    .table-container {
-      background: white;
-      padding: 20px;
+    .card {
+      border: none;
       border-radius: 10px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
     }
 
     .table th {
-      background-color: #007bff;
-      color: white;
-      text-align: center;
+      background-color: #f1f3f5;
     }
 
-    .table td {
-      text-align: center;
+    .table td,
+    .table th {
       vertical-align: middle;
     }
 
-    .table-hover tbody tr:hover {
-      background-color: #f1f1f1;
+    .voucher-icon {
+      font-size: 1.2rem;
+      margin-right: 5px;
     }
 
-    @media (max-width: 768px) {
-      .table-container {
-        padding: 10px;
-      }
+    .text-small {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
 
-      .table thead {
-        display: none;
-      }
+    .badge-percentage {
+      background-color: #28a745;
+    }
 
-      .table tbody tr {
-        display: block;
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-      }
-
-      .table tbody td {
-        display: block;
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-      }
-
-      .table tbody td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        text-align: left;
-      }
+    .badge-fixed {
+      background-color: #17a2b8;
     }
   </style>
 </head>
 
 <body>
-<!-- Import Header -->
+<!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
   <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-3">
+    <div class="col-lg-3 mb-3">
       <div th:replace="~{fragments/sidebar-profile :: sidebar}"></div>
     </div>
-    <div class="col-md-9">
-      <h2 class=" mb-4">Danh Sách Voucher</h2>
 
-      <div class="table-container">
-        <table class="table table-head-bg-primary mt-4">
-          <thead>
-          <tr>
-            <th>Mã Voucher</th>
-            <th>Tên Voucher</th>
-            <th>Giá Trị Giảm</th>
-            <th>Giá Trị Đơn Hàng Tối Thiểu</th>
-            <th>Ngày Bắt Đầu</th>
-            <th>Ngày Kết Thúc</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="voucher : ${vouchers}">
-            <td data-label="Mã Voucher" th:text="${voucher.voucherCode}"></td>
-            <td data-label="Tên Voucher" th:text="${voucher.voucherName}"></td>
-            <td data-label="Giá Trị Giảm"
-                th:switch="${voucher.discountType}">
-                <span th:case="'fixed'"
-                      th:text="${#numbers.formatDecimal(voucher.discountValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
-                </span>
-                      <span th:case="'percentage'"
-                      th:text="${voucher.discountValue + ' %'}">
-                </span>
-            </td>
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-ticket-alt voucher-icon"></i> Danh Sách Voucher
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+              <tr>
+                <th>Mã</th>
+                <th>Tên</th>
+                <th>Giảm</th>
+                <th>Đơn Tối Thiểu</th>
+                <th>Bắt Đầu</th>
+                <th>Kết Thúc</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="voucher : ${vouchers}">
+                <td>
+                  <span class="fw-bold text-primary" th:text="${voucher.voucherCode}"></span>
+                </td>
+                <td th:text="${voucher.voucherName}"></td>
+                <td>
+                  <span th:switch="${voucher.discountType}">
+                    <span th:case="'fixed'" class="badge badge-fixed text-white px-2 py-1">
+                      <i class="fas fa-coins me-1"></i>
+                      <span th:text="${#numbers.formatDecimal(voucher.discountValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}"></span>
+                    </span>
+                    <span th:case="'percentage'" class="badge badge-percentage text-white px-2 py-1">
+                      <i class="fas fa-percent me-1"></i>
+                      <span th:text="${voucher.discountValue + ' %'}"></span>
+                    </span>
+                  </span>
+                </td>
+                <td th:text="${#numbers.formatDecimal(voucher.minOrderValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}"></td>
+                <td th:text="${#temporals.format(voucher.startDate, 'dd/MM/yyyy')}"></td>
+                <td th:text="${#temporals.format(voucher.endDate, 'dd/MM/yyyy')}"></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
 
-
-            <td data-label="Đơn Hàng Tối Thiểu"
-                th:text="${#numbers.formatDecimal(voucher.minOrderValue, 0, 'COMMA', 2, 'POINT') + ' ₫'}">
-            </td>
-            <td data-label="Ngày Bắt Đầu"
-                th:text="${#temporals.format(voucher.startDate, 'dd/MM/yyyy')}"></td>
-            <td data-label="Ngày Kết Thúc"
-                th:text="${#temporals.format(voucher.endDate, 'dd/MM/yyyy')}"></td>
-          </tr>
-          </tbody>
-        </table>
+          <div th:if="${#lists.isEmpty(vouchers)}" class="text-center text-muted mt-4">
+            <i class="fas fa-ticket fa-2x mb-2"></i>
+            <p>Hiện tại bạn chưa có voucher nào khả dụng.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
-<!--Footer-->
+
+<!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

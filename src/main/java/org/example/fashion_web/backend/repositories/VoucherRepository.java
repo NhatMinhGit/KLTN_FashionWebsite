@@ -14,4 +14,21 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     @Query("SELECT v FROM Voucher v WHERE v.id NOT IN (SELECT uva.voucher.id FROM UserVoucherAssignment uva)")
     List<Voucher> findGeneralVouchers();
 
+    @Query("SELECT v FROM Voucher v WHERE v.id IN (SELECT uva.voucher.id FROM UserVoucherAssignment uva)")
+    List<Voucher> findAssignedVouchers();
+    @Query("""
+    SELECT v FROM Voucher v
+    WHERE v.id NOT IN (
+        SELECT uv.user.id FROM UserVoucher uv
+    )
+    
+    AND v.id IN (
+        SELECT uva.voucher.id
+        FROM UserVoucherAssignment uva
+        WHERE uva.user.id = :userId AND uva.isUsed = false )
+    AND v.endDate >= CURRENT_DATE
+""")
+    List<Voucher> findAvailableVouchersForUser(Long userId);
+
+
 }
