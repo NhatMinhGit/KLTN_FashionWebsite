@@ -4,6 +4,7 @@ import org.example.fashion_web.backend.dto.OrderStatusDto;
 import org.example.fashion_web.backend.models.Order;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.OrderRepository;
+import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +26,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public Order findOrderById(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return orderRepository.findById(id).orElse(null);
+    }
+
     @Override
     public Order save(Order Order) {
         return orderRepository.save(Order);
@@ -99,19 +108,19 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public List<Order> getAllOrders() {
+    public List<Order> getAllOrders(Long userId) {
         LocalDateTime now = LocalDateTime.now();
-
+        User user = userRepository.findById(userId).get();
         // 1. Lấy danh sách đơn hàng đang PAYING
-        List<Order> payingOrders = orderRepository.findByStatus(Order.OrderStatusType.PAYING);
+        List<Order> payingOrders = orderRepository.findByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
 
         // 2. Tách đơn đã hết hạn & đơn còn hiệu lực
         List<Order> expiredOrders = payingOrders.stream()
-                .filter(order -> order.getExpireDate() != null && order.getExpireDate().isBefore(now))
+                .filter(order -> order.getExpireDate() != null && order.getExpireDate().isBefore(LocalDateTime.now()))
                 .collect(Collectors.toList());
 
         List<Order> validOrders = payingOrders.stream()
-                .filter(order -> order.getExpireDate() != null && order.getExpireDate().isAfter(now))
+                .filter(order -> order.getExpireDate() != null && order.getExpireDate().isAfter(LocalDateTime.now()))
                 .collect(Collectors.toList());
 
         // 3. Cập nhật trạng thái đơn hết hạn => CANCELLED
@@ -122,7 +131,7 @@ public class OrderServiceImpl implements OrderService {
         // 4. Lưu tất cả đơn đã bị thay đổi trạng thái
         orderRepository.saveAll(expiredOrders);
 
-        return orderRepository.findAll(); // các đơn PAYING còn hiệu lực
+        return orderRepository.findByUser_IdOrderByIdDesc(userId);
     }
 
     @Override

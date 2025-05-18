@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gán Voucher cho Người Dùng</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet" />
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Gán Voucher cho Người Dùng</h2>
+    <form id="assignVoucherForm" method="post" th:action="@{/admin/voucher/assign}" th:object="${assignmentDto}">
+        <div class="mb-3">
+            <label for="userId" class="form-label">Chọn Người Dùng <span class="text-danger">*</span></label>
+            <select class="form-select" id="userId" th:field="*{userId}" required>
+                <option value="" disabled selected>-- Chọn người dùng --</option>
+                <option th:each="user : ${users}"
+                        th:value="${user.id}"
+                        th:text="${user.name} + ' (' + ${user.email} + ')'">
+                </option>
+            </select>
+            <p th:if="${#fields.hasErrors('userId')}" class="text-danger" th:errors="*{userId}"></p>
+        </div>
+        <div class="mb-3">
+            <label for="voucherId" class="form-label">Chọn Voucher <span class="text-danger">*</span></label>
+            <select class="form-select" id="voucherId" th:field="*{voucherId}" required>
+                <option value="" disabled selected>-- Chọn voucher --</option>
+                <option th:each="voucher : ${vouchers}"
+                        th:value="${voucher.id}"
+                        th:text="${voucher.voucherCode} + ' - ' + ${voucher.voucherName}">
+                </option>
+            </select>
+            <p th:if="${#fields.hasErrors('voucherId')}" class="text-danger" th:errors="*{voucherId}"></p>
+        </div>
+        <div class="d-flex justify-content-between">
+            <a href="/admin/voucher" class="btn btn-secondary">Quay lại</a>
+            <button type="submit" class="btn btn-primary">Gán Voucher</button>
+        </div>
+    </form>
+</div>
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+</body>
+</html>

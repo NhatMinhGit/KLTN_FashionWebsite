@@ -18,7 +18,7 @@
         </div>
 
         <!-- Bộ lọc tổng hợp -->
-        <form class="row g-3 align-items-end mb-4" method="get" th:action="@{/admin/order}">
+        <form class="row g-3 mb-4" method="get" th:action="@{/admin/order}">
             <div class="col-md-3">
                 <label class="form-label">Tìm theo mã đơn hoặc khách hàng</label>
                 <input type="text" class="form-control" name="keyword" th:value="${param.keyword}">
@@ -108,5 +108,6 @@
         </nav>
     </div>
 </div>
+<script th:src="@{/js/bootstrap-5.3.3.js}"></script>
 </body>
 </html>

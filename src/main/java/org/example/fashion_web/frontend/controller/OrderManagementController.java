@@ -176,6 +176,17 @@ public class OrderManagementController {
         return "redirect:/admin/order/detail/" + id;
     }
 
+    @PostMapping("/admin/order/complete/{id}")
+    public String completeOrder(@PathVariable("id") Long id) {
+        Order order = orderRepository.findById(id).orElse(null);
+        if (order != null) {
+            order.setStatus(Order.OrderStatusType.COMPLETED);
+            orderRepository.save(order);
+        }
+
+        return "redirect:/admin/order/detail/" + id;
+    }
+
     /// xử lý xuất file pdf
     @GetMapping("/admin/order/export-invoice-pdf/{id}")
     public void exportPdf(HttpServletResponse response,

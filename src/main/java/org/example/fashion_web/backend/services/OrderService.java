@@ -11,6 +11,7 @@ import java.util.Map;
 
 public interface OrderService {
     // Lưu order từ model
+    Order findOrderById(Long id);
     Order save(Order Order);
     List<BigDecimal> getRevenueByYear(int year);
 
@@ -28,7 +29,7 @@ public interface OrderService {
 
     void notifyNewOrders(List<Order> orders);
 
-    List<Order> getAllOrders();
+    List<Order> getAllOrders(Long userId);
 
     boolean hasPayingOrder(User user);
 

@@ -2,70 +2,134 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thêm Voucher</title>
-    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chỉnh sửa Voucher</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet" />
 </head>
 
 <body>
-<div class="container mt-5">
-    <h2 class="mb-4">Thêm Voucher</h2>
-    <form id="addVoucherForm" method="post" th:object="${voucherDto}">
+<div class="container p-5">
+    <h2 class="mb-4">Chỉnh sửa Voucher</h2>
+    <form id="editVoucherForm" method="post" th:object="${voucherDto}" novalidate>
+        <input type="hidden" th:field="*{id}" />
         <div class="mb-3">
-            <label for="voucherCode" class="form-label">Mã Voucher <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="voucherCode" th:field="*{voucherCode}" required>
+            <label for="voucherCode" class="form-label">
+                Mã Voucher <span class="text-danger">*</span>
+                <small class="text-muted">(1 từ, viết hoa, không ký tự đặc biệt)</small>
+            </label>
+            <input type="text" class="form-control" id="voucherCode" th:field="*{voucherCode}"
+                   required pattern="^[A-Z0-9]+$" title="Chỉ gồm chữ hoa và số, không khoảng trắng" />
             <p th:if="${#fields.hasErrors('voucherCode')}" class="text-danger" th:errors="*{voucherCode}"></p>
         </div>
         <div class="mb-3">
-            <label for="voucherName" class="form-label">Tên Voucher <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="voucherName" th:field="*{voucherName}" required>
+            <label for="voucherName" class="form-label">
+                Tên Voucher <span class="text-danger">*</span>
+                <small class="text-muted">(Không chứa ký tự đặc biệt)</small>
+            </label>
+            <input type="text" class="form-control" id="voucherName" th:field="*{voucherName}"
+                   required pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ\s]+$"
+                   title="Chỉ gồm chữ, số và khoảng trắng" />
             <p th:if="${#fields.hasErrors('voucherName')}" class="text-danger" th:errors="*{voucherName}"></p>
         </div>
         <div class="mb-3">
             <label for="discountType" class="form-label">Loại Giảm Giá <span class="text-danger">*</span></label>
             <select class="form-control" id="discountType" th:field="*{discountType}" required>
-                <option value="percentage">Phần trăm</option>
-                <option value="fixed">Giá trị cố định</option>
+                <option value="percentage" th:selected="${voucherDto.discountType == 'percentage'}">Phần trăm</option>
+                <option value="fixed" th:selected="${voucherDto.discountType == 'fixed'}">Giá trị cố định</option>
             </select>
             <p th:if="${#fields.hasErrors('discountType')}" class="text-danger" th:errors="*{discountType}"></p>
         </div>
         <div class="mb-3">
             <label for="discountValue" class="form-label">Giá Trị Giảm <span class="text-danger">*</span></label>
-            <input type="number" step="0.01" class="form-control" id="discountValue" th:field="*{discountValue}" required>
+            <input type="number" step="0.01" min="0" class="form-control" id="discountValue" th:field="*{discountValue}" required />
             <p th:if="${#fields.hasErrors('discountValue')}" class="text-danger" th:errors="*{discountValue}"></p>
         </div>
         <div class="mb-3">
-            <label for="minOrderValue" class="form-label">Giá Trị Đơn Hàng Tối Thiểu</label>
-            <input type="number" step="0.01" class="form-control" id="minOrderValue" th:field="*{minOrderValue}">
+            <label for="minOrderValue" class="form-label">
+                Giá Trị Đơn Hàng Tối Thiểu
+                <span class="text-danger">*</span><small class="text-muted">(tính theo đơn vị VNĐ)</small>
+            </label>
+            <input type="number" step="0.01" min="0" class="form-control" id="minOrderValue" th:field="*{minOrderValue}" />
         </div>
         <div class="mb-3">
             <label for="startDate" class="form-label">Ngày Bắt Đầu <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" id="startDate" th:field="*{startDate}" required>
+            <input type="date" class="form-control" id="startDate" th:field="*{startDate}" required />
             <p th:if="${#fields.hasErrors('startDate')}" class="text-danger" th:errors="*{startDate}"></p>
         </div>
         <div class="mb-3">
             <label for="endDate" class="form-label">Ngày Kết Thúc <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" id="endDate" th:field="*{endDate}" required>
+            <input type="date" class="form-control" id="endDate" th:field="*{endDate}" required />
             <p th:if="${#fields.hasErrors('endDate')}" class="text-danger" th:errors="*{endDate}"></p>
         </div>
         <div class="mb-3">
-            <label for="usageLimit" class="form-label">Giới Hạn Sử Dụng</label>
-            <input type="number" class="form-control" id="usageLimit" th:field="*{usageLimit}" min="1">
+            <label for="usageLimit" class="form-label">
+                Giới Hạn Sử Dụng <span class="text-danger">*</span>
+                <small class="text-muted">(Mặc định 1 được gán cho người áp dụng)</small>
+            </label>
+            <input type="number" min="1" step="1" class="form-control" id="usageLimit" th:field="*{usageLimit}" />
         </div>
-        <div class="mb-3" th:if="*{userId} != null">
+        <div class="mb-3">
             <label for="userId" class="form-label">Người Dùng Áp Dụng (User ID)</label>
-            <input type="number" class="form-control" id="userId" th:field="*{userId}">
+            <select class="form-select" id="userId" th:field="*{userId}">
+                <option value="" selected>-- Không chọn --</option>
+                <option th:each="user : ${users}"
+                        th:value="${user.id}"
+                        th:text="${user.name} + ' (' + ${user.email} + ')'">
+                </option>
+            </select>
             <p th:if="${#fields.hasErrors('userId')}" class="text-danger" th:errors="*{userId}"></p>
         </div>
-        <div class="d-flex justify-content-between">
-            <a href="/admin/voucher" class="btn btn-secondary">Quay lại</a>
-            <button type="submit" class="btn btn-primary">Lưu</button>
+        <div class="d-flex justify-content-start">
+            <button type="submit" class="btn btn-primary me-5 btn-md">Cập nhật</button>
+            <a href="/admin/voucher" class="btn btn-secondary btn-md">Quay lại</a>
         </div>
     </form>
-
 </div>
+
 <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('editVoucherForm');
+        const discountTypeInput = document.getElementById('discountType');
+        const discountValueInput = document.getElementById('discountValue');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        form.addEventListener('submit', function (event) {
+            discountValueInput.setCustomValidity('');
+            startDateInput.setCustomValidity('');
+            endDateInput.setCustomValidity('');
+
+            // Kiểm tra discountValue khi là percentage
+            if (discountTypeInput.value === 'percentage') {
+                const val = parseFloat(discountValueInput.value);
+                if (isNaN(val) || val < 0 || val > 100) {
+                    discountValueInput.setCustomValidity('Giá trị phần trăm phải từ 0 đến 100');
+                }
+            } else {
+                const val = parseFloat(discountValueInput.value);
+                if (isNaN(val) || val < 0) {
+                    discountValueInput.setCustomValidity('Giá trị giảm phải lớn hơn hoặc bằng 0');
+                }
+            }
+
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+
+            if (endDate < startDate) {
+                endDateInput.setCustomValidity('Ngày kết thúc phải bằng hoặc lớn hơn ngày bắt đầu');
+            }
+
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+
 </body>
 
 </html>
