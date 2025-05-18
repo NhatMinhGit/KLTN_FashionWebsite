@@ -274,7 +274,7 @@ public class OrderController {
                 return "redirect:/user/user-order";
             }
             UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
-            if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || userProfile.getDob() == null  || address == "Chưa cập nhật!") {
+            if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || address == "Chưa cập nhật!") {
                 model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
                 return "redirect:/user/order";
             }
