@@ -157,13 +157,15 @@ public class PaymentController {
                     userVoucherRepository.save(userVoucher);
                 }
             }
-            // Gửi dữ liệu cho view Thymeleaf
-            model.addAttribute("orderId", o.getId());  // Hiển thị mã đơn
-            model.addAttribute("orderDate", o.getCreatedAt().toLocalDate()); // Ngày đặt
-            model.addAttribute("totalAmount", paymentInfo.getTotalPrice()); // định dạng nếu cần
-            model.addAttribute("paymentMethod", payment.getPaymentMethod().toString());
-            model.addAttribute("cartItems", cartItems);  // để hiển thị danh sách sản phẩm đã mua
-
+//            // Gửi dữ liệu cho view Thymeleaf
+//            model.addAttribute("orderId", o.getId());  // Hiển thị mã đơn
+//            model.addAttribute("orderDate", o.getCreatedAt().toLocalDate()); // Ngày đặt
+//            model.addAttribute("totalAmount", paymentInfo.getTotalPrice()); // định dạng nếu cần
+//            model.addAttribute("paymentMethod", payment.getPaymentMethod().toString());
+//            model.addAttribute("cartItems", cartItems);  // để hiển thị danh sách sản phẩm đã mua
+            session.removeAttribute("paymentOrderId");
+            session.removeAttribute("cartItems");
+            session.removeAttribute("paymentInfo");
             // Gửi email
             try {
                 String htmlContent = emailService.buildOrderConfirmationEmail(user, paymentInfo, cartItems);
@@ -173,14 +175,12 @@ public class PaymentController {
                 if (response.getStatusCode() != 200 && response.getStatusCode() != 202) {
                     System.out.println("❌ Gửi email thất bại: " + response.getStatusCode());
                 }
-                session.removeAttribute("paymentOrderId");
-                session.removeAttribute("cartItems");
-                session.removeAttribute("paymentInfo");
+
             } catch (Exception e) {
                 System.out.println("❌ Lỗi khi gửi email: " + e.getMessage());
             }
             orderService.notifyNewOrders(List.of(o));
-            return "/order/ordersuccess";
+            return "/order/order-confirmination";
         } else  {
             // Cập nhật trạng thái đơn hàng
             Order o = order.get();

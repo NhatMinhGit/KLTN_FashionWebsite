@@ -24,4 +24,7 @@ public interface UserVoucherAssignmentRepository extends JpaRepository<UserVouch
     boolean existsByUserIdAndVoucherId(Long userId, Long voucherId);
 
     List<UserVoucherAssignment> findAll();
+
+    List<UserVoucherAssignment> findByUserIdNot(Long userId);
+
 }
