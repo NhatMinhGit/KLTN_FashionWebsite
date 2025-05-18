@@ -270,12 +270,12 @@ public class OrderController {
             List<Order> orders = orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
             if (orders != null) {
                 model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
-                return "redirect:user/user-order";
+                return "redirect:/user/user-order";
             }
             UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
             if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || userProfile.getDob() == null  || address == "Chưa cập nhật!") {
                 model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
-                return "redirect:user/order";
+                return "redirect:/user/order";
             }
             Order newOrder = new Order();
             newOrder.setUser(user);
