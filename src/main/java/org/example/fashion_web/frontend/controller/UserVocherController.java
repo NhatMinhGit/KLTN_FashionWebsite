@@ -38,6 +38,9 @@ public class UserVocherController {
     @RequestMapping("user/voucher")
     public String voucherIndex(Model model, Principal principal,@AuthenticationPrincipal CustomUserDetails userDetail) {
         Long userid = userDetail.getUser().getId();
+        if (userid == null) {
+            System.out.println("userid is null");
+        }
         List<Voucher> generalVouchers = voucherService.getGeneralVouchers(userid);
 
         // Lấy danh sách voucher riêng được gán cho người dùng
@@ -58,7 +61,7 @@ public class UserVocherController {
         vouchers.addAll(generalVouchers);
         vouchers.addAll(privateVouchers);
         model.addAttribute("currentPage", "voucher");
-        model.addAttribute("vouchers", generalVouchers);
+        model.addAttribute("vouchers", vouchers);
 
         return "user-voucher/user-voucher";
     }
