@@ -1,7 +1,6 @@
 package org.example.fashion_web.frontend.controller;
 
 import jakarta.validation.Valid;
-import org.example.fashion_web.backend.dto.UserDto;
 import org.example.fashion_web.backend.dto.UserVoucherAssignmentDto;
 import org.example.fashion_web.backend.dto.VoucherDto;
 import org.example.fashion_web.backend.models.User;

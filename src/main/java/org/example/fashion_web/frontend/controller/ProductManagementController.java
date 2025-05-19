@@ -81,6 +81,9 @@ public class ProductManagementController {
     @Autowired
     private ProductVariantRepository productVariantRepository;
 
+    @Autowired
+    private FavoriteProductService favoriteProductService;
+
 
 
     public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, ImageService imageService, UserService userService, ProductVariantService productVariantService) {
@@ -306,11 +309,20 @@ public class ProductManagementController {
                 // Lấy thông tin người dùng
                 UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
                 model.addAttribute("user", userDetails);
+
+                User user = userService.findByEmail(principal.getName());
+                Long userId = user.getId();
+                model.addAttribute("userId", userId);
+
+
                 // Lấy sản phẩm theo ID
                 Product product = productService.getProductById(id).orElse(null);
                 if (product == null) {
                     return "redirect:/user"; // Nếu không có sản phẩm, redirect
                 }
+                boolean isFavorited = favoriteProductService.isUserFavoritedProduct(userId, product.getId());
+                model.addAttribute("isFavorited", isFavorited);
+
                 // Lấy giảm giá cho sản phẩm
                 List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
 
@@ -375,11 +387,13 @@ public class ProductManagementController {
                         System.out.println("Skipping null variant or color for variant ID: " + (variant != null ? variant.getId() : "unknown"));
                         continue;
                     }
+
                     List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
                     if (sizes == null) {
                         System.out.println("Sizes are null for variant ID: " + variant.getId());
                         continue;
                     }
+
                     String color = variant.getColor();
                     List<SizeInfo> sizeInfos = sizesByColor.getOrDefault(color, new ArrayList<>());
 
@@ -388,12 +402,21 @@ public class ProductManagementController {
                             System.out.println("Skipping null size or size name for variant ID: " + variant.getId());
                             continue;
                         }
-                        SizeInfo sizeInfo = new SizeInfo(color, size.getSizeName(), size.getStockQuantity());
+
+                        // Tạo đối tượng SizeInfo với variantId
+                        SizeInfo sizeInfo = new SizeInfo(
+                                variant.getId(),     // variantId
+                                color,               // color
+                                size.getSizeName(),  // sizeName
+                                size.getStockQuantity()
+                        );
+
                         sizeInfos.add(sizeInfo);
                     }
 
                     sizesByColor.put(color, sizeInfos);
                 }
+
 
                 // Tiếp tục với các đoạn mã bên dưới
                 model.addAttribute("sizesByColor", sizesByColor);

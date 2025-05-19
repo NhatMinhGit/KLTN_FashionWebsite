@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <title>Thống kê</title>
     <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
-    <script th:src="@{/js/statistic.js}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:src="@{/js/statistic.js}"></script>
     <style>
         #chartSelector {
             max-width: 250px;
@@ -304,16 +305,11 @@
                 <canvas id="myChartCategories"></canvas>
             </div>
         </div>
-
-
-
     </div>
 </div>
 <!--<div th:replace="~{fragments/adminchat_fragment :: adminchat_fragment}"></div>-->
 
-</body>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -367,10 +363,9 @@
     });
 
 
-
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Xuất báo cáo top categories
-        $('#btnExportTopCategories').click(function() {
+        $('#btnExportTopCategories').click(function () {
             // Lấy giá trị năm và tháng từ các dropdown
             const year = $('#selectedYearForCategories').text();
             const monthText = $('#selectedMonthForCategories').text();
@@ -387,7 +382,7 @@
         });
 
         // Xuất báo cáo top products
-        $('#btnExportTopProducts').click(function() {
+        $('#btnExportTopProducts').click(function () {
             // Lấy giá trị năm và tháng từ các dropdown
             const year = $('#selectedYearForSales').text();
             const monthText = $('#selectedMonthForSales').text();
@@ -402,7 +397,7 @@
                 alert('Vui lòng chọn đầy đủ năm và tháng!');
             }
         });
-        $('#btnExportTopLowProducts').click(function() {
+        $('#btnExportTopLowProducts').click(function () {
             // Lấy giá trị năm và tháng từ các dropdown
             const year = $('#selectedYearForLowSales').text();
             const monthText = $('#selectedMonthForLowSales').text();
@@ -419,12 +414,12 @@
         });
 
         // Xuất báo cáo doanh thu theo năm
-        $('#btnExportRevenueByYears').click(function() {
+        $('#btnExportRevenueByYears').click(function () {
             window.location.href = '/admin/statistic/revenue/year/excel';
         });
 
         // Xuất báo cáo doanh thu theo từng tháng trong năm
-        $('#btnExportRevenueByYear').click(function() {
+        $('#btnExportRevenueByYear').click(function () {
             const year = $('#yearRevenueByMonth').val();
 
             if (year) {
@@ -434,8 +429,8 @@
             }
         });
     });
-
-
 </script>
 
+
+</body>
 </html>

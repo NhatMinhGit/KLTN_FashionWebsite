@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="ai-avatar">
                         <i class="fa-solid fa-user-headset"></i>
                     </div>
-                    <p><i class="fa-solid fa-spinner fa-spin"></i> Siyo is typing...</p>
+                    <p><i class="fa-solid fa-spinner fa-spin"></i> Mith is typing...</p>
                 </div>
             </div>`;
 

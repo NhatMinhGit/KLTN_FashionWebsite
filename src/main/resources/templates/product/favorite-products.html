@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop</title>
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}">
+    <link rel="stylesheet" th:href="@{/css/user.css}">
+    <link rel="stylesheet" th:href="@{/css/shop.css}">
+    <link rel="stylesheet" th:href="@{/css/card.css}">
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <script th:src="@{/js/header.js}"></script>
+</head>
+<body>
+<div class="overlay-dark" id="overlay"></div>
+
+<!--Header-->
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="container">
+    <h2>Sản phẩm yêu thích của tôi</h2>
+    <div class="container mt-3" >
+        <div id="productCardContainer" class="row row-cols-4 g-3" >
+            <div th:each="product : ${favoriteProducts}"
+                 class="product-card"
+                 th:insert="fragments/product-card :: productCardFragment(product=${product})">
+            </div>
+        </div>
+
+        <!-- Nút xem thêm -->
+        <div class="text-center mt-3">
+            <button id="loadMoreButton">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="popup-container">
+        <button class="popup-button" id="mainPopupBtn">
+            ☰
+        </button>
+        <div class="popup-links" id="popupLinks">
+            <a href="https://www.facebook.com/" target="_blank" class="popup-link facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://zalo.me/" target="_blank" class="popup-link zalo">
+                <i class="fas fa-comment-dots"></i>
+            </a>
+        </div>
+    </div>
+    <!--Footer-->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</div>
+</body>
+<script th:src="@{/js/card-js.js}"></script>
+<script th:src="@{/js/popup.js}"></script>
+
+</html>

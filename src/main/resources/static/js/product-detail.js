@@ -1,29 +1,3 @@
-// function changeImage(imgElement) {
-//     document.getElementById('mainImage').src = imgElement.src;
-//     // Xóa class 'active' khỏi tất cả các ảnh nhỏ
-//     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-//     // Thêm class 'active' vào ảnh được chọn
-//     imgElement.classList.add('active');
-// }
-// function changeImage(imgElement) {
-//     const mainImage = document.getElementById('mainImage');
-//
-//     // Thêm lớp fade-out để làm mờ ảnh
-//     mainImage.classList.add('fade-out');
-//
-//     // Sau 300ms, đổi src và xóa fade-out (hiện ảnh mới)
-//     setTimeout(() => {
-//         mainImage.src = imgElement.src;
-//         mainImage.classList.remove('fade-out');
-//     }, 300);
-//
-//     // Xử lý active thumbnail
-//     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-//     imgElement.classList.add('active');
-// }
-// function changeImage(thumbnail) {
-//     mainImage.src = thumbnail.src;
-// }
 function changeImage(imgElement) {
     const mainImage = document.getElementById('mainImage');
 
@@ -42,7 +16,15 @@ function changeImage(imgElement) {
     // Thêm class 'active' vào thumbnail được click
     imgElement.classList.add('active');
 }
-
+document.addEventListener('DOMContentLoaded', () => {
+    const selectedColorInput = document.getElementById('selectedColor');
+    if (selectedColorInput && selectedColorInput.value) {
+        const selectedColorImg = document.querySelector(`.color-thumbnail[data-color="${selectedColorInput.value}"]`);
+        if (selectedColorImg) {
+            selectColor(selectedColorImg);
+        }
+    }
+});
 // add-to-cart
 function addToCart() {
     const productElement = document.getElementById("product-details");
@@ -102,7 +84,91 @@ function addToCart() {
             alert("Đã có lỗi trong quá trình xử lý. Vui lòng thử lại sau.");
         });
 }
+let variantSizeQuantities = {};
+let currentVariantId = null;
 
+async function updateSizeOptions(selectedColor) {
+    try {
+        const response = await fetch(`/api/sizes/${productId}/${selectedColor}`);
+        console.log("Fetch sizes with productId:", productId, "color:", selectedColor);
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const sizes = await response.json();
+        if (!sizes.length) {
+            console.warn("Không có size nào với màu này");
+            return;
+        }
+
+        // Reset
+        variantSizeQuantities = {};
+        const sizeStockMap = {};
+
+        sizes.forEach(size => {
+            // Gộp số lượng tồn kho theo size để hiển thị dễ hơn
+            sizeStockMap[size.sizeValue] = size.stockQuantity;
+
+            // Lưu chi tiết theo variantId
+            if (!variantSizeQuantities[size.variantId]) {
+                variantSizeQuantities[size.variantId] = {};
+            }
+            variantSizeQuantities[size.variantId][size.sizeValue] = size.stockQuantity;
+        });
+
+        currentVariantId = sizes[0].variantId;
+
+        // Cập nhật số lượng lên các nút
+        const buttons = document.querySelectorAll('#sizeButtons button');
+        buttons.forEach(button => {
+            const size = button.dataset.size;
+            const stock = sizeStockMap[size];
+            console.log(`Button size=${size}, stock=${stock}`);  // thêm log
+            if (stock != null) {
+                button.innerText = `${size} (${stock > 0 ? `Còn ${stock}` : 'Hết hàng'})`;
+                button.disabled = stock <= 0;
+            } else {
+                button.innerText = size + ' (Không có)';
+                button.disabled = true;
+            }
+        });
+
+    } catch (error) {
+        console.error("Lỗi khi lấy size:", error);
+    }
+}
+
+
+function selectSize(size) {
+    document.getElementById('selectedSize').value = size;
+
+    const buttons = document.querySelectorAll('.btn-group .btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    const clickedButton = Array.from(buttons).find(btn => btn.textContent.trim() === size);
+    if (clickedButton) clickedButton.classList.add('active');
+
+    // Tìm lại variantId tương ứng
+    const selectedVariant = Object.entries(variantSizeQuantities).find(([variantId, sizes]) => sizes[size]);
+    if (selectedVariant) {
+        currentVariantId = selectedVariant[0]; // Cập nhật lại variantId
+        console.log("Variant ID cập nhật:", currentVariantId);
+
+        // Cập nhật data-variant-id trong DOM để addToCart lấy đúng
+        const productElement = document.getElementById("product-details");
+        if (productElement) {
+            productElement.setAttribute("data-variant-id", currentVariantId);
+        }
+    }
+
+    getStockQuantity(currentVariantId, size).then(stockQuantity => {
+        const stockMessageElement = document.getElementById('stockMessage');
+        if (stockQuantity < 10) {
+            stockMessageElement.style.display = 'block';
+            stockMessageElement.textContent = `Chỉ còn ${stockQuantity} sản phẩm!`;
+        } else {
+            stockMessageElement.style.display = 'none';
+        }
+    });
+}
 
 function selectColor(element) {
     // Bỏ viền cũ
@@ -120,40 +186,30 @@ function selectColor(element) {
     // Cập nhật input hidden
     document.getElementById('selectedColor').value = selectedColor;
 
-    // Gọi API cập nhật size & ảnh
-    updateSizeOptions(selectedColor);
-    updateProductImages(selectedColor);
+    Promise.all([
+        updateSizeOptions(selectedColor),
+        updateProductImages(selectedColor)
+    ]).then(() => {
+        console.log("Đã cập nhật size và ảnh");
+    });
 }
 const productId = document.getElementById("productId").value;
 const sizeSelect = document.getElementById("sizeSelect");
 const mainImage = document.getElementById("mainImage");
 const thumbnailContainer = document.getElementById("thumbnailContainer");
 
-async function updateSizeOptions(selectedColor) {
-    try {
-        const response = await fetch(`/api/sizes/${productId}/${selectedColor}`);
-        const sizes = await response.json();
 
-        if (sizes.length === 0) {
-            sizeSelect.innerHTML = '<option disabled selected>Không có size</option>';
-            return;
-        }
-
-        sizeSelect.innerHTML = sizes.map(size =>
-            `<option value="${size.sizeValue}">${size.sizeValue} (Stock: ${size.stockQuantity})</option>`
-        ).join("");
-    } catch (error) {
-        console.error("Lỗi khi lấy size:", error);
-        sizeSelect.innerHTML = '<option disabled selected>Lỗi khi tải size</option>';
-    }
-}
 
 async function updateProductImages(selectedColor) {
     try {
+        const productId = document.getElementById('productId').value;
+        const mainImage = document.getElementById('mainImage');
+        const thumbnailContainer = document.querySelector('.thumbnail-carousel');
+
         const response = await fetch(`/api/images/${productId}/${selectedColor}`);
         const images = await response.json();
 
-        if (images.length === 0) {
+        if (!images || images.length === 0) {
             mainImage.src = "";
             mainImage.alt = "Không có ảnh cho màu này.";
             thumbnailContainer.innerHTML = "<p>Không có ảnh cho màu đã chọn.</p>";
@@ -162,16 +218,40 @@ async function updateProductImages(selectedColor) {
 
         mainImage.src = images[0];
         mainImage.alt = "Ảnh sản phẩm";
+
+        if ($(thumbnailContainer).hasClass('slick-initialized')) {
+            $(thumbnailContainer).slick('unslick');
+        }
+
         thumbnailContainer.innerHTML = images.map(imageUri =>
             `<img src="${imageUri}" class="thumbnail" onclick="changeImage(this)" />`
         ).join("");
+
+        $(thumbnailContainer).slick({
+            centerMode: true,
+            centerPadding: '40px',
+            slidesToShow: 2,
+            arrows: true,
+            focusOnSelect: true
+        });
+
+        // Tự động highlight ảnh đầu tiên (slick sẽ làm tự nhiên, bạn không cần thêm class)
     } catch (error) {
         console.error("Lỗi khi lấy ảnh:", error);
+        const mainImage = document.getElementById('mainImage');
+        const thumbnailContainer = document.querySelector('.thumbnail-carousel');
         mainImage.src = "";
         mainImage.alt = "Lỗi khi tải ảnh";
         thumbnailContainer.innerHTML = "<p>Lỗi khi tải ảnh</p>";
     }
 }
+
+function changeImage(thumbnail) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = thumbnail.src;
+}
+
+
 
 // Assuming you have a function or way to fetch stock data for the selected size
 async function getStockQuantity(variantId, size) {
@@ -187,28 +267,52 @@ async function getStockQuantity(variantId, size) {
     return stockQuantity;
 }
 
-function selectSize(size) {
-    // Update selected size input
-    document.getElementById('selectedSize').value = size;
 
-    // Update the active size button
-    const buttons = document.querySelectorAll('.btn-group .btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    const clickedButton = Array.from(buttons).find(btn => btn.textContent.trim() === size);
-    clickedButton.classList.add('active');
 
-    // Fetch and display the stock quantity for the selected size
-    getStockQuantity(size).then(stockQuantity => {
-        const stockMessageElement = document.getElementById('stockMessage');
+// async function updateSizeOptions(selectedColor) {
+//     sizeSelect.innerHTML = '<option disabled selected>Đang tải...</option>';
+//     try {
+//         const response = await fetch(`/api/sizes/${productId}/${selectedColor}`);
+//         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+//
+//         const sizes = await response.json();
+//
+//         if (sizes.length === 0) {
+//             sizeSelect.innerHTML = '<option disabled selected>Không có size</option>';
+//             return;
+//         }
+//
+//         sizeSelect.innerHTML = sizes.map(size =>
+//             `<option value="${size.sizeValue}">${size.sizeValue} (Stock: ${size.stockQuantity})</option>`
+//         ).join("");
+//     } catch (error) {
+//         console.error("Lỗi khi lấy size:", error);
+//         sizeSelect.innerHTML = '<option disabled selected>Lỗi khi tải size</option>';
+//     }
+// }
+// function selectSize(size) {
+//     // Update selected size input
+//     document.getElementById('selectedSize').value = size;
+//
+//     // Update the active size button
+//     const buttons = document.querySelectorAll('.btn-group .btn');
+//     buttons.forEach(btn => btn.classList.remove('active'));
+//     const clickedButton = Array.from(buttons).find(btn => btn.textContent.trim() === size);
+//     clickedButton.classList.add('active');
+//
+//     // Fetch and display the stock quantity for the selected size
+//     getStockQuantity(size).then(stockQuantity => {
+//         const stockMessageElement = document.getElementById('stockMessage');
+//
+//         if (stockQuantity < 10) {
+//             stockMessageElement.style.display = 'block';
+//             stockMessageElement.textContent = `Chỉ còn ${stockQuantity} sản phẩm!`;
+//         } else {
+//             stockMessageElement.style.display = 'none'; // Hide the message if stock is 10 or more
+//         }
+//     });
+// }
 
-        if (stockQuantity < 10) {
-            stockMessageElement.style.display = 'block';
-            stockMessageElement.textContent = `Chỉ còn ${stockQuantity} sản phẩm!`;
-        } else {
-            stockMessageElement.style.display = 'none'; // Hide the message if stock is 10 or more
-        }
-    });
-}
 function changeQuantity(change) {
     const quantityInput = document.getElementById('quantity');
     let value = parseInt(quantityInput.value) + change;
@@ -272,6 +376,60 @@ $(document).ready(function(){
         focusOnSelect: true
     });
 });
+
+const userId = document.getElementById('userIdInput').value;
+const favoriteBtn = document.getElementById('favoriteBtn');
+let isFavorited = false; // trạng thái ban đầu
+
+function updateFavoriteButton() {
+    if (isFavorited) {
+        favoriteBtn.classList.remove('btn-outline-secondary');
+        favoriteBtn.classList.add('btn-danger');
+    } else {
+        favoriteBtn.classList.remove('btn-danger');
+        favoriteBtn.classList.add('btn-outline-secondary');
+    }
+}
+
+// Khi trang load, gọi API check trạng thái yêu thích
+fetch(`/api/favorites/status?userId=${userId}&productId=${productId}`)
+    .then(res => res.json())
+    .then(data => {
+        isFavorited = data.isFavorited;
+        updateFavoriteButton();
+    })
+    .catch(err => {
+        console.error('Lỗi khi lấy trạng thái yêu thích:', err);
+    });
+
+favoriteBtn.addEventListener('click', () => {
+    if (!isFavorited) {
+        fetch('/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, productId })
+        }).then(res => {
+            if (res.ok) {
+                isFavorited = true;
+                updateFavoriteButton();
+            } else {
+                alert('Không thể thêm vào yêu thích!');
+            }
+        }).catch(() => alert('Lỗi khi thêm yêu thích!'));
+    } else {
+        fetch(`/api/favorites?userId=${userId}&productId=${productId}`, {
+            method: 'DELETE'
+        }).then(res => {
+            if (res.ok) {
+                isFavorited = false;
+                updateFavoriteButton();
+            } else {
+                alert('Không thể xóa khỏi yêu thích!');
+            }
+        }).catch(() => alert('Lỗi khi xóa yêu thích!'));
+    }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
     const productId = document.getElementById("productId").value;
     const cookieName = "viewedProducts";
