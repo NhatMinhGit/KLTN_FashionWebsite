@@ -151,7 +151,10 @@
             <button class="btn btn-primary btn-lg mb-3 me-2" onclick="addToCart()">
                 <i class="fas fa-cart-plus"></i> Thêm vào giỏ
             </button>
-            <button class="btn btn-outline-secondary btn-lg mb-3">
+            <!-- Hidden input chứa userId -->
+            <input type="hidden" id="userIdInput" th:value="${userId}" />
+            <input type="hidden" id="isFavoritedInput" th:value="${isFavorited}" />
+            <button class="btn btn-outline-secondary btn-lg mb-3" id="favoriteBtn">
                 <i class="fas fa-heart"></i> Yêu thích
             </button>
         </div>

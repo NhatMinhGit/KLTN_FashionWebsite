@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link th:href="@{/css/bootstrap-5.3.3.css}" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/fontawesome-6.7.1/css/all.css}" />
+    <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
+    <title>Chi Nhánh và Bản Đồ</title>
+    <style>
+        /* Chiều cao bản đồ full chiều cao card */
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div th:each="branch : ${branches}" class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <h5 th:text="${branch.branchName}">Tên chi nhánh</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Địa chỉ:</strong> <span th:text="${branch.address + ', ' + branch.ward + ', ' + branch.district + ', ' + branch.city}">Địa chỉ</span></p>
+                    <p><strong>Điện thoại:</strong> <span th:text="${branch.phone}">Số điện thoại</span></p>
+                    <p><strong>Kinh độ:</strong> <span th:text="${branch.longitude}">Longitude</span></p>
+                    <p><strong>Vĩ độ:</strong> <span th:text="${branch.latitude}">Latitude</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Load Google Maps trước, không dùng callback -->
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDrGh_-IErUjjlGxVppZBm6AyUzjMlfKzU">
+</script>
+
+<!-- Phần bên trong file branch-address.html -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const branches = /*[[${branches}]]*/ [];
+
+    function initMap() {
+        if (!branches || branches.length === 0) {
+            console.warn("No branch data.");
+            return;
+        }
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: { lat: branches[0].latitude, lng: branches[0].longitude },
+        });
+
+        for (const branch of branches) {
+            const marker = new google.maps.Marker({
+                position: { lat: branch.latitude, lng: branch.longitude },
+                map: map,
+                title: "Chi nhánh: " + branch.branchName
+            });
+        }
+    }
+
+    window.addEventListener("load", () => {
+        if (typeof google !== 'undefined' && google.maps) {
+            initMap();
+        } else {
+            console.error("Google Maps failed to load.");
+        }
+    });
+    /*]]>*/
+</script>
+
+
+</body>
+
+</html>

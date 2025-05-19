@@ -81,6 +81,9 @@ public class ProductManagementController {
     @Autowired
     private ProductVariantRepository productVariantRepository;
 
+    @Autowired
+    private FavoriteProductService favoriteProductService;
+
 
 
     public ProductManagementController(ProductService productService, BrandService brandService, CategoryService categoryService, ImageService imageService, UserService userService, ProductVariantService productVariantService) {
@@ -306,11 +309,20 @@ public class ProductManagementController {
                 // Lấy thông tin người dùng
                 UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
                 model.addAttribute("user", userDetails);
+
+                User user = userService.findByEmail(principal.getName());
+                Long userId = user.getId();
+                model.addAttribute("userId", userId);
+
+
                 // Lấy sản phẩm theo ID
                 Product product = productService.getProductById(id).orElse(null);
                 if (product == null) {
                     return "redirect:/user"; // Nếu không có sản phẩm, redirect
                 }
+                boolean isFavorited = favoriteProductService.isUserFavoritedProduct(userId, product.getId());
+                model.addAttribute("isFavorited", isFavorited);
+
                 // Lấy giảm giá cho sản phẩm
                 List<ProductDiscount> productDiscounts = discountService.getActiveDiscountsForProduct(product);
 
