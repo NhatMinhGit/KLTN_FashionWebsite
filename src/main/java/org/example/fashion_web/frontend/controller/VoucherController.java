@@ -10,6 +10,7 @@ import org.example.fashion_web.backend.models.Voucher;
 import org.example.fashion_web.backend.repositories.UserRepository;
 import org.example.fashion_web.backend.repositories.UserVoucherAssignmentRepository;
 import org.example.fashion_web.backend.repositories.VoucherRepository;
+import org.example.fashion_web.backend.services.UserService;
 import org.example.fashion_web.backend.services.VoucherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -443,52 +444,50 @@ public String editVoucher(
     }
 
     @PostMapping("/admin/voucher/assign")
-    public String assignVoucherToUser(@Valid @ModelAttribute("assignmentDto") UserVoucherAssignmentDto assignmentDto,
-                                      BindingResult result,
-                                      Model model) {
+    public String assignVoucherToUsers(@Valid @ModelAttribute("assignmentDto") UserVoucherAssignmentDto assignmentDto,
+                                       BindingResult result,
+                                       Model model) {
+
         List<User> users = userService.getUsersByRole("USER");
         List<Voucher> vouchers = voucherService.getVoucherAvilable();
+
         if (result.hasErrors()) {
-            // Nếu có lỗi validation, trả lại danh sách để render dropdown
             model.addAttribute("users", users);
             model.addAttribute("vouchers", vouchers);
             return "voucher/assign-voucher";
         }
 
-        Optional<User> userOpt = userRepository.findById(assignmentDto.getUserId());
         Optional<Voucher> voucherOpt = voucherRepository.findById(assignmentDto.getVoucherId());
 
-        if (userOpt.isEmpty()) {
-            result.rejectValue("userId", "error.assignmentDto", "Người dùng không tồn tại.");
-        }
         if (voucherOpt.isEmpty()) {
             result.rejectValue("voucherId", "error.assignmentDto", "Voucher không tồn tại.");
-        }
-
-        if (result.hasErrors()) {
-            model.addAttribute("users", userRepository.findAll());
-            model.addAttribute("vouchers", voucherRepository.findAll());
+            model.addAttribute("users", users);
+            model.addAttribute("vouchers", vouchers);
             return "voucher/assign-voucher";
         }
 
-        // Kiểm tra xem đã có assignment cho user và voucher chưa (unique constraint)
-        boolean exists = userVoucherAssignmentRepository.existsByUserIdAndVoucherId(assignmentDto.getUserId(), assignmentDto.getVoucherId());
-        if (exists) {
-            result.rejectValue("voucherId", "error.assignmentDto", "Voucher này đã được gán cho người dùng.");
-            model.addAttribute("users", userRepository.findAll());
-            model.addAttribute("vouchers", voucherRepository.findAll());
-            return "voucher/assign-voucher";
+        Voucher voucher = voucherOpt.get();
+
+        for (Long userId : assignmentDto.getUserIds()) {
+            Optional<User> userOpt = userRepository.findById(userId);
+
+            if (userOpt.isPresent()) {
+                boolean exists = userVoucherAssignmentRepository
+                        .existsByUserIdAndVoucherId(userId, voucher.getId());
+
+                if (!exists) {
+                    UserVoucherAssignment assignment = new UserVoucherAssignment();
+                    assignment.setUser(userOpt.get());
+                    assignment.setVoucher(voucher);
+                    assignment.setAssignedAt(LocalDateTime.now());
+                    assignment.setIsUsed(false);
+                    userVoucherAssignmentRepository.save(assignment);
+                }
+            }
         }
-
-        UserVoucherAssignment assignment = new UserVoucherAssignment();
-        assignment.setUser(userOpt.get());
-        assignment.setVoucher(voucherOpt.get());
-        assignment.setAssignedAt(LocalDateTime.now());
-        assignment.setIsUsed(false);
-
-        userVoucherAssignmentRepository.save(assignment);
 
         return "redirect:/admin/voucher?success=assign";
     }
+
 
 }

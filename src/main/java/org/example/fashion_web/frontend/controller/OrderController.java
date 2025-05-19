@@ -342,7 +342,7 @@ public class OrderController {
                 productOpt.ifPresentOrElse(product -> {
                     // Tìm variant tương ứng với sản phẩm
                     Optional<ProductVariant> variantOpt = product.getVariants().stream()
-                            .filter(variant -> variant.getId() == item.getVariant().getId()) // so sánh theo ID variant
+                            .filter(variant -> variant.getId().equals(item.getVariant().getId())) // so sánh theo ID variant
                             .findFirst();
 
                     variantOpt.ifPresentOrElse(variant -> {
@@ -385,7 +385,17 @@ public class OrderController {
                 userVoucher.setVoucher(voucher);
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
+                Optional<UserVoucherAssignment> assignmentOpt =
+                        userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
+
+                if (assignmentOpt.isPresent()) {
+                    UserVoucherAssignment assignment = assignmentOpt.get();
+                    assignment.setIsUsed(true);
+                    assignment.setAssignedAt(LocalDateTime.now());// hoặc setIsUsed(true) nếu dùng chuẩn JavaBeans
+                    userVoucherAssignmentRepository.save(assignment);
+                }
             }
+
 
             // Gửi email
             try {
