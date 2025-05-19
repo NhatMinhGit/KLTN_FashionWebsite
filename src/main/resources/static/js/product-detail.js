@@ -1,29 +1,3 @@
-// function changeImage(imgElement) {
-//     document.getElementById('mainImage').src = imgElement.src;
-//     // Xóa class 'active' khỏi tất cả các ảnh nhỏ
-//     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-//     // Thêm class 'active' vào ảnh được chọn
-//     imgElement.classList.add('active');
-// }
-// function changeImage(imgElement) {
-//     const mainImage = document.getElementById('mainImage');
-//
-//     // Thêm lớp fade-out để làm mờ ảnh
-//     mainImage.classList.add('fade-out');
-//
-//     // Sau 300ms, đổi src và xóa fade-out (hiện ảnh mới)
-//     setTimeout(() => {
-//         mainImage.src = imgElement.src;
-//         mainImage.classList.remove('fade-out');
-//     }, 300);
-//
-//     // Xử lý active thumbnail
-//     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-//     imgElement.classList.add('active');
-// }
-// function changeImage(thumbnail) {
-//     mainImage.src = thumbnail.src;
-// }
 function changeImage(imgElement) {
     const mainImage = document.getElementById('mainImage');
 
@@ -402,6 +376,60 @@ $(document).ready(function(){
         focusOnSelect: true
     });
 });
+
+const userId = document.getElementById('userIdInput').value;
+const favoriteBtn = document.getElementById('favoriteBtn');
+let isFavorited = false; // trạng thái ban đầu
+
+function updateFavoriteButton() {
+    if (isFavorited) {
+        favoriteBtn.classList.remove('btn-outline-secondary');
+        favoriteBtn.classList.add('btn-danger');
+    } else {
+        favoriteBtn.classList.remove('btn-danger');
+        favoriteBtn.classList.add('btn-outline-secondary');
+    }
+}
+
+// Khi trang load, gọi API check trạng thái yêu thích
+fetch(`/api/favorites/status?userId=${userId}&productId=${productId}`)
+    .then(res => res.json())
+    .then(data => {
+        isFavorited = data.isFavorited;
+        updateFavoriteButton();
+    })
+    .catch(err => {
+        console.error('Lỗi khi lấy trạng thái yêu thích:', err);
+    });
+
+favoriteBtn.addEventListener('click', () => {
+    if (!isFavorited) {
+        fetch('/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, productId })
+        }).then(res => {
+            if (res.ok) {
+                isFavorited = true;
+                updateFavoriteButton();
+            } else {
+                alert('Không thể thêm vào yêu thích!');
+            }
+        }).catch(() => alert('Lỗi khi thêm yêu thích!'));
+    } else {
+        fetch(`/api/favorites?userId=${userId}&productId=${productId}`, {
+            method: 'DELETE'
+        }).then(res => {
+            if (res.ok) {
+                isFavorited = false;
+                updateFavoriteButton();
+            } else {
+                alert('Không thể xóa khỏi yêu thích!');
+            }
+        }).catch(() => alert('Lỗi khi xóa yêu thích!'));
+    }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
     const productId = document.getElementById("productId").value;
     const cookieName = "viewedProducts";
