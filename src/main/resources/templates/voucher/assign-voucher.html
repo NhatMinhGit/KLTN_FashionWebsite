@@ -11,15 +11,16 @@
     <h2 class="mb-4">Gán Voucher cho Người Dùng</h2>
     <form id="assignVoucherForm" method="post" th:action="@{/admin/voucher/assign}" th:object="${assignmentDto}">
         <div class="mb-3">
-            <label for="userId" class="form-label">Chọn Người Dùng <span class="text-danger">*</span></label>
-            <select class="form-select" id="userId" th:field="*{userId}" required>
-                <option value="" disabled selected>-- Chọn người dùng --</option>
+            <label for="userIds" class="form-label">Chọn Người Dùng <span class="text-danger">*</span></label>
+            <select multiple class="form-select" id="userIds" name="userIds"
+                    th:field="*{userIds}" required>
                 <option th:each="user : ${users}"
                         th:value="${user.id}"
                         th:text="${user.name} + ' (' + ${user.email} + ')'">
                 </option>
             </select>
-            <p th:if="${#fields.hasErrors('userId')}" class="text-danger" th:errors="*{userId}"></p>
+            <p th:if="${#fields.hasErrors('userIds')}" class="text-danger" th:errors="*{userIds}"></p>
+
         </div>
         <div class="mb-3">
             <label for="voucherId" class="form-label">Chọn Voucher <span class="text-danger">*</span></label>
