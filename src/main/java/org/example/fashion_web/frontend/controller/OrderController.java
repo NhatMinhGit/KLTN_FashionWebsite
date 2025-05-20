@@ -379,7 +379,17 @@ public class OrderController {
                 userVoucher.setVoucher(voucher);
                 userVoucher.setUsedDate(LocalDateTime.now());
                 userVoucherRepository.save(userVoucher);
+                Optional<UserVoucherAssignment> assignmentOpt =
+                        userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
+
+                if (assignmentOpt.isPresent()) {
+                    UserVoucherAssignment assignment = assignmentOpt.get();
+                    assignment.setIsUsed(true);
+                    assignment.setAssignedAt(LocalDateTime.now());// hoặc setIsUsed(true) nếu dùng chuẩn JavaBeans
+                    userVoucherAssignmentRepository.save(assignment);
+                }
             }
+
 
             // Gửi email
             try {
