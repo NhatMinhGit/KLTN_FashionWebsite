@@ -9,7 +9,6 @@
     <script th:src="@{/js/bootstrap-5.3.3.js}"></script>
     <title>Chi Nhánh và Bản Đồ</title>
     <style>
-        /* Chiều cao bản đồ full chiều cao card */
         #map {
             height: 400px;
             width: 100%;
@@ -53,6 +52,8 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const branches = /*[[${branches}]]*/ [];
+    let map;
+    let currentMarker;
 
     function initMap() {
         if (!branches || branches.length === 0) {
@@ -60,18 +61,38 @@
             return;
         }
 
-        const map = new google.maps.Map(document.getElementById("map"), {
+        map = new google.maps.Map(document.getElementById("map"), {
             zoom: 12,
             center: { lat: branches[0].latitude, lng: branches[0].longitude },
         });
 
-        for (const branch of branches) {
-            const marker = new google.maps.Marker({
-                position: { lat: branch.latitude, lng: branch.longitude },
-                map: map,
-                title: "Chi nhánh: " + branch.branchName
+        // Hiển thị marker đầu tiên mặc định
+        currentMarker = new google.maps.Marker({
+            position: { lat: branches[0].latitude, lng: branches[0].longitude },
+            map: map,
+            title: "Chi nhánh: " + branches[0].branchName
+        });
+
+        // Thêm sự kiện click cho từng thẻ card
+        document.querySelectorAll(".card").forEach((card, index) => {
+            card.addEventListener("click", () => {
+                const branch = branches[index];
+                const position = { lat: branch.latitude, lng: branch.longitude };
+
+                map.setCenter(position);
+                map.setZoom(15); // Tuỳ chỉnh nếu muốn phóng to
+
+                if (currentMarker) {
+                    currentMarker.setMap(null);
+                }
+
+                currentMarker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: "Chi nhánh: " + branch.branchName
+                });
             });
-        }
+        });
     }
 
     window.addEventListener("load", () => {

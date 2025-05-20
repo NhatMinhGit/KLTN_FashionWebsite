@@ -142,6 +142,12 @@ public class GeminiController {
                 case "technical_support":
                     response = geminiService.technicalSupportForCustomerResponse();
                     break;
+                case "greeting":
+                    response = geminiService.getRandomGreetingResponse();
+                    break;
+                case "outfit_advice":
+                    response = geminiService.getRandomOutfitAdvice(message); // Trả về JSON chứa key aiResponse
+                    break;
                 default:
                     response = geminiService.chatWithAI(message,isAdmin);
                     break;
@@ -197,6 +203,10 @@ public class GeminiController {
             result.put("intent", "recommend_product");
         } else if (isTechnicalSupport(lowerCaseMessage)) {
             result.put("intent", "technical_support");
+        } else if (isOutfitAdvice(lowerCaseMessage)) {
+            result.put("intent", "outfit_advice");
+        } else if (isGreeting(lowerCaseMessage)) {
+            result.put("intent", "greeting");
         } else {
             result.put("intent", "general_chat"); // Intent mặc định nếu không xác định được
         }
@@ -211,7 +221,7 @@ public class GeminiController {
 
 
     // Hàm trích xuất entities từ câu hỏi
-    private Map<String, String> extractEntities(String message) {
+    public static Map<String, String> extractEntities(String message) {
         Map<String, String> entities = new HashMap<>();
         String lowerCaseMessage = message.toLowerCase();
 
@@ -234,7 +244,19 @@ public class GeminiController {
         if (lowerCaseMessage.contains("size m")) {
             entities.put("size", "M");
         }
+        // Trích xuất minPrice (giá bắt đầu)
+        Pattern minPricePattern = Pattern.compile("từ\\s*(\\d+)\\s*(k|nghìn|triệu)?");
+        Matcher minPriceMatcher = minPricePattern.matcher(lowerCaseMessage);
+        if (minPriceMatcher.find()) {
+            entities.put("minPrice", minPriceMatcher.group(1) + (minPriceMatcher.group(2) != null ? minPriceMatcher.group(2) : ""));
+        }
 
+        // Trích xuất maxPrice (giá kết thúc)
+        Pattern maxPricePattern = Pattern.compile("đến\\s*(\\d+)\\s*(k|nghìn|triệu)?");
+        Matcher maxPriceMatcher = maxPricePattern.matcher(lowerCaseMessage);
+        if (maxPriceMatcher.find()) {
+            entities.put("maxPrice", maxPriceMatcher.group(1) + (maxPriceMatcher.group(2) != null ? maxPriceMatcher.group(2) : ""));
+        }
         // Trích xuất tháng (ví dụ: tháng 5, tháng 11)
         Pattern monthPattern = Pattern.compile("(tháng\\s*(\\d{1,2}))|(\\b(0?[1-9]|1[0-2])\\b)");
         Matcher monthMatcher = monthPattern.matcher(lowerCaseMessage);
@@ -250,10 +272,55 @@ public class GeminiController {
             String year = yearMatcher.group(1) != null ? yearMatcher.group(1) : yearMatcher.group(2);
             entities.put("year", year);
         }
+        // Danh sách màu phổ biến
+        String[] colors = {"đỏ", "xanh", "vàng", "đen", "trắng", "hồng", "tím", "cam", "nâu", "ghi", "xám"};
+
+        // Kiểm tra và thêm màu vào entities nếu có
+        for (String c : colors) {
+            if (lowerCaseMessage.contains(c)) {
+                entities.put("color", c);
+                break;  // Chỉ lấy màu đầu tiên tìm thấy
+            }
+        }
+        String[] descriptionKeywords = {
+                "dáng ôm", "chất liệu cotton", "cổ tròn", "cổ tim", "tay dài", "tay ngắn", "mỏng nhẹ",
+                "dày dặn", "thun co giãn", "phối ren", "họa tiết", "trơn", "in hình", "đính nút", "có mũ",
+                // Từ khóa bổ sung từ lời khuyên, ví dụ:
+                "váy dạ hội", "sơ mi", "quần tây", "đầm body", "chi tiết ánh kim", "vest nữ",
+                "váy xếp ly", "chân váy", "áo thun", "quần jean", "áo croptop", "váy hoa",
+                "áo khoác", "giày bệt", "áo len", "khăn choàng", "giày boot", "áo oversize", "quần ống rộng"
+        };
+
+        // Tìm các từ khóa description xuất hiện trong câu hỏi
+        List<String> foundDescriptions = new ArrayList<>();
+        for (String desc : descriptionKeywords) {
+            if (lowerCaseMessage.contains(desc)) {
+                foundDescriptions.add(desc);
+            }
+        }
+        if (!foundDescriptions.isEmpty()) {
+            // Nối các mô tả thành chuỗi phân cách bằng dấu phẩy
+            entities.put("description", String.join(", ", foundDescriptions));
+        }
 
         return entities;
     }
-
+    private boolean isGreeting(String message) {
+        return containsKeywords(message,
+                "chào",
+                "hi",
+                "shop ơi",
+                "hello");
+    }
+    private boolean isOutfitAdvice(String message) {
+        return containsKeywords(message,
+                "mặc gì",
+                "mặc sao",
+                "trang phục",
+                "mặc thế nào",
+                "nên mặc",
+                "nên chọn trang phục");
+    }
 
     // Các phương thức kiểm tra như trước
     private boolean isStockQuery(String message) {

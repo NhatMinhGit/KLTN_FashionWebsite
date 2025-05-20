@@ -353,17 +353,11 @@ public class OrderController {
                                 .findFirst();
 
                         sizeOpt.ifPresentOrElse(size -> {
-                            if (size.getStockQuantity() >= item.getQuantity()) {
-//                                size.setStockQuantity(size.getStockQuantity() - item.getQuantity()); // Giảm tồn kho size
                                 size.setStockQuantity(size.getStockQuantity());
                                 sizeRepository.save(size); // Lưu lại size đã cập nhật
-                            } else {
-                                throw new RuntimeException("Not enough stock for size: " + size.getSizeName());
-                            }
                         }, () -> {
                             throw new RuntimeException("Size not found for variant: " + variant.getColor());
                         });
-
                     }, () -> {
                         throw new RuntimeException("Variant not found for product: " + product.getName());
                     });

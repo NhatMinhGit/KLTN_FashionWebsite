@@ -68,8 +68,6 @@ public class ProductManagementController {
     @Autowired
     private FeedBackService feedBackService;
     @Autowired
-    private CommentService commentService;
-    @Autowired
     private final ProductVariantService productVariantService;
 
     @Autowired

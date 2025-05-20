@@ -9,6 +9,7 @@ import org.example.fashion_web.backend.models.*;
 import org.example.fashion_web.backend.repositories.*;
 import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.utils.CurrencyFormatter;
+import org.example.fashion_web.frontend.controller.GeminiController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.MediaType;
@@ -1613,5 +1614,157 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         // Nếu không có cookie hoặc lỗi, trả về chuỗi rỗng hoặc thông báo phù hợp
         return "{\"aiResponse\":\"Không có sản phẩm đã xem hoặc dữ liệu không hợp lệ.\"}";
     }
+    public String getRandomGreetingResponse() {
+        String[] greetingResponses = {
+                "Chào bạn, tôi là Mith bạn có thể hỏi tôi bất cứ gì mà bạn thắc mắc Mith sẽ giải đáp.",
+                "Xin chào! Mith sẽ giải đáp các thắc mắc cho bạn",
+                "Hi bạn! Bạn cần Mith giúp gì nào ?"
+        };
+        int idx = new Random().nextInt(greetingResponses.length);
 
+        // Tạo JSON response
+        Map<String, String> result = new HashMap<>();
+
+        result.put("aiResponse", greetingResponses[idx]);
+
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
+    public String getRandomOutfitAdvice(String message) {
+        Map<String, String> entities = GeminiController.extractEntities(message);
+
+        // Trích thực các giá trị
+        String[] partyAdvices = {
+                "Đi dự tiệc, bạn nên chọn váy dạ hội hoặc sơ mi phối quần tây, trông sẽ rất sang trọng.",
+                "Dự tiệc tối, hãy chọn đầm body hoặc váy có chi tiết ánh kim để nổi bật hơn.",
+                "Nếu bạn đi dự sự kiện trang trọng, đừng ngần ngại diện vest nữ hoặc đầm xếp ly cao cấp."
+        };
+
+        String[] workAdvices = {
+                "Đi làm thì trang phục công sở lịch sự như sơ mi và chân váy hoặc vest là lựa chọn tuyệt vời.",
+                "Trang phục đi làm lý tưởng là sơ mi trắng và quần tây tối màu – đơn giản mà thanh lịch.",
+                "Trang phục công sở mùa hè có thể là đầm liền thân kết hợp giày bệt, vừa mát mẻ vừa lịch sự."
+        };
+
+        String[] casualAdvices = {
+                "Nếu đi chơi, hãy thử áo thun năng động kết hợp với quần jean – vừa thoải mái vừa trẻ trung.",
+                "Cuối tuần đi chơi, bạn có thể mặc áo croptop cùng chân váy jeans để thêm phần cá tính."
+        };
+
+        String[] cafeAdvices = {
+                "Đi cà phê với bạn bè thì mặc váy suông hoặc áo blouse nhẹ nhàng là phù hợp nhất.",
+                "Khi đi cà phê hẹn hò, hãy thử váy hoa nhẹ nhàng hoặc áo trễ vai nữ tính nhé."
+        };
+        // === Thêm lời khuyên theo mùa và thời tiết ===
+        String[] rainyAdvices = {
+                "Trời mưa, bạn nên mặc áo khoác nhẹ chống thấm và mang giày kín hoặc ủng nhé.",
+                "Ngày mưa nên chọn quần dài và áo chống nước, đừng quên mang theo dù nhé!"
+        };
+
+        String[] hotWeatherAdvices = {
+                "Trời nóng, hãy chọn trang phục thoáng mát như áo hai dây, quần short hoặc váy ngắn.",
+                "Ngày oi bức nên ưu tiên vải cotton, sáng màu để cơ thể dễ chịu hơn."
+        };
+
+        String[] coldWeatherAdvices = {
+                "Trời lạnh thì áo len, áo khoác dày và khăn choàng là lựa chọn không thể thiếu.",
+                "Đừng quên mặc áo giữ nhiệt và mang thêm tất nếu trời quá lạnh nhé!"
+        };
+
+        String[] summerAdvices = {
+                "Mùa hè bạn nên chọn trang phục nhẹ, thoáng như váy maxi, áo ba lỗ hoặc quần short.",
+                "Trang phục mùa hè lý tưởng là chất liệu mỏng, dễ thấm hút mồ hôi như cotton hoặc linen."
+        };
+
+        String[] winterAdvices = {
+                "Mùa đông nên chọn áo khoác dạ, áo len và giày boot để vừa giữ ấm vừa thời trang.",
+                "Bạn nên phối nhiều lớp áo khi trời lạnh, giúp giữ nhiệt tốt mà vẫn linh hoạt."
+        };
+
+        String[] fallbackAdvices = {
+                "Bạn có thể mặc trang phục mà bạn cảm thấy thoải mái và tự tin nhất nhé!",
+                "Trang phục nên phù hợp với hoàn cảnh và sở thích của bạn, Mith luôn ủng hộ bạn!"
+        };
+        String[] slimBodyAdvices = {
+                "Nếu bạn có thân hình gầy, hãy chọn trang phục sáng màu hoặc họa tiết sọc ngang để trông đầy đặn hơn.",
+                "Người gầy nên mặc áo khoác nhiều lớp hoặc áo sweater để tạo cảm giác cân đối hơn.",
+                "Hãy ưu tiên quần jogger hoặc jeans ống đứng kết hợp với áo thun vừa vặn để tránh cảm giác quá mảnh mai."
+        };
+        String[] chubbyBodyAdvices = {
+                "Nếu bạn hơi mập, nên chọn trang phục tối màu và đơn giản để tạo cảm giác thon gọn hơn.",
+                "Chọn áo có cổ chữ V và form vừa vặn, tránh mặc đồ quá bó hoặc quá rộng.",
+                "Áo sơ mi sọc dọc và quần jeans tối màu là lựa chọn lý tưởng để che khuyết điểm vùng bụng."
+        };
+        String[] shortHeightAdvices = {
+                "Nam thấp nên ưu tiên trang phục đơn sắc, tránh phối quá nhiều lớp để tạo hiệu ứng kéo dài.",
+                "Quần cạp cao và áo gọn gàng giúp thân hình trông cao hơn.",
+                "Chọn giày tăng chiều cao hoặc sneaker đế dày cũng là một mẹo nhỏ hữu ích."
+        };
+        String[] tallHeightAdvices = {
+                "Nếu bạn cao, hãy thử áo oversize hoặc quần ống rộng để cân đối vóc dáng.",
+                "Áo khoác trench coat hoặc áo bomber rất hợp với người cao, mang lại vẻ nam tính và thời thượng.",
+                "Bạn có thể thoải mái thử nhiều phong cách, từ basic đến layer – chiều cao là lợi thế đấy!"
+        };
+        String[] selectedAdvices;
+
+        // Chuyển về chữ thường để so sánh
+        String q = message.toLowerCase();
+
+        if (q.contains("dự tiệc") || q.contains("dạ tiệc") || q.contains("tiệc")) {
+            selectedAdvices = partyAdvices;
+        } else if (q.contains("đi làm") || q.contains("công sở") || q.contains("văn phòng")) {
+            selectedAdvices = workAdvices;
+        } else if (q.contains("đi chơi")) {
+            selectedAdvices = casualAdvices;
+        } else if (q.contains("đi cà phê") || q.contains("đi cafe")) {
+            selectedAdvices = cafeAdvices;
+        } else if (q.contains("trời mưa") || q.contains("mưa")) {
+            selectedAdvices = rainyAdvices;
+        } else if (q.contains("trời nóng") || q.contains("nắng") || q.contains("oi bức")) {
+            selectedAdvices = hotWeatherAdvices;
+        } else if (q.contains("trời lạnh") || q.contains("lạnh") || q.contains("gió mùa")) {
+            selectedAdvices = coldWeatherAdvices;
+        } else if (q.contains("mùa hè") || q.contains("hè")) {
+            selectedAdvices = summerAdvices;
+        } else if (q.contains("mùa đông") || q.contains("đông")) {
+            selectedAdvices = winterAdvices;
+        } else if (q.contains("gầy") || q.contains("thon") || q.contains("ốm")) {
+            selectedAdvices = slimBodyAdvices;
+        } else if (q.contains("mập") || q.contains("tròn") || q.contains("đầy đặn") || q.contains("bụng to")) {
+            selectedAdvices = chubbyBodyAdvices;
+        } else if (q.contains("thấp") || q.contains("nấm lùn") || q.contains("chân ngắn") || q.contains("lùn")) {
+            selectedAdvices = shortHeightAdvices;
+        } else if (q.contains("cao")) {
+            selectedAdvices = tallHeightAdvices;
+        } else {
+            selectedAdvices = fallbackAdvices;
+        }
+
+        int idx = new Random().nextInt(selectedAdvices.length);
+        String aiResponse = selectedAdvices[idx];
+
+        // 2. Lấy sản phẩm phù hợp (dựa trên keyword = message để filter)
+        // Lọc sản phẩm dựa trên entities
+        List<Product> allProducts = productRepository.findAll();
+
+        if (allProducts == null || allProducts.isEmpty()) {
+            aiResponse += " (Hiện tại chưa có sản phẩm phù hợp)";
+            return buildJsonResponse(aiResponse);
+        }
+
+        return buildJsonResponse(aiResponse);
+
+    }
+    private String buildJsonResponse(String aiResponse) {
+        Map<String, String> result = new HashMap<>();
+        result.put("aiResponse", aiResponse);
+        try {
+            return new ObjectMapper().writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Lỗi xử lý dữ liệu JSON: " + e.getMessage() + "\"}";
+        }
+    }
 }
