@@ -11,6 +11,7 @@ import org.example.fashion_web.backend.dto.EmailRequest;
 import org.example.fashion_web.backend.dto.OrderDto;
 import org.example.fashion_web.backend.models.CartItems;
 import org.example.fashion_web.backend.models.Order;
+import org.example.fashion_web.backend.models.OrderItem;
 import org.example.fashion_web.backend.models.User;
 import org.example.fashion_web.backend.repositories.OrderRepository;
 import org.example.fashion_web.backend.utils.CurrencyFormatter;
@@ -71,19 +72,19 @@ public class EmailService {
         return response;
     }
 
-    public String buildOrderConfirmationEmail(User user, OrderDto paymentInfo, List<CartItems> cartItems) {
+    public String buildOrderConfirmationEmail(User user, Order paymentInfo, List<OrderItem> orderItems) {
         Context context = new Context();
         context.setVariable("userName", user.getName());
         context.setVariable("orderId", paymentInfo.getId());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        context.setVariable("orderDate", paymentInfo.getCreated_at().format(formatter));
+        context.setVariable("orderDate", paymentInfo.getCreatedAt().format(formatter));
 
         context.setVariable("shippingAddress", paymentInfo.getShippingAddress());
         context.setVariable("paymentMethod", paymentInfo.getPaymentMethod());
         context.setVariable("totalAmount", CurrencyFormatter.formatVND(paymentInfo.getTotalPrice()));
 
         StringBuilder productHtml = new StringBuilder();
-        for (CartItems item : cartItems) {
+        for (OrderItem item : orderItems) {
             BigDecimal total = item.getPricePerUnit().multiply(BigDecimal.valueOf(item.getQuantity()));
             productHtml.append("<div class='item'>")
                     .append("- ").append(item.getProduct().getName())

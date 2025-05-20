@@ -35,7 +35,6 @@
               <!-- Sản phẩm trong giỏ hàng -->
               <th:block th:each="item : ${cartItems}">
               <div class="d-flex align-items-center mb-2 text-black">
-                <input type="checkbox" checked class="me-2">
                 <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
                      th:src="@{${productImages[item.product.id][0]}}"
                      class="img-fluid rounded-3"
@@ -123,6 +122,14 @@
   <script th:src="@{/assets/js/plugin/sweetalert/sweetalert.min.js}"></script>
   <!-- Popup session timeout SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script th:inline="javascript" th:if="${swalTitle != null and swalMessage != null}">
+    Swal.fire({
+      icon: [[${swalTitle} == 'Lỗi' ? 'error' : 'success']],
+      title: [[${swalTitle}]],
+      text: [[${swalMessage}]],
+      confirmButtonText: 'Đóng'
+    });
+  </script>
 
   <script>
     const sessionTimeoutMs = 20 * 60 * 1000;

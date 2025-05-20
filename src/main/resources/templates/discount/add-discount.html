@@ -16,22 +16,43 @@
             <form th:action="@{/admin/discounts/add}" method="post" th:object="${discountForm}" onsubmit="return validateDates()">
                 <div class="mb-3">
                     <label class="form-label">Tên chương trình giảm giá:</label>
-                    <input type="text" class="form-control" th:field="*{name}" placeholder="Ví dụ: Giảm giá mùa hè">
+                    <input type="text"
+                           class="form-control"
+                           th:field="*{name}"
+                           placeholder="Ví dụ: Giảm giá mùa hè"
+                           required
+                           pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ\s]+$"
+                           title="Chỉ nhập chữ và khoảng trắng, không có ký tự đặc biệt hoặc số" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Mức giảm giá (%):</label>
-                    <input type="number" class="form-control" th:field="*{discountPercent}" placeholder="VD: 10" min="0" max="100" />
+                    <input type="number"
+                           class="form-control"
+                           th:field="*{discountPercent}"
+                           placeholder="VD: 10"
+                           min="0"
+                           max="100"
+                           required
+                           title="Mức giảm giá phải từ 0 đến 100%" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Ngày bắt đầu:</label>
-                    <input type="date" class="form-control" th:field="*{startDate}" />
+                    <input type="date"
+                           class="form-control"
+                           th:field="*{startDate}"
+                           id="startDate"
+                           required />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Ngày kết thúc:</label>
-                    <input type="date" class="form-control" th:field="*{endDate}" />
+                    <input type="date"
+                           class="form-control"
+                           th:field="*{endDate}"
+                           id="endDate"
+                           required />
                 </div>
 
                 <div class="mb-3">
@@ -45,7 +66,6 @@
                 <div class="mb-3">
                     <label class="form-label">Áp dụng cho:</label>
                     <select class="form-control" id="applyType" name="applyType" onchange="toggleApplyTarget()">
-                        <option value="">-- Chọn kiểu áp dụng --</option>
                         <option value="product">Sản phẩm</option>
                         <option value="category">Loại hàng</option>
                     </select>
@@ -73,5 +93,20 @@
         </div>
     </div>
 </div>
+<script>
+    function validateDates() {
+        const startDate = new Date(document.getElementById('startDate').value);
+        const endDate = new Date(document.getElementById('endDate').value);
+
+        if (isNaN(startDate) || isNaN(endDate)) return false;
+
+        if (endDate <= startDate) {
+            alert("Ngày kết thúc phải lớn hơn ngày bắt đầu.");
+            return false;
+        }
+        return true;
+    }
+</script>
+
 </body>
 </html>

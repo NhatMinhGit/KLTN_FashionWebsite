@@ -65,9 +65,12 @@ public class CartManagementController {
 
         }
         totalOrderPrice = cartItemService.getTotalPrice(cart);
+
         model.addAttribute("totalOrderPrice", cartItemService.getTotalPrice(cart));
         model.addAttribute("productImages", productImages);
         model.addAttribute("cartItems", cart);
+        model.addAttribute("countCart", cart.size());
+
         System.out.println("Items cart sau khi load trang cart: " + cart);
         return "cart/cart";
     }

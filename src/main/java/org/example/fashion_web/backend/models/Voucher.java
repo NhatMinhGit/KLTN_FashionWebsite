@@ -39,7 +39,7 @@ public class Voucher {
     private LocalDate endDate;
 
     @Column(name = "usage_limit", nullable = false)
-    private Integer usageLimit = 1;
+    private Integer usageLimit;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", updatable = false)
     private LocalDateTime createdAt;

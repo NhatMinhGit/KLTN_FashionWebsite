@@ -96,33 +96,32 @@ public class GeminiService {
     private final WebClient webClient = WebClient.builder().build();
 
 
-    public String chatWithAI(String message,boolean isAdmin) {
+    public String chatWithAI(String message, boolean isAdmin) {
         // Chuẩn hóa câu hỏi
         String normalizedMessage = message.replaceAll("[^a-zA-Z0-9À-ỹ ]", "").trim();
 
         // Truy vấn sản phẩm liên quan đến câu hỏi
         List<Product> relatedProducts = productRepository.findByNameContaining(normalizedMessage);
-        if (relatedProducts.isEmpty()) {
-            return "{\"error\": \"Không tìm thấy sản phẩm nào liên quan.\"}";
-        }
-        
-        String productInfo;
-        if (isAdmin) {
-            // Dành cho admin
-            Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
-            productInfo = generateProductInfoForStaff(relatedProducts, productVariantImages);
-        } else {
-            // Dành cho user
-            Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(relatedProducts);
-            productInfo = generateProductInfo(relatedProducts, productVariantImagesWithSize);
-        }
 
-        // Tạo câu hỏi gửi đến AI cùng với dữ liệu từ database
-        String prompt = "Người dùng hỏi: '" + message + "'.\n\nDữ liệu từ hệ thống:\n" + productInfo + "\n\nHãy phản hồi thông minh dựa trên thông tin có sẵn.";
+        String productInfo = "";
+        String prompt;
+
+        if (relatedProducts.isEmpty()) {
+            // Không tìm thấy sản phẩm - tạo prompt khác cho AI
+            prompt = "Người dùng hỏi: '" + message + "'.<br><br>Hiện tại không tìm thấy sản phẩm nào liên quan đến câu hỏi này.<br><br>Hãy phản hồi thông minh dựa trên thông tin có sẵn.";
+        } else {
+            if (isAdmin) {
+                Map<Long, Map<Long, List<String>>> productVariantImages = prepareProductVariantImages(relatedProducts);
+                productInfo = generateProductInfoForStaff(relatedProducts, productVariantImages);
+            } else {
+                Map<Long, Map<Long, Map<Long, List<String>>>> productVariantImagesWithSize = prepareProductVariantImagesWithSize(relatedProducts);
+                productInfo = generateProductInfo(relatedProducts, productVariantImagesWithSize);
+            }
+            prompt = "Người dùng hỏi: '" + message + "'.<br><br>Dữ liệu từ hệ thống:<br>" + productInfo + "<br><br>Hãy phản hồi thông minh dựa trên thông tin có sẵn.";
+        }
 
         String url = GEMINI_API_URL + "?key=" + geminiConfig.getApiKey();
 
-        // Tạo JSON yêu cầu
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(Map.of("text", prompt)))
@@ -138,9 +137,9 @@ public class GeminiService {
                     .bodyToMono(String.class)
                     .block();
 
-            // Kiểm tra phản hồi từ Gemini API
             JSONObject jsonResponse = new JSONObject(response);
             String aiResponse;
+
             if (jsonResponse.has("candidates")) {
                 aiResponse = jsonResponse
                         .getJSONArray("candidates")
@@ -153,10 +152,9 @@ public class GeminiService {
                         .replaceAll("\\*\\s\\*\\*(.*?)\\*\\*", "<br><strong>$1</strong><br>")
                         .replaceAll("\\*\\s", "<br>- ");
             } else {
-                aiResponse = "API không trả về phản hồi hợp lệ!";
+                aiResponse = "Hiện Mith đang trong quá trình phát triển nên vẫn còn một vài lỗi và không hiểu được một số từ khóa. Mong bạn thông cảm.";
             }
 
-            // Gộp aiResponse và productInfo thành JSON trả về
             Map<String, String> result = new HashMap<>();
             result.put("aiResponse", aiResponse);
 
@@ -524,26 +522,6 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
         }
         // Chuyển tất cả ký tự thành chữ thường và loại bỏ ký tự không phải chữ cái, chữ số và khoảng trắng
         return input.toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").trim();
-    }
-
-
-    private String extractEntityFromMessage(String message, String entityName) {
-        // Dùng regex giống controller để lấy entity từ message
-        Pattern pattern;
-        if ("month".equals(entityName)) {
-            pattern = Pattern.compile("(tháng\\s*(\\d{1,2}))|(\\b(0?[1-9]|1[0-2])\\b)");
-        } else if ("year".equals(entityName)) {
-            pattern = Pattern.compile("năm\\s*(\\d{4})|(\\b20\\d{2}\\b)");
-        } else {
-            return null;
-        }
-
-        Matcher matcher = pattern.matcher(message.toLowerCase());
-        if (matcher.find()) {
-            return matcher.group(2) != null ? matcher.group(2) : matcher.group(1);
-        }
-
-        return null;
     }
 
     public String checkMonthlyRevenue(String message) {
