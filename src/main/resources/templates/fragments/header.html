@@ -122,6 +122,14 @@
   <script th:src="@{/assets/js/plugin/sweetalert/sweetalert.min.js}"></script>
   <!-- Popup session timeout SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script th:inline="javascript" th:if="${swalTitle != null and swalMessage != null}">
+    Swal.fire({
+      icon: [[${swalTitle} == 'Lỗi' ? 'error' : 'success']],
+      title: [[${swalTitle}]],
+      text: [[${swalMessage}]],
+      confirmButtonText: 'Đóng'
+    });
+  </script>
 
   <script>
     const sessionTimeoutMs = 20 * 60 * 1000;

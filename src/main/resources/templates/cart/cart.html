@@ -107,7 +107,7 @@
                     <p class="fw-bold">Tổng đơn hàng</p>
                     <p class="fw-bold" th:text="${@currencyFormatter.formatVND(totalOrderPrice)}">471.000đ</p>
                 </div>
-                <a th:href="@{/user/order}" class="btn btn-dark w-100 mb-3">THANH TOÁN</a>
+                <a th:href="@{/user/order}" class="btn btn-dark w-100 mb-3" id="checkoutBtn">THANH TOÁN</a>
                 <a th:href="@{/user/shop}" class="btn btn-outline-dark w-100">TIẾP TỤC MUA SẮM</a>
             </div>
         </div>

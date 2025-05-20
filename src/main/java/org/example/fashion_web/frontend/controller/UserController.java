@@ -81,13 +81,18 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+
             // Người dùng đã đăng nhập -> chuyển hướng sang trang phù hợp
             if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
+                redirectAttributes.addFlashAttribute("swalTitle", "Thành công");
+                redirectAttributes.addFlashAttribute("swalMessage", "Đã đăng nhập thành công!");
                 return "redirect:/admin";
             } else {
+                redirectAttributes.addFlashAttribute("swalTitle", "Thành công");
+                redirectAttributes.addFlashAttribute("swalMessage", "Đã đăng nhập thành công!");
                 return "redirect:/user";
             }
         }

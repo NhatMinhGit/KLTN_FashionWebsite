@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -106,31 +107,39 @@ public class UserOrderController {
 
     @PostMapping("/user/user-order/{orderId}/cancel")
     @ResponseBody
-    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId,
-                                              @AuthenticationPrincipal CustomUserDetails userDetail) {
+    public String cancelOrder(@PathVariable Long orderId,
+                                              @AuthenticationPrincipal CustomUserDetails userDetail,
+                                              RedirectAttributes redirectAttributes) {
         Order order = orderRepository.findById(orderId)
                 .orElse(null);
 
         if (order == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy đơn hàng.");
+            redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+            redirectAttributes.addFlashAttribute("swalMessage", "Không tìm thấy đơn hàng!");
+            return "redirect:/user/user-order";
         }
 
         if (!order.getUser().getId().equals(userDetail.getUser().getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền hủy đơn hàng này.");
+            redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+            redirectAttributes.addFlashAttribute("swalMessage", "Bạn không được hủy đơn này!");
+            return "redirect:/user/user-order";
         }
 
         if (order.getStatus() != Order.OrderStatusType.PENDING &&
                 order.getStatus() != Order.OrderStatusType.PAYING &&
                     order.getStatus() != Order.OrderStatusType.PAID) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Đơn hàng không thể hủy ở trạng thái hiện tại.");
+            redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+            redirectAttributes.addFlashAttribute("swalMessage", "Không tìm thấy đơn hàng!");
+            return "redirect:/user/user-order";
         }
 
         order.setStatus(Order.OrderStatusType.CANCELLED);
         List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(orderId);
         getProductBack(orderItems);
         orderRepository.save(order);
-
-        return ResponseEntity.ok("Đơn hàng đã được hủy thành công.");
+        redirectAttributes.addFlashAttribute("swalTitle", "Thành công");
+        redirectAttributes.addFlashAttribute("swalMessage", "Đơn hàng đã hủy thành công!");
+        return "redirect:/user/user-order";
     }
 
     private List<Order> filterByStatus(List<Order> orders, Order.OrderStatusType status) {

@@ -149,7 +149,8 @@ public class ProfileController {
         try {
             userRepository.save(user);
             userProfileRepository.save(userProfile);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật hồ sơ thành công!");
+            redirectAttributes.addFlashAttribute("swalTitle", "Cập nhật thành công");
+            redirectAttributes.addFlashAttribute("swalMessage", "Cập nhật hồ sơ thành công!");
             return "redirect:/user/profile";
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật hồ sơ! Vui lòng thử lại.");

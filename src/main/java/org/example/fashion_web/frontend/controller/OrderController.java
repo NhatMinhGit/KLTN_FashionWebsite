@@ -248,7 +248,7 @@ public class OrderController {
     }
     @PostMapping("/user/order/checkout")
     @Transactional(rollbackFor = Exception.class)
-    public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail, HttpServletRequest request) {
+    public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         try {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
             List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
@@ -256,12 +256,15 @@ public class OrderController {
             // Add validation
             if (paymentInfo != null || userDetail != null) {
             } else {
+                redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+                redirectAttributes.addFlashAttribute("swalMessage", "Thông tin thanh toán không hợp lệ!");
                 throw new RuntimeException("Sesstion rỗng, chưa đăng nhập, cart Rỗng");
             }
 
             // Validate order total
             if (paymentInfo.getTotalPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                model.addAttribute("errorMessage", "Invalid order total");
+                redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+                redirectAttributes.addFlashAttribute("swalMessage", "Đơn hàng bé hơn 0!");
                 return "redirect:/user/order";
             }
 
@@ -270,7 +273,8 @@ public class OrderController {
 
             List<Order> orders = orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
             if (!orders.isEmpty()) {
-                throw new RuntimeException("Còn đơn hàng chưa thanh toán!");
+                redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+                redirectAttributes.addFlashAttribute("swalMessage", "Còn đơn hàng chưa thanh toán");
 //                model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
 //                return "redirect:/user/user-order";
             }
@@ -278,6 +282,8 @@ public class OrderController {
             if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || address == "Chưa cập nhật!") {
 //                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
 //                return "redirect:/user/order";
+                redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+                redirectAttributes.addFlashAttribute("swalMessage", "Chưa cập nhật đầy đủ thông tin giao hàng!");
                 throw new RuntimeException("Chưa cập nhật đầy đủ thông tin giao hàng!");
             }
 
@@ -327,6 +333,8 @@ public class OrderController {
             session.removeAttribute("paymentOrderId");
             session.removeAttribute("cartItems");
             session.removeAttribute("paymentInfo");
+            redirectAttributes.addFlashAttribute("swalTitle", "Cập nhật thành công");
+            redirectAttributes.addFlashAttribute("swalMessage", "Đơn hàng đã được thành toán thành công!");
             orderService.notifyNewOrders(List.of(newOrder));
             return "order/order-confirmination";
 
@@ -381,10 +389,12 @@ public class OrderController {
         try {
             userRepository.save(user);
             userProfileRepository.save(userProfile);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật hồ sơ thành công!");
+            redirectAttributes.addFlashAttribute("swalTitle", "Cập nhật thành công");
+            redirectAttributes.addFlashAttribute("swalMessage", "Cập nhật hồ sơ thành công!");
             return "redirect:/user/order";
         } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật hồ sơ! Vui lòng thử lại.");
+            redirectAttributes.addFlashAttribute("swalTitle", "Lỗi");
+            redirectAttributes.addFlashAttribute("swalMessage", "Lỗi khi cập nhật hồ sơ! Vui lòng thử lại.");
             return "redirect:/user/order";
         }
     }

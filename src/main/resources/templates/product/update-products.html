@@ -25,20 +25,44 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                Thông Tin Sản Phẩm (Vui lòng nhập không dấu)
+                Thông Tin Sản Phẩm
             </div>
             <div class="card-body">
                 <div class="mb-3">
                     <label for="productName" class="form-label">Tên sản phẩm:</label>
-                    <input type="text" class="form-control" id="productName" th:field="*{name}" required pattern="^[a-zA-Z0-9\s]+$" placeholder="Áo sơ mi" title="Tên sản phẩm chỉ chứa chữ cái, số và khoảng trắng">
+                    <input type="text"
+                           class="form-control"
+                           id="productName"
+                           th:field="*{name}"
+                           required
+                           minlength="2"
+                           pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ0-9\s]+$"
+                           title="Tên sản phẩm phải có ít nhất 2 ký tự và không chứa ký tự đặc biệt"
+                           placeholder="Áo sơ mi" />
                 </div>
                 <div class="mb-3">
                     <label for="price" class="form-label">Giá sản phẩm:</label>
-                    <input type="number" class="form-control" id="price" th:field="*{price}" required min="0" step="0.01" placeholder="##.###,## VND" title="Giá sản phẩm phải là số dương">
+                    <input type="number"
+                           class="form-control"
+                           id="price"
+                           th:field="*{price}"
+                           required
+                           min="0"
+                           step="0.01"
+                           placeholder="##.###,## VND"
+                           title="Giá sản phẩm phải là số không âm" />
                 </div>
                 <div class="mb-3">
                     <label for="description" class="form-label">Mô tả sản phẩm:</label>
-                    <input type="text" class="form-control" id="description" th:field="*{description}" required placeholder="Là 1 cái áo sơ mi" title="Mô tả sản phẩm không được để trống">
+                    <input type="text"
+                           class="form-control"
+                           id="description"
+                           th:field="*{description}"
+                           required
+                           minlength="10"
+                           pattern=".*\S.*"
+                           title="Mô tả phải có ít nhất 10 ký tự và không được để trống"
+                           placeholder="Là 1 cái áo sơ mi" />
                 </div>
                 <div class="mb-3">
                     <label for="category" class="form-label">Danh mục:</label>

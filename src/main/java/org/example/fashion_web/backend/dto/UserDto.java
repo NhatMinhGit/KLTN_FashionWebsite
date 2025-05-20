@@ -13,14 +13,14 @@ public class UserDto {
     private Long id;
 
     @Pattern(
-            regexp = "^[A-Z][a-z]+( [A-Z][a-z]+)+$",
+            regexp = "^([A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ]+)(\\s+[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ]+)+$   ",
             message = "Tên phải có ít nhất hai từ, mỗi từ bắt đầu bằng chữ in hoa và không chứa ký tự đặc biệt"
     )
     private String name;
 
     @Pattern(
-            regexp = "^[a-zA-Z0-9]{6}@gmail\\.com$",
-            message = "Email phải có đúng 6 ký tự chữ hoặc số trước '@gmail.com' và không chứa ký tự đặc biệt khác"
+            regexp = "^[a-zA-Z0-9]{6,}@gmail\\.com$",
+            message = "Email phải có ít nhất 6 ký tự chữ hoặc số trước '@gmail.com' và không chứa ký tự đặc biệt khác"
     )
     private String email;
 

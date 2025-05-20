@@ -35,12 +35,25 @@
           <input type="hidden" th:field="*{id}" id="userId">
           <div class="mb-3">
             <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="name" th:field="*{user.name}" required>
+            <input type="text"
+                   class="form-control"
+                   id="name"
+                   th:field="*{user.name}"
+                   required
+                   pattern="^([A-Za-zÀ-ỹ]+)(\s+[A-Za-zÀ-ỹ]+)+$"
+                   title="Họ và tên phải gồm ít nhất 2 từ, không chứa số hoặc ký tự đặc biệt">
           </div>
           <div class="mb-3">
             <label for="phoneNumber" class="form-label">Số điện thoại</label> <span
                   class="text-danger">*</span>
-            <input type="text" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" required>
+            <input type="text"
+                   class="form-control"
+                   id="phoneNumber"
+                   th:field="*{phoneNumber}"
+                   required
+                   pattern="^0\d{9}$"
+                   title="Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0">
+
           </div>
           <div class="mb-3">
             <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
@@ -78,7 +91,15 @@
 
           <div class="mb-3">
             <label for="address" class="form-label">Tòa nhà, số nhà, tên đường</label>
-            <input type="text" class="form-control" id="address" th:field="*{address}">
+            <input type="text"
+                   class="form-control"
+                   id="address"
+                   th:field="*{address}"
+                   required
+                   pattern=".*\S.*"
+                   minlength="5"
+                   title="Vui lòng nhập địa chỉ cụ thể (ít nhất 5 ký tự)">
+
           </div>
           <div class="d-flex justify-content-between">
             <button type="submit" class="btn btn-primary align-end" id="btnUpdate">Cập nhật</button>
