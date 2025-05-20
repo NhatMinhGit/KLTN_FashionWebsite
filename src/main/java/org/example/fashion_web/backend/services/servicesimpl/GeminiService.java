@@ -412,7 +412,7 @@ private String generateProductInfo(List<Product> relatedProducts, Map<Long, Map<
     public String checkPriceAndCategory(String message,Boolean isAdmin) {
         String lowerCaseMessage = message.toLowerCase();
 
-// --- Bước 1: Tách giá ---
+        // --- Bước 1: Tách giá ---
         Pattern pattern = Pattern.compile("(\\d+[\\.,]?\\d*)\\s*(nghìn|k|tr|triệu|tỷ)?", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(lowerCaseMessage);
 
