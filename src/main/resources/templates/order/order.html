@@ -456,6 +456,13 @@
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(paymentData)
+    }).then(response => {
+      if (response.ok) {
+        // Sau khi save thành công, submit form
+        form.submit();
+      } else {
+        alert("Lỗi khi lưu thông tin thanh toán");
+      }
     })
             .catch(error => console.error("Lỗi:", error));
   }

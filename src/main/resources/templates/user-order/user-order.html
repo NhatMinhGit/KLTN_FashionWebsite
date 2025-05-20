@@ -254,13 +254,14 @@
                           </div>
                         </div>
                         <div class="text-end mt-3">
-                            <button class="btn btn-primary btn-sm ms-2"
-                                    th:if="${order.status.name() == 'PAYING'}"
-                                    th:onclick="'window.location.href=\'/user/order/continue-payment\';'">
-                                Thanh toán lại
-                            </button>
+                          <button class="btn btn-primary btn-sm ms-2"
+                                  th:if="${order.status.name() == 'PAYING'}"
+                                  th:onclick="'window.location.href=\'/user/order/continue-payment?id=' + ${order.id} + '\';'">
+                            Thanh toán lại
+                          </button>
 
-                            <button class="btn btn-danger btn-sm cancel-order-btn"
+
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
                                   th:id="'cancel-btn-' + ${order.id}"
                                   th:data-order-id="${order.id}"
                                   th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">
@@ -468,13 +469,13 @@
                           </div>
                         </div>
                         <div class="text-end mt-3">
-                            <button class="btn btn-primary btn-sm ms-2"
-                                    th:if="${order.status.name() == 'PAYING'}"
-                                    th:onclick="'window.location.href=\'/user/order/continue-payment\';'">
-                                Thanh toán lại
-                            </button>
+                          <button class="btn btn-primary btn-sm ms-2"
+                                  th:if="${order.status.name() == 'PAYING'}"
+                                  th:onclick="'window.location.href=\'/user/order/continue-payment?id=' + ${order.id} + '\';'">
+                            Thanh toán lại
+                          </button>
 
-                            <button class="btn btn-danger btn-sm cancel-order-btn"
+                          <button class="btn btn-danger btn-sm cancel-order-btn"
                                   th:id="'cancel-btn-' + ${order.id}"
                                   th:data-order-id="${order.id}"
                                   th:if="${order.status.name() == 'PENDING' or order.status.name() == 'PAYING' or order.status.name() == 'PAID'}">

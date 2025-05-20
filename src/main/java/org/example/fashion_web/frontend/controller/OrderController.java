@@ -247,16 +247,16 @@ public class OrderController {
         return ResponseEntity.ok(paymentInfo);
     }
     @PostMapping("/user/order/checkout")
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public String checkoutOrder(HttpSession session, Model model, @AuthenticationPrincipal CustomUserDetails userDetail, HttpServletRequest request) {
         try {
             OrderDto paymentInfo = (OrderDto) session.getAttribute("paymentInfo");
             List<CartItems> cartItems = (List<CartItems>) session.getAttribute("cartItems");
 
             // Add validation
-            if (paymentInfo == null || userDetail == null || cartItems == null || cartItems.isEmpty()) {
-                model.addAttribute("errorMessage", "Invalid order information");
-                return "redirect:/user/user-order";
+            if (paymentInfo != null || userDetail != null) {
+            } else {
+                throw new RuntimeException("Sesstion rỗng, chưa đăng nhập, cart Rỗng");
             }
 
             // Validate order total
@@ -270,14 +270,17 @@ public class OrderController {
 
             List<Order> orders = orderService.findOrdersByUserAndStatusIn(user, Collections.singletonList(Order.OrderStatusType.PAYING));
             if (!orders.isEmpty()) {
-                model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
-                return "redirect:/user/user-order";
+                throw new RuntimeException("Còn đơn hàng chưa thanh toán!");
+//                model.addAttribute("errorMessage", "Bạn vẫn còn đơn hàng chưa thanh toán! Nếu bạn muốn thay đổi thông tin đơn hàng hãy hủy đơn trước đó nhé");
+//                return "redirect:/user/user-order";
             }
             UserProfile userProfile = userProfileService.findByUserId(userDetail.getUser().getId());
             if (userProfile.getAddress() == null || userProfile.getPhoneNumber() == null || address == "Chưa cập nhật!") {
-                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
-                return "redirect:/user/order";
+//                model.addAttribute("errorMessage", "Vẫn còn đơn hàng chưa thanh toán!");
+//                return "redirect:/user/order";
+                throw new RuntimeException("Chưa cập nhật đầy đủ thông tin giao hàng!");
             }
+
             Order newOrder = new Order();
             newOrder.setUser(user);
             newOrder.setOrderDate(LocalDate.now());
@@ -286,133 +289,44 @@ public class OrderController {
             newOrder.setPaymentMethod(paymentInfo.getPaymentMethod());
             newOrder.setCreatedAt(LocalDateTime.now());
             //lưu thông tin vào dto (gửi email)
-            paymentInfo.setCreated_at(newOrder.getCreatedAt());
+//            paymentInfo.setCreated_at(newOrder.getCreatedAt());
+//lưu payment vào database
 
             if (paymentInfo.getPaymentMethod().equals("CASH")) {
                 newOrder.setStatus(Order.OrderStatusType.PENDING);
                 orderRepository.save(newOrder);
-                paymentInfo.setId(newOrder.getId());
-                //lưu payment vào database
-                Payment payment = new Payment();
-                payment.setOrder(newOrder);
-                payment.setPaymentMethod(Payment.PaymentMethodType.valueOf(paymentInfo.getPaymentMethod()));
-                payment.setPaymentDate(LocalDateTime.now());
-                payment.setPaymentStatus(String.valueOf(0));
-                paymentRepository.save(payment);
+//                paymentInfo.setId(newOrder.getId());
+                saveOrderData(user, newOrder, cartItems, paymentInfo);
+
             } else if (paymentInfo.getPaymentMethod().equals("BANK_TRANSFER")) {
                 //bắt lỗi nếu người dùng chưa thực hiện xong thanh toán trước đó
                 newOrder.setStatus(Order.OrderStatusType.PAYING);
                 orderRepository.save(newOrder);
-
-                // lưu orderitem vào database
-                for (CartItems item : cartItems) {
-                    OrderItem orderItem = new OrderItem(
-                            newOrder,
-                            item.getProduct(),
-                            item.getSize(),
-                            item.getVariant(),
-                            item.getQuantity(),
-                            item.getPricePerUnit()
-                    );
-
-                    orderItemRepository.save(orderItem);
-                }
-
+                saveOrderData(user, newOrder, cartItems, paymentInfo);
                 // Tạo URL thanh toán VNPAY
                 String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-                String vnpayUrl = vnPayService.createOrder(session, request, newOrder.getId(), baseUrl);
+                String vnpayUrl = vnPayService.createOrder(request, newOrder.getId(), baseUrl);
                 //Lưu orderid để xử lý vnpay
                 session.setAttribute("paymentOrderId", newOrder.getId()); // Lưu orderId
                 return "redirect:" + vnpayUrl;
             }
-
-            // lưu orderitem vào database
-            for (CartItems item : cartItems) {
-                OrderItem orderItem = new OrderItem(
-                        newOrder,
-                        item.getProduct(),
-                        item.getSize(),
-                        item.getVariant(),
-                        item.getQuantity(),
-                        item.getPricePerUnit()
-                );
-
-                Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
-
-                productOpt.ifPresentOrElse(product -> {
-                    // Tìm variant tương ứng với sản phẩm
-                    Optional<ProductVariant> variantOpt = product.getVariants().stream()
-                            .filter(variant -> variant.getId().equals(item.getVariant().getId())) // so sánh theo ID variant
-                            .findFirst();
-
-                    variantOpt.ifPresentOrElse(variant -> {
-                        // Thay vì lấy từ variant.getSizes(), gọi sizeService
-                        List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
-                        Optional<Size> sizeOpt = sizes.stream()
-                                .filter(size -> size.getId().equals(item.getSize().getId()))// So sánh theo ID size
-                                .findFirst();
-
-                        sizeOpt.ifPresentOrElse(size -> {
-                            if (size.getStockQuantity() >= item.getQuantity()) {
-//                                size.setStockQuantity(size.getStockQuantity() - item.getQuantity()); // Giảm tồn kho size
-                                size.setStockQuantity(size.getStockQuantity());
-                                sizeRepository.save(size); // Lưu lại size đã cập nhật
-                            } else {
-                                throw new RuntimeException("Not enough stock for size: " + size.getSizeName());
-                            }
-                        }, () -> {
-                            throw new RuntimeException("Size not found for variant: " + variant.getColor());
-                        });
-
-                    }, () -> {
-                        throw new RuntimeException("Variant not found for product: " + product.getName());
-                    });
-
-                }, () -> {
-                    throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
-                });
-                orderItemRepository.save(orderItem);
-            }
-
-            // lưu voucher user vào database
-            if (!paymentInfo.getVoucherCode().isEmpty()) {
-                UserVoucher userVoucher = new UserVoucher();
-                userVoucher.setUser(user);
-                userVoucher.setOrder(newOrder);
-                Voucher voucher = voucherRepository.findByVoucherCode(paymentInfo.getVoucherCode());
-                voucher.setUsageLimit(voucher.getUsageLimit() - 1);
-                voucherRepository.save(voucher);
-                userVoucher.setVoucher(voucher);
-                userVoucher.setUsedDate(LocalDateTime.now());
-                userVoucherRepository.save(userVoucher);
-                Optional<UserVoucherAssignment> assignmentOpt =
-                        userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
-
-                if (assignmentOpt.isPresent()) {
-                    UserVoucherAssignment assignment = assignmentOpt.get();
-                    assignment.setIsUsed(true);
-                    assignment.setAssignedAt(LocalDateTime.now());// hoặc setIsUsed(true) nếu dùng chuẩn JavaBeans
-                    userVoucherAssignmentRepository.save(assignment);
-                }
-            }
-
-
-            // Gửi email
+            List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(newOrder.getId());
             try {
-                String htmlContent = emailService.buildOrderConfirmationEmail(user, paymentInfo, cartItems);
+                String htmlContent = emailService.buildOrderConfirmationEmail(user, newOrder, orderItems);
                 EmailRequest emailRequest = new EmailRequest(user.getEmail(), "Xác nhận đơn hàng #" + newOrder.getId(), htmlContent);
                 Response response = emailService.sendEmail(emailRequest, user.getEmail());
 
                 if (response.getStatusCode() != 200 && response.getStatusCode() != 202) {
                     System.out.println("❌ Gửi email thất bại: " + response.getStatusCode());
                 }
-                session.removeAttribute("paymentOrderId");
-                session.removeAttribute("cartItems");
-                session.removeAttribute("paymentInfo");
+
             } catch (Exception e) {
                 System.out.println("❌ Lỗi khi gửi email: " + e.getMessage());
             }
             //thông báo có đơn hàng mới
+            session.removeAttribute("paymentOrderId");
+            session.removeAttribute("cartItems");
+            session.removeAttribute("paymentInfo");
             orderService.notifyNewOrders(List.of(newOrder));
             return "order/order-confirmination";
 
@@ -472,6 +386,52 @@ public class OrderController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật hồ sơ! Vui lòng thử lại.");
             return "redirect:/user/order";
+        }
+    }
+
+    public void saveOrderData(User user,Order newOrder, List<CartItems> cartItems, OrderDto paymentInfo) {
+        // lưu orderitem vào database
+        List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(newOrder.getId());
+        if (orderItems.isEmpty()) {
+            for (CartItems item : cartItems) {
+                OrderItem orderItem = new OrderItem(
+                        newOrder,
+                        item.getProduct(),
+                        item.getSize(),
+                        item.getVariant(),
+                        item.getQuantity(),
+                        item.getPricePerUnit()
+                );
+                orderItemRepository.save(orderItem);
+            }
+        }
+        Payment payment = new Payment();
+        payment.setOrder(newOrder);
+        payment.setPaymentMethod(Payment.PaymentMethodType.valueOf(paymentInfo.getPaymentMethod()));
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setPaymentStatus(String.valueOf(0));
+        paymentRepository.save(payment);
+
+        //lọc voucher
+        if (!paymentInfo.getVoucherCode().isEmpty()) {
+            UserVoucher userVoucher = new UserVoucher();
+            userVoucher.setUser(user);
+            userVoucher.setOrder(newOrder);
+            Voucher voucher = voucherRepository.findByVoucherCode(paymentInfo.getVoucherCode());
+            voucher.setUsageLimit(voucher.getUsageLimit() - 1);
+            voucherRepository.save(voucher);
+            userVoucher.setVoucher(voucher);
+            userVoucher.setUsedDate(LocalDateTime.now());
+            userVoucherRepository.save(userVoucher);
+            Optional<UserVoucherAssignment> assignmentOpt =
+                    userVoucherAssignmentRepository.findByUserIdAndVoucherId(user.getId(), voucher.getId());
+
+            if (assignmentOpt.isPresent()) {
+                UserVoucherAssignment assignment = assignmentOpt.get();
+                assignment.setIsUsed(true);
+                assignment.setAssignedAt(LocalDateTime.now());// hoặc setIsUsed(true) nếu dùng chuẩn JavaBeans
+                userVoucherAssignmentRepository.save(assignment);
+            }
         }
     }
 }

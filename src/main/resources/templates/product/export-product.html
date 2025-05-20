@@ -18,7 +18,7 @@
         <!-- Thông tin sản phẩm -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <strong>Thông Tin Sản Phẩm</strong> (Vui lòng nhập không dấu)
+                <strong>Thông Tin Sản Phẩm</strong>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -100,7 +100,8 @@
                                        th:name="${'variantUnitPrices[' + variant.id + ']' }"
                                        class="form-control"
                                        min="0"
-                                       placeholder="Giá nhập"/>
+                                       placeholder="Giá nhập"
+                                       required />
 
                                 <input type="number"
                                        class="form-control"
@@ -108,7 +109,8 @@
                                        th:name="${'variantSizes[' + variant.id + '][' + size + ']'}"
                                        value="0"
                                        min="0"
-                                       placeholder="Nhập thêm"/>
+                                       placeholder="Nhập thêm"
+                                       required />
                             </div>
                         </div>
                     </div>

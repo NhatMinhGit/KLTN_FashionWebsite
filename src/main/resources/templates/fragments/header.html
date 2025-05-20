@@ -35,7 +35,6 @@
               <!-- Sản phẩm trong giỏ hàng -->
               <th:block th:each="item : ${cartItems}">
               <div class="d-flex align-items-center mb-2 text-black">
-                <input type="checkbox" checked class="me-2">
                 <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
                      th:src="@{${productImages[item.product.id][0]}}"
                      class="img-fluid rounded-3"

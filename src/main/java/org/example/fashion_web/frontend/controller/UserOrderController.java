@@ -2,14 +2,8 @@ package org.example.fashion_web.frontend.controller;
 
 import org.example.fashion_web.backend.dto.OrderItemDto;
 import org.example.fashion_web.backend.models.*;
-import org.example.fashion_web.backend.repositories.ImageRepository;
-import org.example.fashion_web.backend.repositories.OrderItemRepository;
-import org.example.fashion_web.backend.repositories.OrderRepository;
-import org.example.fashion_web.backend.repositories.VoucherRepository;
-import org.example.fashion_web.backend.services.FeedBackService;
-import org.example.fashion_web.backend.services.ImageService;
-import org.example.fashion_web.backend.services.OrderService;
-import org.example.fashion_web.backend.services.VoucherService;
+import org.example.fashion_web.backend.repositories.*;
+import org.example.fashion_web.backend.services.*;
 import org.example.fashion_web.backend.services.servicesimpl.CustomUserDetails;
 import org.example.fashion_web.backend.utils.CurrencyFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +32,7 @@ public class UserOrderController {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
-    private VoucherRepository voucherRepository;
-
-    @Autowired
-    private VoucherService voucherService;
-
-    @Autowired
     private CurrencyFormatter currencyFormatter;
-
-    @Autowired
-    private ImageService imageService;
 
     @Autowired
     private OrderService orderService;
@@ -57,6 +42,15 @@ public class UserOrderController {
 
     @Autowired
     private ImageRepository imageRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private SizeService sizeService;
+
+    @Autowired
+    private SizeRepository sizeRepository;
 
     @GetMapping("user/user-order")
     public String userOrderIndex(Model model,
@@ -132,6 +126,8 @@ public class UserOrderController {
         }
 
         order.setStatus(Order.OrderStatusType.CANCELLED);
+        List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(orderId);
+        getProductBack(orderItems);
         orderRepository.save(order);
 
         return ResponseEntity.ok("Đơn hàng đã được hủy thành công.");
@@ -145,6 +141,40 @@ public class UserOrderController {
     }
 
 
+    public void getProductBack(List<OrderItem> orderItems) {
+        for (OrderItem item : orderItems) {
+            Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
+
+            productOpt.ifPresentOrElse(product -> {
+                // Tìm variant tương ứng với sản phẩm
+                Optional<ProductVariant> variantOpt = product.getVariants().stream()
+                        .filter(variant -> variant.getId().equals(item.getVariant().getId())) // so sánh theo ID variant
+                        .findFirst();
+
+                variantOpt.ifPresentOrElse(variant -> {
+                    // Thay vì lấy từ variant.getSizes(), gọi sizeService
+                    List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                    Optional<Size> sizeOpt = sizes.stream()
+                            .filter(size -> size.getId().equals(item.getSize().getId()))// So sánh theo ID size
+                            .findFirst();
+
+                    sizeOpt.ifPresentOrElse(size -> {
+                        size.setStockQuantity(size.getStockQuantity() + item.getQuantity()); // Giảm tồn kho size
+                        size.setStockQuantity(size.getStockQuantity());
+                        sizeRepository.save(size); // Lưu lại size đã cập nhật
+                    }, () -> {
+                        throw new RuntimeException("Size not found for variant: " + variant.getColor());
+                    });
+
+                }, () -> {
+                    throw new RuntimeException("Variant not found for product: " + product.getName());
+                });
+
+            }, () -> {
+                throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
+            });
+        }
+    }
 
     @PostMapping("/user/user-order/{orderId}/update-deadline")
     @ResponseBody

@@ -22,10 +22,17 @@
     <h2 class="mb-4">Thêm tài khoản khách hàng</h2>
     <form id="addUserForm" method="post" th:object="${userDto}">
         <div class="mb-3">
-            <label for="name" class="form-label">Tên <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="name" th:field="${userDto.name}">
+            <label for="name" class="form-label">Họ và Tên <span class="text-danger">*</span></label>
+            <input type="text"
+                   class="form-control"
+                   id="name"
+                   th:field="*{name}"
+                   required
+                   pattern="^([A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ]+)(\s+[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ]+)+$"
+                   title="Tên phải gồm từ 2 từ trở lên, không chứa số hoặc ký tự đặc biệt" />
             <p th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></p>
         </div>
+
         <div class="mb-3">
             <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
             <input type="email" class="form-control" id="email" th:field="${userDto.email}">

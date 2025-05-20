@@ -30,15 +30,15 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label for="productName" class="form-label">Tên sản phẩm:</label>
-                    <input type="text" class="form-control" id="productName" th:field="*{name}" required placeholder="Áo sơ mi" />
+                    <input type="text" class="form-control" id="productName" th:field="*{name}" required pattern="^[a-zA-Z0-9\s]+$" placeholder="Áo sơ mi" title="Tên sản phẩm chỉ chứa chữ cái, số và khoảng trắng">
                 </div>
                 <div class="mb-3">
                     <label for="price" class="form-label">Giá sản phẩm:</label>
-                    <input type="number" class="form-control" id="price" th:field="*{price}" required placeholder="##.###,## VND" />
+                    <input type="number" class="form-control" id="price" th:field="*{price}" required min="0" step="0.01" placeholder="##.###,## VND" title="Giá sản phẩm phải là số dương">
                 </div>
                 <div class="mb-3">
                     <label for="description" class="form-label">Mô tả sản phẩm:</label>
-                    <input type="text" class="form-control" id="description" th:field="*{description}" required placeholder="Là 1 cái áo sơ mi" />
+                    <input type="text" class="form-control" id="description" th:field="*{description}" required placeholder="Là 1 cái áo sơ mi" title="Mô tả sản phẩm không được để trống">
                 </div>
                 <div class="mb-3">
                     <label for="category" class="form-label">Danh mục:</label>
@@ -78,7 +78,7 @@
                                        th:id="${'size_' + variant.id + '_' + size}"
                                        th:name="${'variantSizes[' + variant.id + '][' + size + ']'}"
                                        th:value="${variantSizeQuantities[variant.id] != null ? variantSizeQuantities[variant.id].get(size) : 0}"
-                                       min="0" placeholder="0">
+                                       min="0" placeholder="0" required />
                             </div>
                         </div>
                     </div>
@@ -239,6 +239,38 @@
 
 
 
+</script>
+<script>
+    document.querySelector('form').addEventListener('submit', function(event) {
+        let valid = true;
+        let errorMessages = [];
+
+        // Kiểm tra tất cả các trường nhập số (số lượng và giá nhập)
+        document.querySelectorAll('input[type="number"]').forEach(function(input) {
+            const value = input.value;
+            if (value === "") {
+                return;
+            }
+            if (isNaN(value) || Number(value) < 0) {
+                valid = false;
+                errorMessages.push(`Giá trị không hợp lệ tại trường: ${input.placeholder || input.name}`);
+            }
+        });
+
+        // Kiểm tra ảnh nhập vào
+        const imageInputs = document.querySelectorAll('input[type="file"]');
+        imageInputs.forEach(function(input) {
+            if (input.files.length === 0) {
+                valid = false;
+                errorMessages.push("Bạn phải chọn ít nhất một ảnh.");
+            }
+        });
+
+        if (!valid) {
+            event.preventDefault();
+            alert(errorMessages.join("\n"));
+        }
+    });
 </script>
 </body>
 </html>

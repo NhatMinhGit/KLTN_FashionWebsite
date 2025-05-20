@@ -32,8 +32,11 @@
 
                     <div class="mb-3">
                         <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="name" th:field="*{user.name}" required>
+                        <input type="text" class="form-control" id="name" th:field="*{user.name}" required
+                               pattern="^[A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ\s]+$"
+                               title="Tên chỉ bao gồm chữ cái và khoảng trắng, và phải có ít nhất 2 từ." />
                     </div>
+
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
@@ -42,8 +45,10 @@
 
                     <div class="mb-3">
                         <label for="dob" class="form-label">Ngày sinh</label>
-                        <input type="date" class="form-control" id="dob" th:field="*{dob}" required>
+                        <input type="date" class="form-control" id="dob" th:field="*{dob}" required max="${T(java.time.LocalDate).now().minusYears(16)}"
+                               title="Tuổi phải lớn hơn 16 tuổi." />
                     </div>
+
 
                     <div class="mb-3">
                         <label for="phoneNumber" class="form-label">Số điện thoại</label>
@@ -242,6 +247,39 @@
         }
     });
 
+</script>
+<script>
+    document.getElementById("editProfileForm").addEventListener("submit", function(event) {
+        var name = document.getElementById("name").value.trim();
+        var dob = document.getElementById("dob").value;
+        var errorMessages = [];
+
+        // Kiểm tra tên có ít nhất 2 từ
+        var nameParts = name.split(" ");
+        if (nameParts.length < 2) {
+            errorMessages.push("Tên phải gồm ít nhất 2 từ.");
+        }
+
+        // Kiểm tra tuổi lớn hơn 16
+        if (dob) {
+            var birthDate = new Date(dob);
+            var age = new Date().getFullYear() - birthDate.getFullYear();
+            var m = new Date().getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && new Date().getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (age < 16) {
+                errorMessages.push("Tuổi phải lớn hơn 16.");
+            }
+        }
+
+        // Nếu có lỗi, hiển thị thông báo và ngừng gửi form
+        if (errorMessages.length > 0) {
+            alert(errorMessages.join("\n"));
+            event.preventDefault();
+        }
+    });
 </script>
 <!--Footer-->
 <div th:replace="~{fragments/footer :: footer}"></div>

@@ -26,21 +26,40 @@
 
         <div class="mb-3">
             <label for="name" class="form-label">Tên <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="name" th:field="*{name}" required>
+            <input type="text"
+                   class="form-control"
+                   id="name"
+                   th:field="*{name}"
+                   required
+                   pattern="^([A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ]+)(\s+[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ]+)+$"
+                   title="Tên phải gồm từ 2 từ trở lên, không chứa số hoặc ký tự đặc biệt." />
             <p th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></p>
         </div>
+
         <div class="mb-3">
             <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-            <input type="email" class="form-control" id="email" th:field="*{email}" required>
+            <input type="email"
+                   class="form-control"
+                   id="email"
+                   th:field="*{email}"
+                   required
+                   title="Vui lòng nhập email hợp lệ." />
             <p th:if="${#fields.hasErrors('email')}" class="text-danger" th:errors="*{email}"></p>
         </div>
+
         <div class="mb-3 text-start">
             <label for="password" class="form-label">Mật khẩu (để trống nếu không thay đổi)</label>
             <div class="position-relative">
-                <input type="password" class="form-control" id="password" name="password">
+                <input type="password"
+                       class="form-control"
+                       id="password"
+                       name="password"
+                       minlength="6"
+                       title="Mật khẩu phải có ít nhất 6 ký tự nếu nhập." />
                 <span class="toggle-password" onclick="togglePassword()">👁</span>
             </div>
         </div>
+
         <div class="mb-3">
             <label for="role" class="form-label">Vai trò <span class="text-danger">*</span></label>
             <select class="form-control" id="role" required th:field="*{role}">
@@ -49,6 +68,7 @@
             </select>
             <p th:if="${#fields.hasErrors('role')}" class="text-danger" th:errors="*{role}"></p>
         </div>
+
         <div class="d-flex justify-content-between">
             <a href="/admin/account" class="btn btn-secondary">Quay lại</a>
             <button type="submit" class="btn btn-primary">Cập nhật</button>

@@ -93,7 +93,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="item : ${cartItems}">
+                    <tr th:each="item : ${orderItems}">
                         <td>
                             <img th:if="${#lists.size(productImages[item.product.id]) > 0}"
                                  th:src="@{${productImages[item.product.id][0]}}"

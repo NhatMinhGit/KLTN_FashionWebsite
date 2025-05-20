@@ -25,7 +25,7 @@
                         <input type="text" class="form-control" name="sizes[0].sizeName" placeholder="Kích thước" required>
                     </div>
                     <div class="col">
-                        <input type="number" class="form-control" name="sizes[0].stockQuantity" placeholder="Số lượng" required>
+                        <input type="number" class="form-control" name="sizes[0].stockQuantity" placeholder="Số lượng" required min="0">
                     </div>
                 </div>
             </div>
@@ -37,22 +37,22 @@
 </div>
 
 <script>
-    // JavaScript để thêm dòng kích thước và số lượng
     let sizeCount = 1;
     document.getElementById("addSizeRow").addEventListener("click", function() {
         let sizeRow = document.createElement("div");
         sizeRow.classList.add("form-row", "mt-2");
         sizeRow.innerHTML = `
-                <div class="col">
-                    <input type="text" class="form-control" name="sizes[${sizeCount}].sizeName" placeholder="Kích thước" required>
-                </div>
-                <div class="col">
-                    <input type="number" class="form-control" name="sizes[${sizeCount}].stockQuantity" placeholder="Số lượng" required>
-                </div>
-            `;
+        <div class="col">
+            <input type="text" class="form-control" name="sizes[${sizeCount}].sizeName" placeholder="Kích thước" required>
+        </div>
+        <div class="col">
+            <input type="number" class="form-control" name="sizes[${sizeCount}].stockQuantity" placeholder="Số lượng" required min="0">
+        </div>
+    `;
         document.getElementById("sizes").appendChild(sizeRow);
         sizeCount++;
     });
+
 </script>
 </body>
 </html>

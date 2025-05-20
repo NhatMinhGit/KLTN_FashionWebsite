@@ -18,21 +18,44 @@
         <!-- Thông tin ứng viên -->
         <div class="card mb-4">
             <div class="card-header">
-                Thông Tin Danh Mục Sản Phẩm (Vui lòng nhập không dấu)
+                Thông Tin Danh Mục Sản Phẩm
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label for="categoryName" class="form-label">Tên sản phẩm:</label>
-                    <input type="text" class="form-control" id="categoryName" th:field="*{category_name}" required placeholder="Áo sơ mi" />
+                    <label for="categoryName" class="form-label">Tên danh mục sản phẩm:</label>
+                    <input type="text"
+                           class="form-control"
+                           id="categoryName"
+                           th:field="*{category_name}"
+                           required
+                           pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưẠ-ỹ\s]+$"
+                           placeholder="Áo sơ mi"
+                           title="Chỉ nhập chữ cái tiếng Việt và khoảng trắng, không chứa số hoặc ký tự đặc biệt" />
                 </div>
+
+
                 <div class="mb-3">
                     <label for="description" class="form-label">Mô tả sản phẩm:</label>
-                    <input type="text" class="form-control" id="description" th:field="*{description}" required placeholder="Là 1 cái áo sơ mi" />
+                    <input type="text"
+                           class="form-control"
+                           id="description"
+                           th:field="*{description}"
+                           required
+                           minlength="5"
+                           placeholder="Là 1 cái áo sơ mi"
+                           title="Vui lòng nhập mô tả tối thiểu 5 ký tự" />
                 </div>
+
                 <label for="category_parent" class="form-label">Danh mục cha:</label>
-                <select class="form-control" id="category_parent" th:field="*{parent_category_name}" required>
-                    <option value="">-- Chọn danh mục cha--</option>
-                    <option th:each="categoryParent : ${categoriesParent}" th:value="${categoryParent.name}" th:text="${categoryParent.name}"></option>
+                <select class="form-control"
+                        id="category_parent"
+                        th:field="*{parent_category_name}"
+                        required>
+                    <option value="">-- Chọn danh mục cha --</option>
+                    <option th:each="categoryParent : ${categoriesParent}"
+                            th:value="${categoryParent.name}"
+                            th:text="${categoryParent.name}">
+                    </option>
                 </select>
             </div>
         </div>

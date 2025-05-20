@@ -1,11 +1,10 @@
 package org.example.fashion_web.backend.services.servicesimpl;
 
 import org.example.fashion_web.backend.dto.OrderStatusDto;
-import org.example.fashion_web.backend.models.Order;
-import org.example.fashion_web.backend.models.User;
-import org.example.fashion_web.backend.repositories.OrderRepository;
-import org.example.fashion_web.backend.repositories.UserRepository;
+import org.example.fashion_web.backend.models.*;
+import org.example.fashion_web.backend.repositories.*;
 import org.example.fashion_web.backend.services.OrderService;
+import org.example.fashion_web.backend.services.SizeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +27,18 @@ public class OrderServiceImpl implements OrderService {
     private SimpMessagingTemplate messagingTemplate;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private SizeService sizeService;
+
+    @Autowired
+    private SizeRepository sizeRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     @Override
     public Order findOrderById(Long id) {
@@ -126,6 +137,39 @@ public class OrderServiceImpl implements OrderService {
         // 3. Cập nhật trạng thái đơn hết hạn => CANCELLED
         for (Order order : expiredOrders) {
             order.setStatus(Order.OrderStatusType.CANCELLED);
+            List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(order.getId());
+            for (OrderItem item : orderItems) {
+                Optional<Product> productOpt = productRepository.findById(item.getProduct().getId());
+
+                productOpt.ifPresentOrElse(product -> {
+                    // Tìm variant tương ứng với sản phẩm
+                    Optional<ProductVariant> variantOpt = product.getVariants().stream()
+                            .filter(variant -> variant.getId().equals(item.getVariant().getId())) // so sánh theo ID variant
+                            .findFirst();
+
+                    variantOpt.ifPresentOrElse(variant -> {
+                        // Thay vì lấy từ variant.getSizes(), gọi sizeService
+                        List<Size> sizes = sizeService.findAllByProductVariantId(variant.getId());
+                        Optional<Size> sizeOpt = sizes.stream()
+                                .filter(size -> size.getId().equals(item.getSize().getId()))// So sánh theo ID size
+                                .findFirst();
+
+                        sizeOpt.ifPresentOrElse(size -> {
+                            size.setStockQuantity(size.getStockQuantity() + item.getQuantity()); // Giảm tồn kho size
+                            size.setStockQuantity(size.getStockQuantity());
+                            sizeRepository.save(size); // Lưu lại size đã cập nhật
+                        }, () -> {
+                            throw new RuntimeException("Size not found for variant: " + variant.getColor());
+                        });
+
+                    }, () -> {
+                        throw new RuntimeException("Variant not found for product: " + product.getName());
+                    });
+
+                }, () -> {
+                    throw new RuntimeException("Product not found with ID: " + item.getProduct().getId());
+                });
+            }
         }
 
         // 4. Lưu tất cả đơn đã bị thay đổi trạng thái
